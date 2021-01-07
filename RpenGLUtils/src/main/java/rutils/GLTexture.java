@@ -1,8 +1,10 @@
 package rutils;
 
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -37,7 +39,7 @@ public class GLTexture
      */
     public GLTexture(int width, int height, int channels)
     {
-        if (channels < 1 || 4 < channels) throw new RuntimeException("Sprites can only have 1-4 channels");
+        if (channels < 1 || 4 < channels) throw new RuntimeException("Textures can only have 1-4 channels");
         
         this.id       = glGenTextures();
         this.width    = width;
@@ -273,26 +275,27 @@ public class GLTexture
         
         stbi_set_flip_vertically_on_load(flip);
         
-        int[] width    = new int[1];
-        int[] height   = new int[1];
-        int[] channels = new int[1];
-        
-        GLTexture texture = new GLTexture(width[0], height[0], channels[0]);
-        
-        if (stbi_info(actualPath, width, height, channels))
+        try (MemoryStack stack = MemoryStack.stackPush())
         {
-            ByteBuffer data = stbi_load(actualPath, width, height, channels, 0);
-            
-            return texture.bind().upload(data).unbind();
-        }
-        else
-        {
-            GLTexture.LOGGER.severe("Failed to load Texture:", filePath);
+            IntBuffer width    = stack.mallocInt(1);
+            IntBuffer height   = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
+    
+            if (stbi_info(actualPath, width, height, channels))
+            {
+                ByteBuffer data = stbi_load(actualPath, width, height, channels, 0);
+        
+                return new GLTexture(width.get(), height.get(), channels.get()).bind().upload(data).unbind();
+            }
+            else
+            {
+                GLTexture.LOGGER.severe("Failed to load Texture:", filePath);
+            }
         }
         
         stbi_set_flip_vertically_on_load(false);
         
-        return texture;
+        return new GLTexture(0, 0, 1);
     }
     
     /**

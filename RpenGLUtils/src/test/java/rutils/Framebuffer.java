@@ -66,8 +66,7 @@ public class Framebuffer
         
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
-        GLVertexArray cubeArray = new GLVertexArray().bind();
-        cubeArray.add(new float[] {
+        GLVertexArray cubeArray = new GLVertexArray().bind().add(new float[] {
                 -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
                 0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
                 0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
@@ -107,32 +106,27 @@ public class Framebuffer
         }, GL.STATIC_DRAW, 3, 2).unbind();
         
         // plane VAO
-        GLVertexArray planeArray = new GLVertexArray().bind();
-        planeArray.add(new float[] {
+        GLVertexArray planeArray = new GLVertexArray().bind().add(new float[] {
                 5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
                 -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
                 -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
                 5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
                 -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
                 5.0f, -0.5f, -5.0f, 2.0f, 2.0f
-        }, GL.STATIC_DRAW, 3, 2);
-        planeArray.unbind();
+        }, GL.STATIC_DRAW, 3, 2).unbind();
         
         // screen quad VAO
-        GLVertexArray quadArray = new GLVertexArray().bind();
-        quadArray.add(new float[] {
+        GLVertexArray quadArray = new GLVertexArray().bind().add(new float[] {
                 -1.0f, 1.0f, 0.0f, 1.0f,
                 -1.0f, -1.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f,
                 1.0f, 1.0f, 1.0f, 1.0f
-        }, GL.STATIC_DRAW, 2, 2);
-        quadArray.addEBO(new int[] {0, 1, 2, 0, 2, 3}, GL.STATIC_DRAW);
-        quadArray.unbind();
+        }, GL.STATIC_DRAW, 2, 2).addEBO(new int[] {0, 1, 2, 0, 2, 3}, GL.STATIC_DRAW).unbind();
         
         // load textures
         // -------------
-        GLTexture cubeTexture  = GLTexture.loadImage("textures/marble.jpg").bind().wrapMode(GL.REPEAT, GL.REPEAT);
-        GLTexture floorTexture = GLTexture.loadImage("textures/metal.png").bind().wrapMode(GL.REPEAT, GL.REPEAT);
+        GLTexture cubeTexture  = GLTexture.loadImage("textures/marble.jpg").bind().wrapMode(GL.REPEAT, GL.REPEAT).unbind();
+        GLTexture floorTexture = GLTexture.loadImage("textures/metal.png").bind().wrapMode(GL.REPEAT, GL.REPEAT).unbind();
         
         // shader configuration
         // --------------------
@@ -144,14 +138,15 @@ public class Framebuffer
         
         // framebuffer configuration
         // -------------------------
-        int framebufferWidth  = SCR_WIDTH / 1;
-        int framebufferHeight = SCR_HEIGHT / 1;
+        int framebufferWidth  = SCR_WIDTH / 2;
+        int framebufferHeight = SCR_HEIGHT / 2;
         int framebuffer       = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         // create a color attachment texture
-        GLTexture texture = new GLTexture(framebufferWidth, framebufferHeight, 3);
-        texture.bind();
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.id(), 0);
+        GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, 3);
+        renderTarget.bind();
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget.id(), 0);
+        
         // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
         int rbo = glGenRenderbuffers();
         glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -181,7 +176,7 @@ public class Framebuffer
             
             // render
             // ------
-            // bind to framebuffer and draw scene as we normally would to color texture
+            // bind to framebuffer and draw scene as we normally would to color renderTarget
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
             glViewport(0, 0, framebufferWidth, framebufferHeight);
             glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
@@ -213,16 +208,16 @@ public class Framebuffer
             shader.setUniform("model", model.identity());
             planeArray.bind().draw(GL.TRIANGLES).unbind();
             
-            // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+            // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color renderTarget
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
             glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
             // clear all relevant buffers
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
             glClear(GL.COLOR_BUFFER_BIT.ref());
-            
+
             screenShader.bind();
-            texture.bind();    // use the color attachment texture as the texture of the quad plane
+            renderTarget.bind();    // use the color attachment renderTarget as the renderTarget of the quad plane
             quadArray.bind().draw(GL.TRIANGLES).unbind();
             
             
