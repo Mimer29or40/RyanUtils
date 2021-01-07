@@ -2,8 +2,11 @@ package rutils;
 
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
+import rutils.gl.GL;
+import rutils.gl.GLShader;
+import rutils.gl.GLTexture;
+import rutils.gl.GLVertexArray;
 
-import java.awt.*;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;

@@ -1,6 +1,10 @@
 package rutils;
 
 import org.joml.Matrix4f;
+import rutils.gl.GL;
+import rutils.gl.GLShader;
+import rutils.gl.GLTexture;
+import rutils.gl.GLVertexArray;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL43.*;

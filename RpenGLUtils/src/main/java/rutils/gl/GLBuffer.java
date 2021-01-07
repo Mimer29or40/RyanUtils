@@ -1,6 +1,7 @@
-package rutils;
+package rutils.gl;
 
 import org.lwjgl.BufferUtils;
+import rutils.Logger;
 
 import java.nio.*;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package rutils;
+package rutils.joml;
 
 import org.joml.*;
 

@@ -1,4 +1,6 @@
-package rutils;
+package rutils.gl;
+
+import rutils.Logger;
 
 import java.util.Objects;
 

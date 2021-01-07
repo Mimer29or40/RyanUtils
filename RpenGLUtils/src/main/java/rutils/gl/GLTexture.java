@@ -1,7 +1,9 @@
-package rutils;
+package rutils.gl;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import rutils.IOUtil;
+import rutils.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;

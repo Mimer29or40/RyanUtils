@@ -1,7 +1,8 @@
-package rutils;
+package rutils.gl;
 
 import org.joml.*;
 import org.lwjgl.system.MemoryStack;
+import rutils.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
