@@ -1,6 +1,5 @@
 package rutils;
 
-import java.awt.*;
 import java.util.Collection;
 
 /**
@@ -12,6 +11,8 @@ import java.util.Collection;
 @SuppressWarnings({"StatementWithEmptyBody", "unused"})
 public class Random extends java.util.Random
 {
+    public static final Random INSTANCE = new Random();
+    
     public Random()
     {
         super();
