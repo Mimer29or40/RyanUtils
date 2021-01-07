@@ -4,7 +4,7 @@ import org.joml.Math;
 import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
 import org.joml.Vector3d;
-import rutils.JOMLUtil;
+import rutils.joml.JOMLUtil;
 
 @SuppressWarnings("unused")
 public class QuaternionInterpolator extends Interpolator<Quaterniond>
