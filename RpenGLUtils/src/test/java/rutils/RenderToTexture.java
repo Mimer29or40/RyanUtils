@@ -261,7 +261,7 @@ public class RenderToTexture extends OpenGLDemo
         glActiveTexture(GL_TEXTURE0);
         this.shader.setUniform("texUnit", 0);
         
-        this.texture = new GLTexture(16, 16, 3);
+        this.texture = new GLTexture(16, 16, GL.RGB);
         ByteBuffer data = BufferUtils.createByteBuffer(this.texture.width() * this.texture.height() * this.texture.channels());
         for (int j = 0; j < this.texture.width(); j++)
         {

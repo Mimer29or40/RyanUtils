@@ -147,7 +147,7 @@ public class Framebuffer
         int framebuffer       = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         // create a color attachment texture
-        GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, 3);
+        GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, GL.RGB);
         renderTarget.bind();
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget.id(), 0);
         
@@ -157,7 +157,7 @@ public class Framebuffer
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebufferWidth, framebufferHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
         // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) System.out.println("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) System.out.println("ERROR::FRAMEBUFFER:: Framebuffer is not complete! " + GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         // draw as wireframe

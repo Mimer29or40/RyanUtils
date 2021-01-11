@@ -1,5 +1,7 @@
 package rutils.gl;
 
+import java.util.HashMap;
+
 import static org.lwjgl.opengl.GL46.*;
 
 /**
@@ -8,6 +10,8 @@ import static org.lwjgl.opengl.GL46.*;
 @SuppressWarnings({"SpellCheckingInspection", "unused"})
 public enum GL
 {
+    NULL(-1),
+    
     // ---------- GL11 ---------- //
     ACCUM(GL_ACCUM),
     LOAD(GL_LOAD),
@@ -1821,6 +1825,13 @@ public enum GL
     
     ;
     
+    private static final HashMap<Long, GL> LOOKUP_MAP = new HashMap<>();
+    
+    static
+    {
+        for (GL gl : GL.values()) GL.LOOKUP_MAP.put(gl.ref, gl);
+    }
+    
     private final long   ref;
     private final String glName;
     
@@ -1847,5 +1858,10 @@ public enum GL
     public String toString()
     {
         return this.glName;
+    }
+    
+    public static GL get(long gl)
+    {
+        return GL.LOOKUP_MAP.getOrDefault(gl, GL.NULL);
     }
 }

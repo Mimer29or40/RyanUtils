@@ -50,6 +50,14 @@ public class GLFrameBuffer
     }
     
     /**
+     * @return The status of the Framebuffer
+     */
+    public GL checkStatus()
+    {
+        return GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    }
+    
+    /**
      * Binds the framebuffer for OpenGL rendering.
      *
      * @return This instance for call chaining.

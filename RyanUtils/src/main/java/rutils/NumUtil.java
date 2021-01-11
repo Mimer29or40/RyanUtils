@@ -87,9 +87,9 @@ public class NumUtil
      * @param value The number.
      * @return The rounded number.
      */
-    public static double round(double value)
+    public static int round(double value)
     {
-        return round(value, 0);
+        return (int) Math.round(value);
     }
     
     /**

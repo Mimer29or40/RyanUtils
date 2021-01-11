@@ -12,6 +12,8 @@ import java.util.Objects;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL30.glActiveTexture;
+import static org.lwjgl.opengl.GL43.glCopyImageSubData;
+import static org.lwjgl.opengl.GL45.glBlitNamedFramebuffer;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 
@@ -21,11 +23,12 @@ public class GLTexture
     private static final Logger LOGGER = new Logger();
     
     protected final int id;
+    
     protected final int width;
     protected final int height;
-    protected final int channels;
+    protected final GL  format;
     
-    protected final GL format;
+    protected final int channels;
     
     protected GL wrapS     = GL.CLAMP_TO_EDGE;
     protected GL wrapT     = GL.CLAMP_TO_EDGE;
@@ -35,20 +38,19 @@ public class GLTexture
     /**
      * Creates an OpenGL texture.
      *
-     * @param width    The width of the texture.
-     * @param height   The height of the texture.
-     * @param channels The number of channels in the texture.
+     * @param width  The width of the texture.
+     * @param height The height of the texture.
+     * @param format The GL format of the texture.
      */
-    public GLTexture(int width, int height, int channels)
+    public GLTexture(int width, int height, GL format)
     {
-        if (channels < 1 || 4 < channels) throw new RuntimeException("Textures can only have 1-4 channels");
+        this.id = glGenTextures();
         
-        this.id       = glGenTextures();
-        this.width    = width;
-        this.height   = height;
-        this.channels = channels;
+        this.width  = width;
+        this.height = height;
+        this.format = format;
         
-        this.format = getFormat(channels);
+        this.channels = getChannels(this.format);
         
         GLTexture.LOGGER.fine("Generated:", this);
     }
@@ -108,6 +110,8 @@ public class GLTexture
     
     /**
      * Sets the wrap mode for the texture.
+     * <p>
+     * Make sure to bind the texture first.
      *
      * @param wrapS The new wrapS mode.
      * @param wrapT The new wrapT mode.
@@ -118,14 +122,13 @@ public class GLTexture
         this.wrapS = wrapS;
         this.wrapT = wrapT;
         
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, this.wrapS.ref());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, this.wrapT.ref());
-        
-        return this;
+        return applyWrapMode();
     }
     
     /**
      * Sets the filter mode for the texture.
+     * <p>
+     * Make sure to bind the texture first.
      *
      * @param minFilter The new minFilter mode.
      * @param magFilter The new magFilter mode.
@@ -136,10 +139,63 @@ public class GLTexture
         this.minFilter = minFilter;
         this.magFilter = magFilter;
         
+        return applyFilterMode();
+    }
+    
+    /**
+     * Applies the wrap mode to the texture.
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @return This instance for call chaining.
+     */
+    public GLTexture applyWrapMode()
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, this.wrapS.ref());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, this.wrapT.ref());
+        
+        return this;
+    }
+    
+    /**
+     * Applies the filter mode to the texture.
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @return This instance for call chaining.
+     */
+    public GLTexture applyFilterMode()
+    {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.minFilter.ref());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.magFilter.ref());
         
         return this;
+    }
+    
+    /**
+     * Applies the pixel alignment to the texture.
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @return This instance for call chaining.
+     */
+    public GLTexture applyPixelAlignment()
+    {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        
+        return this;
+    }
+    
+    /**
+     * Applies the following texture settings: applyWrapModem applyFilterMode, applyPixelAlignment
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @return This instance for call chaining.
+     */
+    public GLTexture applyTextureSettings()
+    {
+        return applyWrapMode().applyFilterMode().applyPixelAlignment();
     }
     
     /**
@@ -190,24 +246,67 @@ public class GLTexture
         return this;
     }
     
+    /**
+     * @return A new copy of this texture.
+     */
+    public GLTexture copy()
+    {
+        GLTexture other = new GLTexture(this.width, this.height, this.format);
+        
+        other.wrapS = this.wrapS;
+        other.wrapT = this.wrapT;
+        
+        other.minFilter = this.minFilter;
+        other.magFilter = this.magFilter;
+        
+        return copy(other.bind().applyTextureSettings().upload((ByteBuffer) null).unbind());
+    }
+    
+    /**
+     * Copies this texture into the other texture.
+     *
+     * @param other The other texture.
+     * @return The other texture.
+     */
+    public GLTexture copy(GLTexture other)
+    {
+        if (this.width != other.width || this.height != other.height) throw new RuntimeException(String.format("Textures are not same size. (%s, %s) != (%s, %s)", this.width, this.height, other.width, other.height));
+        if (this.format != other.format) throw new RuntimeException(String.format("Textures are not same format. %s != %s", this.format, other.format));
+        
+        glCopyImageSubData(this.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                           other.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                           this.width, this.height, this.channels);
+        
+        return other;
+    }
+    
     // TODO - Copying textures with glBlitNamedFramebuffer(this.id, other.id, 0, 0, this.width, this.height, 0, 0, other.width, other.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     
     /**
      * Uploads the data in the byte buffer to the GPU
+     * <p>
+     * Make sure to bind the texture first.
      *
      * @param data The texture data.
      * @return This instance for call chaining
      */
     public GLTexture upload(ByteBuffer data)
     {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, this.wrapS.ref());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, this.wrapT.ref());
+        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
         
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.minFilter.ref());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.magFilter.ref());
-        
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
+        return this;
+    }
+    
+    /**
+     * Uploads the data in the byte buffer to the GPU
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @param data The texture data.
+     * @return This instance for call chaining
+     */
+    public GLTexture upload(int[] data)
+    {
         glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
         
         return this;
@@ -228,6 +327,20 @@ public class GLTexture
     }
     
     /**
+     * Downloads the texture from the GPU and stores it into the buffer.
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @return This buffer containing the data.
+     */
+    public int[] download(int[] data)
+    {
+        glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
+        
+        return data;
+    }
+    
+    /**
      * Downloads the texture from the GPU and stores it into the array.
      * <p>
      * Make sure to bind the texture first.
@@ -236,11 +349,7 @@ public class GLTexture
      */
     public int[] download()
     {
-        int[] data = new int[this.width * this.height * this.channels];
-        
-        glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
-        
-        return data;
+        return download(new int[this.width * this.height * this.channels]);
     }
     
     /**
@@ -282,12 +391,12 @@ public class GLTexture
             IntBuffer width    = stack.mallocInt(1);
             IntBuffer height   = stack.mallocInt(1);
             IntBuffer channels = stack.mallocInt(1);
-    
+            
             if (stbi_info(actualPath, width, height, channels))
             {
                 ByteBuffer data = stbi_load(actualPath, width, height, channels, 0);
-        
-                return new GLTexture(width.get(), height.get(), channels.get()).bind().upload(data).unbind();
+                
+                return new GLTexture(width.get(), height.get(), getFormat(channels.get())).bind().upload(data).unbind();
             }
             else
             {
@@ -297,7 +406,7 @@ public class GLTexture
         
         stbi_set_flip_vertically_on_load(false);
         
-        return new GLTexture(0, 0, 1);
+        return new GLTexture(0, 0, GL.RED);
     }
     
     /**
@@ -319,6 +428,18 @@ public class GLTexture
                     case 2 -> GL.RG;
                     case 3 -> GL.RGB;
                     default -> GL.RGBA;
+                };
+    }
+    
+    private static int getChannels(GL gl)
+    {
+        return switch (gl)
+                {
+                    case RED, ALPHA, RED_INTEGER, STENCIL_INDEX, DEPTH_COMPONENT -> 1;
+                    case RG, RG_INTEGER, DEPTH_STENCIL -> 2;
+                    case RGB, BGR, RGB_INTEGER, BGR_INTEGER -> 3;
+                    case RGBA, BGRA, RGBA_INTEGER, BGRA_INTEGER -> 4;
+                    default -> throw new RuntimeException("Invalid Texture Format: " + gl);
                 };
     }
 }

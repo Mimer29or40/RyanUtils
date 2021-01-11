@@ -5,25 +5,27 @@
 
 package lwjgl.stb;
 
-import jdk.jshell.execution.Util;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTAlignedQuad;
 import org.lwjgl.stb.STBTTBakedChar;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
 import rutils.IOUtil;
+import rutils.NumUtil;
+import rutils.gl.GL;
+import rutils.gl.GLTexture;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static java.lang.Math.round;
 import static lwjgl.util.IOUtil.ioResourceToByteBuffer;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.stb.STBTruetype.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
+import static rutils.NumUtil.round;
 
 /**
  * STB TrueType demo.
@@ -87,18 +89,17 @@ public final class TrueType extends FontDemo
         new TrueType(filePath).run("STB TrueType Demo");
     }
     
-    private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H)
+    private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H, boolean save)
     {
-        int                   texID = glGenTextures();
+        GLTexture texture = new GLTexture(BITMAP_W, BITMAP_H, GL.RED);
         STBTTBakedChar.Buffer cdata = STBTTBakedChar.malloc(512);
         
         ByteBuffer bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H);
         stbtt_BakeFontBitmap(ttf, getFontHeight() * getContentScaleY(), bitmap, BITMAP_W, BITMAP_H, 32, cdata);
-        
-        glBindTexture(GL_TEXTURE_2D, texID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+        texture.bind().filterMode(GL.LINEAR, GL.LINEAR).applyTextureSettings().upload(bitmap);
+        if (save) texture.saveImage("out/original.png").copy().bind().saveImage("out/copied.png");
+        texture.bind();
         
         glClearColor(43f / 255f, 43f / 255f, 43f / 255f, 0f); // BG color
         glColor3f(169f / 255f, 183f / 255f, 198f / 255f); // Text color
@@ -113,10 +114,10 @@ public final class TrueType extends FontDemo
     @Override
     protected void loop()
     {
-        int BITMAP_W = round(2048 * getContentScaleX());
-        int BITMAP_H = round(2048 * getContentScaleY());
+        int BITMAP_W = NumUtil.round(2048 * getContentScaleX());
+        int BITMAP_H = NumUtil.round(2048 * getContentScaleY());
         
-        STBTTBakedChar.Buffer cdata = init(BITMAP_W, BITMAP_H);
+        STBTTBakedChar.Buffer cdata = init(BITMAP_W, BITMAP_H, false);
         
         while (!glfwWindowShouldClose(getWindow()))
         {
