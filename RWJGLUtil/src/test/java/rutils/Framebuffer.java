@@ -41,7 +41,7 @@ public class Framebuffer
         long window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
         if (window == NULL)
         {
-            System.out.println("Failed to create GLFWApplication window");
+            System.out.println("Failed to create GLFW window");
             glfwTerminate();
             return;
         }
@@ -52,7 +52,7 @@ public class Framebuffer
         glfwSetCursorPosCallback(window, Framebuffer::mouse_callback);
         glfwSetScrollCallback(window, Framebuffer::scroll_callback);
         
-        // tell GLFWApplication to capture our mouse
+        // tell GLFW to capture our mouse
         // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         
         // glad: load all OpenGL function pointers
@@ -241,7 +241,7 @@ public class Framebuffer
     }
     
     
-    // process all input: query GLFWApplication whether relevant keys are pressed/released this frame and react accordingly
+    // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
     // ---------------------------------------------------------------------------------------------------------
     static void processInput(long window)
     {

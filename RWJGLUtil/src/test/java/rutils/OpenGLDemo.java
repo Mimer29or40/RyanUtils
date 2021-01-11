@@ -63,7 +63,7 @@ public abstract class OpenGLDemo
     protected void init(String title)
     {
         GLFWErrorCallback.createPrint().set();
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFWApplication");
+        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -97,7 +97,7 @@ public abstract class OpenGLDemo
         }
         
         this.window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL);
-        if (this.window == NULL) throw new RuntimeException("Failed to create the GLFWApplication window");
+        if (this.window == NULL) throw new RuntimeException("Failed to create the GLFW window");
         
         glfwSetFramebufferSizeCallback(window, this::framebufferSizeCallback);
         

@@ -16,16 +16,16 @@ import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 /**
- * GLFWApplication demo utilities.
+ * GLFW demo utilities.
  */
 public final class GLFWUtil
 {
     private GLFWUtil() { }
     
     /**
-     * Invokes the specified callbacks using the current window and framebuffer sizes of the specified GLFWApplication window.
+     * Invokes the specified callbacks using the current window and framebuffer sizes of the specified GLFW window.
      *
-     * @param window            the GLFWApplication window
+     * @param window            the GLFW window
      * @param windowSizeCB      the window size callback, may be null
      * @param framebufferSizeCB the framebuffer size callback, may be null
      */
