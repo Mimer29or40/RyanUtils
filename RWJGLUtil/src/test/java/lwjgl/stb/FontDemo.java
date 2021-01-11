@@ -180,7 +180,7 @@ abstract class FontDemo
     private void init(String title)
     {
         GLFWErrorCallback.createPrint().set();
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
+        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFWApplication");
         
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -214,7 +214,7 @@ abstract class FontDemo
         }
         
         this.window = glfwCreateWindow(framebufferW, framebufferH, title, NULL, NULL);
-        if (window == NULL) throw new RuntimeException("Failed to create the GLFW window");
+        if (window == NULL) throw new RuntimeException("Failed to create the GLFWApplication window");
         
         glfwSetWindowSizeCallback(window, this::windowSizeChanged);
         glfwSetFramebufferSizeCallback(window, FontDemo::framebufferSizeChanged);
