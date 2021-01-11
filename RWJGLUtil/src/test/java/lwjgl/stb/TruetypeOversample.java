@@ -8,13 +8,14 @@ package lwjgl.stb;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.stb.STBTTAlignedQuad;
 import org.lwjgl.stb.STBTTPackContext;
 import org.lwjgl.stb.STBTTPackedchar;
 import org.lwjgl.system.Callback;
+import rutils.gl.GL;
+import rutils.gl.GLTexture;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -69,7 +70,7 @@ public final class TruetypeOversample
     private int fbw = ww;
     private int fbh = wh;
     
-    private int font_tex;
+    private GLTexture font_tex;
     
     private STBTTPackedchar.Buffer chardata;
     
@@ -96,13 +97,13 @@ public final class TruetypeOversample
     
     private void load_fonts()
     {
-        font_tex = glGenTextures();
+        font_tex = new GLTexture(BITMAP_W, BITMAP_H, GL.ALPHA);
         chardata = STBTTPackedchar.malloc(6 * 128);
         
         try (STBTTPackContext pc = STBTTPackContext.malloc())
         {
             // ByteBuffer ttf = ioResourceToByteBuffer("demo/FiraSans.ttf", 512 * 1024);
-            ByteBuffer ttf = ioResourceToByteBuffer("fonts/BetterPixels-Regular.ttf", 512 * 1024);
+            ByteBuffer ttf = ioResourceToByteBuffer("demo/BetterPixels-Regular.ttf", 512 * 1024);
             
             ByteBuffer bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H);
             
@@ -131,10 +132,11 @@ public final class TruetypeOversample
             chardata.clear();
             stbtt_PackEnd(pc);
             
-            glBindTexture(GL_TEXTURE_2D, font_tex);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            font_tex.bind().upload(bitmap).applyTextureSettings();
+            // glBindTexture(GL_TEXTURE_2D, font_tex);
+            // glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
+            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         }
         catch (IOException e)
         {
@@ -187,7 +189,8 @@ public final class TruetypeOversample
         chardata.position(font * 128);
         
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, font_tex);
+        font_tex.bind();
+        // glBindTexture(GL_TEXTURE_2D, font_tex);
         
         glBegin(GL_QUADS);
         for (int i = 0; i < text.length(); i++)
@@ -307,42 +310,29 @@ public final class TruetypeOversample
         
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if (action == GLFW_RELEASE) return;
-            
+    
             switch (key)
             {
-                case GLFW_KEY_ESCAPE:
-                    glfwSetWindowShouldClose(window, true);
-                    break;
-                case GLFW_KEY_O:
-                    font = (font + 1) % 3 + (font / 3) * 3;
-                    break;
-                case GLFW_KEY_S:
-                    font = (font + 3) % 6;
-                    break;
-                case GLFW_KEY_T:
+                case GLFW_KEY_ESCAPE -> glfwSetWindowShouldClose(window, true);
+                case GLFW_KEY_O -> font = (font + 1) % 3 + (font / 3) * 3;
+                case GLFW_KEY_S -> font = (font + 3) % 6;
+                case GLFW_KEY_T -> {
                     translating = !translating;
                     translate_t = 0.0f;
-                    break;
-                case GLFW_KEY_R:
+                }
+                case GLFW_KEY_R -> {
                     rotating = !rotating;
                     rotate_t = 0.0f;
-                    break;
-                case GLFW_KEY_P:
-                    integer_align = !integer_align;
-                    break;
-                case GLFW_KEY_G:
+                }
+                case GLFW_KEY_P -> integer_align = !integer_align;
+                case GLFW_KEY_G -> {
                     if (!supportsSRGB) break;
-                    
                     srgb = !srgb;
                     if (srgb) { glEnable(GL_FRAMEBUFFER_SRGB); }
                     else { glDisable(GL_FRAMEBUFFER_SRGB); }
-                    break;
-                case GLFW_KEY_V:
-                    show_tex = !show_tex;
-                    break;
-                case GLFW_KEY_B:
-                    black_on_white = !black_on_white;
-                    break;
+                }
+                case GLFW_KEY_V -> show_tex = !show_tex;
+                case GLFW_KEY_B -> black_on_white = !black_on_white;
             }
         });
         
@@ -353,7 +343,7 @@ public final class TruetypeOversample
         
         // Create context
         glfwMakeContextCurrent(window);
-        GL.createCapabilities();
+        org.lwjgl.opengl.GL.createCapabilities();
         debugProc = GLUtil.setupDebugMessageCallback();
         
         glfwSwapInterval(1);
@@ -362,7 +352,7 @@ public final class TruetypeOversample
         glfwInvoke(window, this::windowSizeChanged, this::framebufferSizeChanged);
         
         // Detect sRGB support
-        GLCapabilities caps = GL.getCapabilities();
+        GLCapabilities caps = org.lwjgl.opengl.GL.getCapabilities();
         supportsSRGB = caps.OpenGL30 || caps.GL_ARB_framebuffer_sRGB || caps.GL_EXT_framebuffer_sRGB;
     }
     

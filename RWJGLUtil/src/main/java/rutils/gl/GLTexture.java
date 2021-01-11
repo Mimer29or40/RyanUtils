@@ -13,7 +13,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL30.glActiveTexture;
 import static org.lwjgl.opengl.GL43.glCopyImageSubData;
-import static org.lwjgl.opengl.GL45.glBlitNamedFramebuffer;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 

@@ -25,7 +25,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.stb.STBTruetype.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static rutils.NumUtil.round;
 
 /**
  * STB TrueType demo.
