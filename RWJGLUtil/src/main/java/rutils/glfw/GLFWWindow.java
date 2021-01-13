@@ -7,84 +7,102 @@ import org.joml.Vector2ic;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import rutils.Logger;
 
+import java.util.Objects;
+
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class GLFWWindow
+public class GLFWWindow extends GLFWDevice
 {
     private static final Logger LOGGER = new Logger();
     
     final long handle;
     
+    // ---------- Settable ---------- //
+    
+    final Vector2i pos  = new Vector2i(0);
+    final Vector2i _pos = new Vector2i(0);
+    
+    final Vector2i size  = new Vector2i(0);
+    final Vector2i _size = new Vector2i(0);
+    
+    final Vector2i minSize  = new Vector2i(GLFW_DONT_CARE);
+    final Vector2i _minSize = new Vector2i(GLFW_DONT_CARE);
+    
+    final Vector2i maxSize  = new Vector2i(GLFW_DONT_CARE);
+    final Vector2i _maxSize = new Vector2i(GLFW_DONT_CARE);
+    
+    boolean focused, _focused;
+    boolean windowed, _windowed;
+    boolean vsync, _vsync;
+    int frameRate, _frameRate;
+    
+    String title, _title;
+    
+    // ---------- Derived ---------- //
+    
     GLFWMonitor monitor;
-    GLFWWindow  parent;
     
-    final Vector2i pos     = new Vector2i(0);
-    final Vector2i newPos  = new Vector2i(0);
-    final Vector2i fullPos = new Vector2i(0);
-    boolean posChanged;
+    final Vector2i framebufferSize  = new Vector2i(0);
+    final Vector2i _framebufferSize = new Vector2i(0);
     
-    final Vector2i size     = new Vector2i(0);
-    final Vector2i newSize  = new Vector2i(0);
-    final Vector2i fullSize = new Vector2i(0);
-    boolean sizeChanged;
+    double aspectRatio, fbAspectRatio;
+    boolean aspectChanged, fbAspectChanged;
     
-    final Vector2i minSize = new Vector2i(GLFW_DONT_CARE);
-    final Vector2i maxSize = new Vector2i(GLFW_DONT_CARE);
+    final Matrix4d viewMatrix   = new Matrix4d();
+    final Matrix4d fbViewMatrix = new Matrix4d();
     
-    double  aspectRatio;
-    boolean aspectChanged;
-    double  framebufferAspectRatio;
-    boolean framebufferAspectChanged;
+    // boolean mouseCaptured, _mouseCaptured;
+    boolean lockModsState;
     
-    final Matrix4d viewMatrix            = new Matrix4d();
-    final Matrix4d framebufferViewMatrix = new Matrix4d();
-    
-    final Vector2i framebufferSize    = new Vector2i(0);
-    final Vector2i newFramebufferSize = new Vector2i(0);
-    
-    boolean focused, newFocused;
-    
-    boolean fullscreen, newFullscreen;
-    boolean windowed = true, newWindowed;
-    boolean windowedChanged;
-    boolean vsync = false, newVsync;
-    int targetFrameRate = 60, newTargetFrameRate;
-    
-    String title = "", newTitle;
-    boolean capturedState, lockModsState;
-    
-    GLFWWindow(Builder builder)
+    GLFWWindow(Builder b)
     {
         GLFWWindow.LOGGER.finer("Creating GLFWWindow");
         
-        this.size.set(builder.width, builder.height);
-        this.minSize.set(builder.minWidth, builder.minHeight);
-        this.maxSize.set(builder.maxWidth, builder.maxHeight);
+        this.monitor = b.monitor != null ? this.monitor : GLFW.defaultMonitor();
         
-        this.newTitle   = builder.title;
-        this.fullscreen = builder.fullscreen;
-        
-        this.monitor = builder.monitor != null ? this.monitor : GLFW.defaultMonitor();
-        this.parent  = builder.parent;
-        
-        this.handle = glfwCreateWindow(this.size.x, this.size.y, this.title, this.fullscreen && !this.windowed ? this.monitor.handle() : NULL, this.parent != null ? this.parent.handle() : NULL);
+        this.handle = glfwCreateWindow(b.width, b.height, b.title, b.windowed ? NULL : this.monitor.handle(), b.parent != null ? b.parent.handle() : NULL);
         if (this.handle == NULL) throw new RuntimeException("Failed to create the GLFW window");
         
-        GLFWWindow.LOGGER.finest("GLFWEnum: Checking GLFWWindow Size");
+        if (b.x != null) this.pos.x = this._pos.x = b.x;
+        if (b.y != null) this.pos.y = this._pos.y = b.y;
+        if (b.x != null || b.y != null) glfwSetWindowPos(this.handle, this.pos.x, this.pos.y);
         
-        if (this.fullscreen) this.size.set(this.monitor.size()); // TODO
-        GLFWWindow.LOGGER.finest("GLFWWindow Size: %s", this.size);
+        this.size.set(this._size.set(b.width, b.height));
         
+        this.minSize.set(this._minSize.set(b.minWidth, b.minHeight));
+        this.maxSize.set(this._maxSize.set(b.maxWidth, b.maxHeight));
         glfwSetWindowSizeLimits(this.handle, this.minSize.x, this.minSize.y, this.maxSize.x, this.maxSize.y);
         
-        this.pos.x = builder.x == null ? (this.monitor.width() - this.size.x) >> 1 : builder.x;
-        this.pos.y = builder.y == null ? (this.monitor.height() - this.size.y) >> 1 : builder.y;
-        glfwSetWindowPos(this.handle, this.pos.x, this.pos.y);
+        this.focused   = this._focused = b.focused;
+        this.windowed  = this._windowed = b.windowed;
+        this.vsync     = this._vsync = b.vsync;
+        this.frameRate = this._frameRate = b.frameRate;
         
-        GLFWWindow.LOGGER.fine("GLFWWindow Created");
+        this.title = this._title = b.title;
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GLFWWindow window = (GLFWWindow) o;
+        return this.handle == window.handle;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.handle);
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "GLFWWindow{" + "handle=" + this.handle + '}';
     }
     
     /**
@@ -119,7 +137,7 @@ public class GLFWWindow
      */
     public void pos(int x, int y)
     {
-        this.newPos.set(x, y);
+        this._pos.set(x, y);
     }
     
     /**
@@ -129,7 +147,7 @@ public class GLFWWindow
      */
     public void pos(Vector2ic pos)
     {
-        this.newPos.set(pos);
+        this._pos.set(pos);
     }
     
     /**
@@ -147,7 +165,7 @@ public class GLFWWindow
      */
     public void x(int x)
     {
-        this.newPos.x = x;
+        this._pos.x = x;
     }
     
     /**
@@ -165,7 +183,7 @@ public class GLFWWindow
      */
     public void y(int y)
     {
-        this.newPos.y = y;
+        this._pos.y = y;
     }
     
     /**
@@ -184,7 +202,7 @@ public class GLFWWindow
      */
     public void size(int width, int height)
     {
-        this.newSize.set(width, height);
+        this._size.set(width, height);
     }
     
     /**
@@ -194,7 +212,7 @@ public class GLFWWindow
      */
     public void size(Vector2ic size)
     {
-        this.newSize.set(size);
+        this._size.set(size);
     }
     
     /**
@@ -212,7 +230,7 @@ public class GLFWWindow
      */
     public void width(int width)
     {
-        this.newSize.x = width;
+        this._size.x = width;
     }
     
     /**
@@ -230,7 +248,7 @@ public class GLFWWindow
      */
     public void height(int height)
     {
-        this.newSize.y = height;
+        this._size.y = height;
     }
     
     /**
@@ -254,7 +272,7 @@ public class GLFWWindow
      */
     public double framebufferAspectRatio()
     {
-        return this.framebufferAspectRatio;
+        return this.fbAspectRatio;
     }
     
     /**
@@ -262,7 +280,7 @@ public class GLFWWindow
      */
     public boolean framebufferAspectChanged()
     {
-        return this.framebufferAspectChanged;
+        return this.fbAspectChanged;
     }
     
     /**
@@ -278,7 +296,7 @@ public class GLFWWindow
      */
     public Matrix4dc framebufferViewMatrix()
     {
-        return this.framebufferViewMatrix;
+        return this.fbViewMatrix;
     }
     
     /**
@@ -314,29 +332,11 @@ public class GLFWWindow
     }
     
     /**
-     * @return If the window is in fullscreen mode.
+     * Focuses the window.
      */
-    public boolean fullscreen()
+    public void focus()
     {
-        return this.fullscreen;
-    }
-    
-    /**
-     * Sets whether or not the window is in fullscreen mode.
-     *
-     * @param fullscreen The new fullscreen state.
-     */
-    public void fullscreen(boolean fullscreen)
-    {
-        this.newFullscreen = fullscreen;
-    }
-    
-    /**
-     * Toggles the fullscreen state.
-     */
-    public void toggleFullscreen()
-    {
-        this.newFullscreen = !this.fullscreen;
+        this._focused = true;
     }
     
     /**
@@ -354,7 +354,7 @@ public class GLFWWindow
      */
     public void windowed(boolean windowed)
     {
-        this.newWindowed = windowed;
+        this._windowed = windowed;
     }
     
     /**
@@ -362,7 +362,7 @@ public class GLFWWindow
      */
     public void toggleWindowed()
     {
-        this.newWindowed = !this.windowed;
+        this._windowed = !this.windowed;
     }
     
     /**
@@ -380,7 +380,15 @@ public class GLFWWindow
      */
     public void vsync(boolean vsync)
     {
-        this.newVsync = vsync;
+        this._vsync = vsync;
+    }
+    
+    /**
+     * Toggles the vsync state.
+     */
+    public void toggleVsync()
+    {
+        this._vsync = !this.vsync;
     }
     
     /**
@@ -388,7 +396,7 @@ public class GLFWWindow
      */
     public int targetFrameRate()
     {
-        return this.targetFrameRate;
+        return this.frameRate;
     }
     
     /**
@@ -398,15 +406,7 @@ public class GLFWWindow
      */
     public void targetFrameRate(int targetFrameRate)
     {
-        this.newTargetFrameRate = this.targetFrameRate;
-    }
-    
-    /**
-     * Toggles the vsync state.
-     */
-    public void toggleVsync()
-    {
-        this.newVsync = !this.vsync;
+        this._frameRate = this.frameRate;
     }
     
     /**
@@ -416,7 +416,31 @@ public class GLFWWindow
      */
     public void title(String title)
     {
-        this.newTitle = title;
+        this._title = title;
+    }
+    
+    /**
+     * @return If the window has captured the mouse.
+     */
+    public boolean mouseCaptured()
+    {
+        return GLFW.mouse.captureWindow == this;
+    }
+    
+    /**
+     * Captures the mouse in this window. This will release the mouse from any other window.
+     */
+    public void captureMouse()
+    {
+        GLFW.mouse.capture(this);
+    }
+    
+    /**
+     * Releases the mouse if it was captured by this window.
+     */
+    public void releaseMouse()
+    {
+        if (mouseCaptured()) GLFW.mouse.release();
     }
     
     /**
@@ -425,56 +449,96 @@ public class GLFWWindow
      * @param time  The time since the engine began in nanoseconds.
      * @param delta The time since the last frame in nanoseconds.
      */
-    public void generateEvents(long time, long delta)
+    @Override
+    public void generateGLFWEvents(long time, long delta)
     {
-        if (this.focused != this.newFocused)
-        {
-            this.focused = this.newFocused;
-            // GLFWEvents.post(GLFWEvent.WINDOW_FOCUSED, this.focused); // TODO
-        }
+        boolean updateMonitor     = false;
+        boolean updateMonitorData = false;
         
-        if (this.fullscreen != this.newFullscreen)
+        if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
         {
-            this.fullscreen = this.newFullscreen;
-            // GLFWEvents.post(GLFWEvent.WINDOW_FULLSCREEN, this.fullscreen); // TODO
+            this.pos.set(this._pos);
+            // GLFWEvents.post(GLFWEvent.WINDOW_MOVED, this.pos); // TODO
             
-            if (this.fullscreen)
-            {
-                this.fullPos.set(this.pos);
-                this.fullSize.set(this.size);
-                this.newPos.set(this.monitor.pos());
-                this.newSize.set(this.monitor.size());
-            }
-            else
-            {
-                this.newPos.set(this.fullPos);
-                this.newSize.set(this.fullSize);
-            }
+            GLFW.run(() -> glfwSetWindowPos(this.handle, this.pos.x, this.pos.y));
+            
+            updateMonitor = true;
         }
         
-        if (this.windowed != this.newWindowed)
+        this.aspectChanged = false;
+        
+        if (this.size.x != this._size.x || this.size.y != this._size.y)
         {
-            this.windowed = this.newWindowed;
+            this.size.set(this._size);
+            // GLFWEvents.post(GLFWEvent.WINDOW_RESIZED, this.size); // TODO
+            
+            GLFW.run(() -> glfwSetWindowSize(this.handle, this.size.x, this.size.y));
+            
+            this.aspectRatio   = (double) this.size.x / (double) this.size.y;
+            this.aspectChanged = true;
+            
+            this.viewMatrix.setOrtho(0, this.size.x, this.size.y, 0, -1F, 1F);
+            
+            updateMonitor = true;
+        }
+        
+        if (this.focused != this._focused)
+        {
+            this.focused = this._focused;
+            // GLFWEvents.post(GLFWEvent.WINDOW_FOCUSED, this.focused); // TODO
+            
+            GLFW.run(() -> glfwFocusWindow(this.handle));
+        }
+        
+        if (this.windowed != this._windowed)
+        {
+            this.windowed = this._windowed;
             // GLFWEvents.post(GLFWEvent.WINDOW_WINDOWED, this.windowed); // TODO
             
-            this.windowedChanged = true;
+            updateMonitorData = true;
         }
         
-        if (this.vsync != this.newVsync)
+        if (this.vsync != this._vsync)
         {
-            this.vsync = this.newVsync;
+            this.vsync = this._vsync;
             // GLFWEvents.post(GLFWEvent.WINDOW_VSYNC, this.vsync); // TODO
             
             glfwSwapInterval(this.vsync ? 1 : 0);
+            
+            updateMonitorData = true;
         }
         
-        if (this.pos.x != this.newPos.x || this.pos.y != this.newPos.y)
+        if (this.frameRate != this._frameRate)
         {
-            this.pos.set(this.newPos);
-            // GLFWEvents.post(GLFWEvent.WINDOW_MOVED, this.pos); // TODO
+            this.frameRate = this._frameRate;
+            // GLFWEvents.post(GLFWEvent.WINDOW_FRAME_RATE, this.frameRate); // TODO
             
-            this.posChanged = true;
+            updateMonitorData = true;
+        }
+        
+        if (!this.title.equals(this._title))
+        {
+            this.title = this._title;
+            // GLFWEvents.post(GLFWEvent.WINDOW_TITLE_CHANGED, this.title); // TODO
             
+            GLFW.run(() -> glfwSetWindowTitle(this.handle, this.title));
+        }
+        
+        this.fbAspectChanged = false;
+        
+        if (this.framebufferSize.x != this._framebufferSize.x || this.framebufferSize.y != this._framebufferSize.y)
+        {
+            this.framebufferSize.set(this._framebufferSize);
+            // GLFWEvents.post(GLFWEvent.WINDOW_FRAMEBUFFER_RESIZED, this.frameBufferSize); // TODO
+            
+            this.fbAspectRatio   = (double) this.framebufferSize.x / (double) this.framebufferSize.y;
+            this.fbAspectChanged = true;
+            
+            this.fbViewMatrix.setOrtho(0, this.framebufferSize.x, this.framebufferSize.y, 0, -1F, 1F);
+        }
+        
+        if (updateMonitor)
+        {
             // double next, max = 0.0;
             // for (GLFWMonitor monitor : this.monitors) // TODO
             // {
@@ -484,87 +548,30 @@ public class GLFWWindow
             //         this.monitor = monitor;
             //     }
             // }
+            // GLFWEvents.post(GLFWEvent.WINDOW_MONITOR_CHANGED, this.monitor); // TODO
+            
+            updateMonitorData = true;
         }
         
-        this.aspectChanged = false;
-        
-        if (this.size.x != this.newSize.x || this.size.y != this.newSize.y)
+        if (updateMonitorData)
         {
-            this.size.set(this.newSize);
-            // GLFWEvents.post(GLFWEvent.WINDOW_RESIZED, this.size); // TODO
-            
-            this.aspectRatio   = (double) this.size.x / (double) this.size.y;
-            this.aspectChanged = true;
-            
-            this.viewMatrix.setOrtho(0, this.size.x, this.size.y, 0, -1F, 1F);
-            
-            this.sizeChanged = true;
+            GLFW.run(() -> {
+                // TODO - Fullscreen
+                // this.monitor.refreshRate()
+                long window      = this.windowed ? NULL : this.monitor.handle();
+                int  refreshRate = this.vsync ? this.monitor.refreshRate() : this.frameRate;
+                glfwSetWindowMonitor(this.handle, window, this.pos.x, this.pos.y, this.size.x, this.size.y, refreshRate);
+            });
         }
         
-        this.framebufferAspectChanged = false;
-        
-        if (this.framebufferSize.x != this.newFramebufferSize.x || this.framebufferSize.y != this.newFramebufferSize.y)
-        {
-            this.framebufferSize.set(this.newFramebufferSize);
-            // GLFWEvents.post(GLFWEvent.WINDOW_FRAMEBUFFER_RESIZED, this.frameBufferSize); // TODO
-            
-            this.framebufferAspectRatio   = (double) this.framebufferSize.x / (double) this.framebufferSize.y;
-            this.framebufferAspectChanged = true;
-            
-            this.framebufferViewMatrix.setOrtho(0, this.framebufferSize.x, this.framebufferSize.y, 0, -1F, 1F);
-        }
-    }
-    
-    /**
-     * Processes all pending events. This will call the callback methods.
-     */
-    void processEvents()
-    {
-        // glfwPollEvents();
-        
-        boolean newCapturedState = false;//Mouse.captured(); // TODO
-        boolean newLockModsState = false;//Modifier.lockMods(); // TODO
-        
-        if (newCapturedState != this.capturedState)
-        {
-            glfwSetCursorPos(this.handle, this.size.x * 0.5, this.size.y * 0.5);
-            this.capturedState = newCapturedState;
-            glfwSetInputMode(this.handle, GLFW_CURSOR, this.capturedState ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-        }
+        // boolean newCapturedState = false;//GLFWMouse.captured(); // TODO
+        boolean newLockModsState = GLFWModifier.lockMods();
         
         if (newLockModsState != this.lockModsState)
         {
             this.lockModsState = newLockModsState;
-            glfwSetInputMode(this.handle, GLFW_LOCK_KEY_MODS, this.lockModsState ? GLFW_TRUE : GLFW_FALSE);
-        }
-        
-        if (this.posChanged)
-        {
-            glfwSetWindowPos(this.handle, this.pos.x, this.pos.y);
-            this.posChanged = false;
-        }
-        
-        if (this.sizeChanged)
-        {
-            glfwSetWindowSize(this.handle, this.size.x, this.size.y);
-            this.sizeChanged = false;
-        }
-        
-        if (!this.title.equals(this.newTitle))
-        {
-            this.title = this.newTitle;
-            glfwSetWindowTitle(this.handle, this.title);
-        }
-        
-        if (this.windowedChanged)
-        {
-            // TODO - glfwSetWindowMonitor(long window, long monitor, int xpos, int ypos, int width, int height, int refreshRate)
-            // this.monitor.refreshRate()
-            long window      = this.windowed ? NULL : this.monitor.handle();
-            int  refreshRate = this.vsync ? this.monitor.refreshRate() : this.targetFrameRate;
-            glfwSetWindowMonitor(this.handle, window, 0, 0, this.size.x, this.size.y, refreshRate);
             
-            this.windowedChanged = false;
+            GLFW.run(() -> glfwSetInputMode(this.handle, GLFW_LOCK_KEY_MODS, this.lockModsState ? GLFW_TRUE : GLFW_FALSE));
         }
     }
     
@@ -652,10 +659,9 @@ public class GLFWWindow
     }
     
     @SuppressWarnings("unused")
-    public static class Builder
+    static class Builder
     {
-        private GLFWMonitor monitor = null;
-        private GLFWWindow  parent  = null;
+        private GLFWWindow parent = null;
         
         private Integer x = null;
         private Integer y = null;
@@ -669,9 +675,14 @@ public class GLFWWindow
         private int maxWidth  = GLFW_DONT_CARE;
         private int maxHeight = GLFW_DONT_CARE;
         
-        private boolean fullscreen = false;
+        private boolean focused   = true;
+        private boolean windowed  = true;
+        private boolean vsync     = false;
+        private int     frameRate = 60;
         
         private String title = "";
+        
+        private GLFWMonitor monitor = null;
         
         public Builder parent(GLFWWindow parent)
         {
@@ -775,9 +786,30 @@ public class GLFWWindow
             return this;
         }
         
-        public Builder fullscreen(boolean fullscreen)
+        public Builder focused(boolean focused)
         {
-            this.fullscreen = fullscreen;
+            this.focused = focused;
+            
+            return this;
+        }
+        
+        public Builder windowed(boolean windowed)
+        {
+            this.windowed = windowed;
+            
+            return this;
+        }
+        
+        public Builder vsync(boolean vsync)
+        {
+            this.vsync = vsync;
+            
+            return this;
+        }
+        
+        public Builder frameRate(int frameRate)
+        {
+            this.frameRate = frameRate;
             
             return this;
         }

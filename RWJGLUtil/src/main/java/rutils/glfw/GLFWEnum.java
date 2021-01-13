@@ -230,7 +230,7 @@ public enum GLFWEnum
     MOD_NUM_LOCK(GLFW_MOD_NUM_LOCK),
     
     /**
-     * Mouse buttons. See <a target="_blank" href="http://www.glfw.org/docs/latest/input.html#input_mouse_button">mouse button input</a> for how these are used.
+     * GLFWMouse buttons. See <a target="_blank" href="http://www.glfw.org/docs/latest/input.html#input_mouse_button">mouse button input</a> for how these are used.
      */
     MOUSE_BUTTON_1(GLFW_MOUSE_BUTTON_1),
     MOUSE_BUTTON_2(GLFW_MOUSE_BUTTON_2),
@@ -468,7 +468,7 @@ public enum GLFWEnum
     FOCUS_ON_SHOW(GLFW_FOCUS_ON_SHOW),
     
     /**
-     * Input options.
+     * GLFWInput options.
      */
     CURSOR(GLFW_CURSOR),
     STICKY_KEYS(GLFW_STICKY_KEYS),

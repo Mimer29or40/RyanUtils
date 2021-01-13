@@ -1,4 +1,4 @@
-package rutils.glfw.event;
+package rutils.glfw;
 
 public interface IGLFWEventHandler
 {

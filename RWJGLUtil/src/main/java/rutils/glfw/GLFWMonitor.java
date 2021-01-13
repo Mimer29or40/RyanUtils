@@ -16,7 +16,7 @@ import java.util.Objects;
 import static org.lwjgl.glfw.GLFW.*;
 
 @SuppressWarnings("unused")
-public class GLFWMonitor
+public class GLFWMonitor extends GLFWDevice
 {
     private final long   handle;
     private final int    index;
@@ -35,8 +35,7 @@ public class GLFWMonitor
     
     private final Vector2f scale = new Vector2f();
     
-    private float gamma = 1.0F, newGamma;
-    private boolean gammaChanged;
+    private float gamma, _gamma;
     
     GLFWMonitor(long handle, int index)
     {
@@ -74,6 +73,9 @@ public class GLFWMonitor
             glfwGetMonitorContentScale(this.handle, sx, sy);
             this.scale.set(sx.get(0), sy.get(0));
         }
+        
+        this.gamma = this._gamma = 1.0F;
+        glfwSetGamma(this.handle, this.gamma);
     }
     
     @Override
@@ -328,27 +330,25 @@ public class GLFWMonitor
      */
     public void gamma(float gamma)
     {
-        this.newGamma = gamma;
+        this._gamma = gamma;
     }
     
-    void generateEvents(long time, long delta)
+    
+    /**
+     * Generates the events that are consumed in that frame.
+     *
+     * @param time  The time since the engine was started in nanoseconds.
+     * @param delta The time since the last frame in nanoseconds.
+     */
+    @Override
+    void generateGLFWEvents(long time, long delta)
     {
-        if (Float.compare(this.gamma, this.newGamma) != 0)
+        if (Float.compare(this.gamma, this._gamma) != 0)
         {
-            this.gamma = this.newGamma;
+            this.gamma = this._gamma;
             // GLFWEvents.post(Events.MONITOR_GAMMA, this, this.gamma); // TODO
-            
-            this.gammaChanged = true;
-        }
-    }
-    
-    void processEvents()
-    {
-        if (this.gammaChanged)
-        {
-            glfwSetGamma(this.handle, this.gamma);
-            
-            this.gammaChanged = false;
+        
+            GLFW.run(() -> glfwSetGamma(this.handle, this.gamma));
         }
     }
     
