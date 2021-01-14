@@ -9,7 +9,7 @@ public class VideoMode
 {
     private static final HashMap<Integer, VideoMode> CACHE = new HashMap<>();
     
-    public static VideoMode get(GLFWVidMode vidMode)
+    static VideoMode get(GLFWVidMode vidMode)
     {
         int hash = Objects.hash(vidMode.width(), vidMode.height(), vidMode.redBits(), vidMode.greenBits(), vidMode.blueBits(), vidMode.refreshRate());
         return VideoMode.CACHE.computeIfAbsent(hash, h -> new VideoMode(vidMode));

@@ -11,7 +11,7 @@ public class Test
     
     public static void main(String[] args)
     {
-        Logger.setLevel(Level.FINER);
+        Logger.setLevel(Level.FINEST);
         
         try
         {

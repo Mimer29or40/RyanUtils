@@ -5,11 +5,12 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
 import rutils.Logger;
+import rutils.TaskDelegator;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
@@ -20,12 +21,13 @@ public final class GLFW
     
     private static final Map<Integer, String> ERROR_CODES = APIUtil.apiClassTokens((field, value) -> 0x10000 < value && value < 0x20000, null, org.lwjgl.glfw.GLFW.class);
     
-    private static final CountDownLatch RENDER_THREAD_LATCH = new CountDownLatch(1);
+    public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
     
     private static final LinkedHashMap<Long, Monitor> MONITORS       = new LinkedHashMap<>();
-    private static       Monitor                      defaultMonitor = null;
+    private static       Monitor                      primaryMonitor = null;
     
-    private static boolean mainWindow;
+    private static final LinkedHashMap<Long, Window> WINDOWS    = new LinkedHashMap<>();
+    private static       Window                      mainWindow = null;
     
     private GLFW() {}
     
@@ -33,237 +35,46 @@ public final class GLFW
     
     public static void init()
     {
-        GLFW.LOGGER.finest("GLFW Initialization");
-        
+        GLFW.LOGGER.fine("GLFW Initialization");
+    
+        GLFW.TASK_DELEGATOR.setThread();
+    
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         glfwSetErrorCallback(GLFW::errorCallback);
         glfwSetMonitorCallback(GLFW::monitorCallback);
         glfwSetJoystickCallback(GLFW::joystickCallback);
-        
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    }
     
-    public static void renderThread()
-    {
-        try
-        {
-        }
-        catch (Exception e)
-        {
-            GLFW.LOGGER.severe(e);
-        }
-        finally
-        {
-            GLFW.LOGGER.fine("OpenGL Thread Stopping");
-            
-            org.lwjgl.opengl.GL.destroy();
-            org.lwjgl.opengl.GL.setCapabilities(null);
-            
-            
-            GLFW.RENDER_THREAD_LATCH.countDown();
-        }
+        loadMonitors();
+        GLFW.mainWindow = attachWindow(new Window.Builder().name("WindowMain"));
     }
     
     public static void eventLoop() throws InterruptedException
     {
-        // final CountDownLatch RENDER_THREAD_LATCH = new CountDownLatch(1);
-        //
-        // new Thread(() -> {
-        //     GLFWTests.LOGGER.fine("OpenGL Thread Started");
-        //     GLFWWindow window  = rutils.glfw.GLFW.window();
-        //     GLFWWindow window1 = rutils.glfw.GLFW.window1;
-        //     try
-        //     {
-        //         window.show();
-        //         window1.show();
-        //         window.makeCurrent();
-        //
-        //         org.lwjgl.opengl.GL.createCapabilities();
-        //
-        //         // TextRenderer.init();
-        //         // ShapeRenderer.init();
-        //         // DebugRenderer.init();
-        //
-        //         long t, dt;
-        //         long lastEvent = 0;
-        //         long lastFrame = 0;
-        //         long lastTitle = 0;
-        //
-        //         long frameTime;
-        //         long totalTime = 0;
-        //
-        //         long minTime = Long.MAX_VALUE;
-        //         long maxTime = Long.MIN_VALUE;
-        //
-        //         double d_t, d_dt;
-        //
-        //         int totalFrames = 0;
-        //
-        //         while (!(window = rutils.glfw.GLFW.window()).shouldClose())
-        //         {
-        //             t   = nanoseconds();
-        //             d_t = t / 1_000_000_000D;
-        //
-        //             // profiler.startFrame();
-        //             {
-        //                 dt = t - lastEvent;
-        //                 // try (Section events = profiler.startSection("GLFWEvents"))
-        //                 {
-        //                     d_dt = dt / 1_000_000_000D;
-        //
-        //                     lastEvent = t;
-        //
-        //                     // EngineEvents.clear(); // TODO
-        //
-        //                     // try (Section glfwEvents = profiler.startSection("GLFW Events"))
-        //                     {
-        //                         rutils.glfw.GLFW.generateFrameEvents(t, dt);
-        //                     }
-        //                     if (GLFWKeyboardKey.SPACE.down())
-        //                     {
-        //                         LOGGER.info("PRESSED");
-        //                         window.captureMouse();
-        //                     }
-        //                     if (GLFWKeyboardKey.ESCAPE.down())
-        //                     {
-        //                         LOGGER.info("PRESSED1");
-        //                         window.releaseMouse();
-        //                     }
-        //                     if (GLFWKeyboardKey.Q.down())
-        //                     {
-        //                         LOGGER.info("PRESSED");
-        //                         window1.captureMouse();
-        //                     }
-        //                     if (GLFWKeyboardKey.W.down())
-        //                     {
-        //                         LOGGER.info("PRESSED1");
-        //                         window1.releaseMouse();
-        //                     }
-        //
-        //                     // try (Section mouse = profiler.startSection("Mouse"))
-        //                     // {
-        //                     //     GLFW.mouse().generateEvents(window, t, dt);
-        //                     // }
-        //                     //
-        //                     // try (Section keyboard = profiler.startSection("GLFWKeyboard"))
-        //                     // {
-        //                     //     GLFW.keyboard().generateEvents(t, dt);
-        //                     // }
-        //                     //
-        //                     // try (Section glfwWindow = profiler.startSection("GLFWWindow"))
-        //                     // {
-        //                     //     GLFWWindow.generateEvents(t, dt);
-        //                     // }
-        //
-        //                     // try (Section stateHandling = profiler.startSection("State Handling")) // TODO
-        //                     // {
-        //                     //     for (EngineEvent event : EngineEvents.get())
-        //                     //     {
-        //                     //         GLFWTests.LOGGER.finer("State Handing GLFWEvent:", event);
-        //                     //
-        //                     //         Application.state.handleEvent(d_t, d_dt, event);
-        //                     //     }
-        //                     // }
-        //                 }
-        //
-        //                 dt = t - lastFrame;
-        //                 if (dt > 0) // TODO - Frame limiting
-        //                 {
-        //                     d_dt = dt / 1_000_000_000D;
-        //
-        //                     lastFrame = t;
-        //
-        //                     // try (Section render = profiler.startSection("Render"))
-        //                     {
-        //                         window.updateViewport();
-        //
-        //                         // try (Section state = profiler.startSection("State"))
-        //                         // {
-        //                         //     Application.state.render(d_t, d_dt);
-        //                         // }
-        //
-        //                         // try (Section swap = profiler.startSection("Swap"))
-        //                         {
-        //                             window.swap();
-        //                         }
-        //                     }
-        //
-        //                 }
-        //             }
-        //             // profiler.endFrame();
-        //
-        //             frameTime = nanoseconds() - t;
-        //             minTime   = Math.min(minTime, frameTime);
-        //             maxTime   = Math.max(maxTime, frameTime);
-        //             totalTime += frameTime;
-        //             totalFrames++;
-        //
-        //             dt = t - lastTitle;
-        //             if (dt >= 1_000_000_000L)
-        //             {
-        //                 lastTitle = t;
-        //
-        //                 totalTime /= totalFrames;
-        //
-        //                 // GLFWTests.LOGGER.info("FPS(%s) SPF(Avg: %s us, Min: %s us, Max: %s us)", totalFrames, totalTime / 1000D, minTime / 1000D, maxTime / 1000D);
-        //                 // window.title(String.format());
-        //
-        //                 totalTime = 0;
-        //
-        //                 minTime = Long.MAX_VALUE;
-        //                 maxTime = Long.MIN_VALUE;
-        //
-        //                 totalFrames = 0;
-        //             }
-        //
-        //             Thread.yield();
-        //         }
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         GLFWTests.LOGGER.severe(e);
-        //     }
-        //     finally
-        //     {
-        //         GLFWTests.LOGGER.fine("OpenGL Thread Stopping");
-        //
-        //         org.lwjgl.opengl.GL.destroy();
-        //         org.lwjgl.opengl.GL.setCapabilities(null);
-        //
-        //         window.close();
-        //         window.unmakeCurrent();
-        //
-        //         RENDER_THREAD_LATCH.countDown();
-        //     }
-        //
-        // }, "OpenGL").start();
+        attachWindow(new Window.Builder().name("Second"));
         
-        loadMonitors();
-        
-        // while (GLFW.WINDOWS.size() > 0)
+        while (GLFW.mainWindow.isOpen())
         {
             glfwPollEvents();
             
-            // GLFW.focusedWindow = GLFW.WINDOWS.get(glfwFocusWindow(this.handle);)
+            GLFW.TASK_DELEGATOR.runTasks();
             
-            // while (!GLFW.mainThreadDeque.isEmpty()) GLFW.mainThreadDeque.poll().run();
-            
-            // ArrayList<Long> toRemove = new ArrayList<>();
-            // GLFW.WINDOWS.values().forEach(w -> {
-            //     if (w.shouldClose()) toRemove.add(w.handle);
-            // });
-            // toRemove.forEach(GLFW::windowCloseCallback);
+            ArrayList<Long> toRemove = new ArrayList<>();
+            GLFW.WINDOWS.values().forEach(w -> {
+                if (!w.isOpen()) toRemove.add(w.handle());
+            });
+            toRemove.forEach(GLFW.WINDOWS::remove);
             
             Thread.yield();
         }
-        
-        GLFW.RENDER_THREAD_LATCH.await();
     }
     
     public static void destroy()
     {
+        GLFW.LOGGER.fine("GLFW Destruction");
+        
+        GLFW.WINDOWS.values().forEach(Window::destroy);
+    
         Callback[] callbacks = new Callback[] {
                 glfwSetErrorCallback(null),
                 glfwSetMonitorCallback(null),
@@ -284,9 +95,50 @@ public final class GLFW
         GLFW.MONITORS.clear();
         long handle;
         for (int i = 0, n = monitors.limit(); i < n; i++) GLFW.MONITORS.put(handle = monitors.get(), new Monitor(handle, i));
-        GLFW.defaultMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
+        GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
+    }
+    
+    public static Monitor primaryMonitor()
+    {
+        return GLFW.primaryMonitor;
+    }
+    
+    // -------------------- Window -------------------- //
+    
+    private static Window attachWindow(Window.Builder builder)
+    {
+        Window window = new Window(builder);
         
-        GLFW.LOGGER.finest(GLFW.MONITORS.values());
+        GLFW.WINDOWS.put(window.handle(), window);
+        
+        glfwSetWindowCloseCallback(window.handle(), GLFW::windowCloseCallback);
+        glfwSetWindowPosCallback(window.handle(), GLFW::windowPosCallback);
+        glfwSetWindowSizeCallback(window.handle(), GLFW::windowSizeCallback);
+        glfwSetWindowFocusCallback(window.handle(), GLFW::windowFocusCallback);
+        glfwSetWindowContentScaleCallback(window.handle(), GLFW::windowContentScaleCallback);
+        glfwSetWindowIconifyCallback(window.handle(), GLFW::windowIconifyCallback);
+        glfwSetWindowMaximizeCallback(window.handle(), GLFW::windowMaximizeCallback);
+        glfwSetWindowRefreshCallback(window.handle(), GLFW::windowRefreshCallback);
+        
+        glfwSetFramebufferSizeCallback(window.handle(), GLFW::framebufferSizeCallback);
+    
+        glfwSetCursorEnterCallback(window.handle(), GLFW::mouseEnteredCallback);
+        glfwSetCursorPosCallback(window.handle(), GLFW::mousePosCallback);
+        glfwSetScrollCallback(window.handle(), GLFW::scrollCallback);
+        glfwSetMouseButtonCallback(window.handle(), GLFW::mouseButtonCallback);
+    
+        glfwSetDropCallback(window.handle(), GLFW::dropCallback);
+    
+        glfwSetKeyCallback(window.handle(), GLFW::keyCallback);
+        glfwSetCharCallback(window.handle(), GLFW::charCallback);
+        glfwSetCharModsCallback(window.handle(), GLFW::charModsCallback);
+        
+        return window;
+    }
+    
+    public static Window mainWindow()
+    {
+        return GLFW.mainWindow;
     }
     
     // -------------------- Callbacks -------------------- //
@@ -312,11 +164,130 @@ public final class GLFW
     
     private static void monitorCallback(long monitor, int event)
     {
-        // TODO
+        GLFW.LOGGER.finest("GLFW Callback: monitorHandle=%s event=%s", monitor, event); // TODO - Add GLFWEvent to this somehow.
+        
+        loadMonitors();
     }
     
     private static void joystickCallback(int jid, int event)
     {
         // TODO
+    }
+    
+    private static void windowCloseCallback(long handle)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+    
+        window._close = true;
+    }
+    
+    private static void windowPosCallback(long handle, int x, int y)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._pos.set(x, y);
+    }
+    
+    private static void windowSizeCallback(long handle, int width, int height)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._size.set(width, height);
+    }
+    
+    private static void windowFocusCallback(long handle, boolean focused)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // window._focused = focused; // TODO
+    }
+    
+    private static void windowContentScaleCallback(long handle, float xscale, float yscale)
+    {
+        Window window = GLFW.WINDOWS.get(handle); // TODO
+    }
+    
+    private static void windowIconifyCallback(long handle, boolean iconified)
+    {
+        Window window = GLFW.WINDOWS.get(handle); // TODO
+    }
+    
+    private static void windowMaximizeCallback(long handle, boolean maximized)
+    {
+        Window window = GLFW.WINDOWS.get(handle); // TODO
+    }
+    
+    private static void windowRefreshCallback(long handle)
+    {
+        Window window = GLFW.WINDOWS.get(handle); // TODO
+    }
+    
+    private static void framebufferSizeCallback(long handle, int width, int height)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._fbSize.set(width, height);
+    }
+    
+    private static void mouseEnteredCallback(long handle, boolean entered)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // GLFW.mouse.window   = entered ? window : null; // TODO
+        // GLFW.mouse._entered = entered;
+    }
+    
+    private static void mousePosCallback(long handle, double x, double y)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        if (!Double.isFinite(x) || !Double.isFinite(y)) return;
+        
+        // GLFW.mouse.window = window; // TODO
+        // GLFW.mouse._pos.set(x, y);
+    }
+    
+    private static void scrollCallback(long handle, double dx, double dy)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
+        
+        // GLFW.mouse.window = window; // TODO
+        // GLFW.mouse._scroll.add(dx, dy);
+    }
+    
+    private static void mouseButtonCallback(long handle, int button, int action, int mods)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // GLFW.mouse.window = window;
+        // GLFW.mouse.stateCallback(button, action, mods); // TODO
+    }
+    
+    private static void dropCallback(long handle, int count, long names)
+    {
+        Window window = GLFW.WINDOWS.get(handle); // TODO
+    }
+    
+    private static void keyCallback(long handle, int key, int scancode, int action, int mods)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // GLFW.keyboard.stateCallback(key, action, mods); // TODO
+    }
+    
+    private static void charCallback(long handle, int codePoint)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // GLFW.keyboard.charCallback(codePoint); // TODO
+    }
+    
+    private static void charModsCallback(long handle, int codepoint, int mods)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        // GLFW.keyboard.charModsCallback(codePoint); // TODO
     }
 }

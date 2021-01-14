@@ -651,11 +651,6 @@ public class GLFWWindow extends GLFWDevice
             glfwFreeCallbacks(this.handle);
             glfwDestroyWindow(this.handle);
         }
-        
-        GLFWErrorCallback errorCallback = glfwSetErrorCallback(null);
-        if (errorCallback != null) errorCallback.free();
-        
-        glfwTerminate();
     }
     
     @SuppressWarnings("unused")
