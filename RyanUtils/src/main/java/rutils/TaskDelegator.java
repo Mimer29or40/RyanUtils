@@ -35,9 +35,10 @@ public class TaskDelegator
     /**
      * Runs a task on the TaskDelegator's thread. Non-blocking.
      *
-     * @param task The task to complete.
+     * @param task          The task to complete.
+     * @param passException If the TaskDelegator should pass the exception to the calling thread. If false the exception if effectively ignored.
      */
-    public void runTask(Runnable task, boolean raiseException)
+    public void runTask(Runnable task, boolean passException)
     {
         if (Thread.currentThread() == this.thread)
         {
@@ -45,7 +46,17 @@ public class TaskDelegator
             return;
         }
         
-        this.runTasks.offer(new Pair<>(task, raiseException));
+        this.runTasks.offer(new Pair<>(task, passException));
+    }
+    
+    /**
+     * Runs a task on the TaskDelegator's thread. Non-blocking.
+     *
+     * @param task The task to complete.
+     */
+    public void runTask(Runnable task)
+    {
+        runTask(task, false);
     }
     
     /**
