@@ -1,12 +1,17 @@
 package rutils.glfw.second;
 
-import org.joml.Vector2i;
-import org.joml.Vector2ic;
+import org.joml.*;
+import org.lwjgl.glfw.GLFWImage;
+import org.lwjgl.system.MemoryStack;
 import rutils.Logger;
 import rutils.TaskDelegator;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window
@@ -19,22 +24,39 @@ public class Window
     private final long   handle;
     private final Thread thread;
     
-    private final Monitor monitor;
+    private Monitor monitor;
     
     private boolean open;
     
-    // -------------------- Events -------------------- //
+    protected final Vector2i minSize = new Vector2i();
+    protected final Vector2i maxSize = new Vector2i();
+    
+    protected final Matrix4d viewMatrix = new Matrix4d();
+    
+    // -------------------- Callback Objects -------------------- //
     protected boolean close;
     boolean _close;
     
+    protected boolean vsync;
+    boolean _vsync;
+    
     protected boolean focused;
     boolean _focused;
+    
+    protected boolean iconified;
+    boolean _iconified;
+    
+    protected boolean maximized;
+    boolean _maximized;
     
     protected final Vector2i pos  = new Vector2i();
     final           Vector2i _pos = new Vector2i();
     
     protected final Vector2i size  = new Vector2i();
     final           Vector2i _size = new Vector2i();
+    
+    protected final Vector2d scale  = new Vector2d();
+    final           Vector2d _scale = new Vector2d();
     
     protected final Vector2i fbSize  = new Vector2i();
     final           Vector2i _fbSize = new Vector2i();
@@ -46,6 +68,7 @@ public class Window
         if (builder.setPos) builder.visible(false);
         builder.applyHints();
         
+        // TODO - Use the builder to load monitor from config.
         this.monitor = builder.monitor != null ? builder.monitor : GLFW.primaryMonitor();
         
         Window main = GLFW.mainWindow();
@@ -54,59 +77,53 @@ public class Window
         this.handle = glfwCreateWindow(builder.width, builder.height, builder.title, builder.windowed ? NULL : this.monitor.handle(), main != null ? main.handle : 0L);
         if (this.handle == NULL) throw new RuntimeException("Failed to create the GLFW window");
         
+        focus();
+        
         if (main != null) main.makeCurrent();
         
         this.open = true;
         
-        if (builder.setPos)
+        this._vsync = builder.vsync;
+        
+        this._focused   = glfwGetWindowAttrib(this.handle, GLFW_FOCUSED) == GLFW_TRUE;
+        this._iconified = glfwGetWindowAttrib(this.handle, GLFW_ICONIFIED) == GLFW_TRUE;
+        this._maximized = glfwGetWindowAttrib(this.handle, GLFW_MAXIMIZED) == GLFW_TRUE;
+        
+        try (MemoryStack stack = MemoryStack.stackPush())
         {
-            pos(builder.x, builder.y);
-            show();
+            IntBuffer x = stack.mallocInt(1);
+            IntBuffer y = stack.mallocInt(1);
+            
+            FloatBuffer xf = stack.mallocFloat(1);
+            FloatBuffer yf = stack.mallocFloat(1);
+            
+            if (builder.setPos)
+            {
+                pos(builder.x, builder.y);
+                show();
+            }
+            else
+            {
+                glfwGetWindowPos(this.handle, x, y);
+                this._pos.set(x.get(0), y.get(0));
+            }
+            
+            glfwGetWindowSize(this.handle, x, y);
+            this._size.set(x.get(0), y.get(0));
+            
+            glfwGetWindowContentScale(this.handle, xf, yf);
+            this._scale.set(xf.get(0), yf.get(0));
+            
+            glfwGetFramebufferSize(this.handle, x, y);
+            this._fbSize.set(x.get(0), y.get(0));
         }
         
-        glfwSetWindowSizeLimits(this.handle, builder.minWidth, builder.minHeight, builder.maxWidth, builder.maxHeight); // TODO - Move this to setter.
-        
-        // GLFW.waitRunOnMain(() -> {
-        //     if (isCurrent()) glfwSwapInterval(builder.vsync ? 1 : 0);
-        //     Window context = GLFW.currentContext();
-        //     GLFW.currentContext(this);
-        //     glfwSwapInterval(builder.vsync ? 1 : 0);
-        //     GLFW.currentContext(context); // TODO - Move this to setter.
-        // });
-        
-        // glfwSetWindowIcon(); // TODO - Handle these
-        // glfwSetWindowAspectRatio(window, width, height); // TODO
-        
-        // TODO - Handle these
-        // GLFW_FOCUSED;
-        // GLFW_ICONIFIED;
-        // GLFW_RESIZABLE;
-        // GLFW_VISIBLE;
-        // GLFW_DECORATED;
-        // GLFW_FLOATING;
-        // GLFW_MAXIMIZED;
-        // GLFW_CENTER_CURSOR;
-        // GLFW_TRANSPARENT_FRAMEBUFFER;
-        // GLFW_HOVERED;
-        // GLFW_FOCUS_ON_SHOW;
-        // GLFW_CLIENT_API;
-        // GLFW_CONTEXT_VERSION_MAJOR;
-        // GLFW_CONTEXT_VERSION_MINOR;
-        // GLFW_CONTEXT_REVISION;
-        // GLFW_CONTEXT_ROBUSTNESS;
-        // GLFW_OPENGL_FORWARD_COMPAT;
-        // GLFW_OPENGL_DEBUG_CONTEXT;
-        // GLFW_OPENGL_PROFILE;
-        // GLFW_CONTEXT_RELEASE_BEHAVIOR;
-        // GLFW_CONTEXT_NO_ERROR;
-        // GLFW_CONTEXT_CREATION_API;
-        // GLFW_SCALE_TO_MONITOR;
+        sizeLimits(builder.minWidth, builder.minHeight, builder.maxWidth, builder.maxHeight);
+        // glfwGetWindowFrameSize(); // TODO
         
         this.thread = new Thread(this::runInThread, this.name != null ? this.name : "Window" + this.handle);
         this.thread.start();
     }
-    
-    // -------------------- Properties -------------------- //
     
     /**
      * @return The GLFW address of the monitor.
@@ -114,6 +131,369 @@ public class Window
     public long handle()
     {
         return this.handle;
+    }
+    
+    // -------------------- Properties -------------------- //
+    
+    /**
+     * Sets the icon for the window.
+     * <p>
+     * This function sets the icon of the window. If passed an array of
+     * candidate images, those of or closest to the sizes desired by the system
+     * are selected. If no images are specified, the window reverts to its
+     * default icon.
+     * <p>
+     * The pixels are 32-bit, little-endian, non-premultiplied RGBA, i.e. eight
+     * bits per channel with the red channel first. They are arranged
+     * canonically as packed sequential rows, starting from the top-left
+     * corner.
+     * <p>
+     * The desired image sizes varies depending on platform and system
+     * settings. The selected images will be rescaled as needed. Good sizes
+     * include 16x16, 32x32 and 48x48.
+     *
+     * @param icon The new icon.
+     */
+    public void windowIcon(GLFWImage.Buffer icon)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowIcon(this.handle, icon));
+    }
+    
+    /**
+     * @return Retrieves the current aspect ration of the window.
+     */
+    public double aspectRatio()
+    {
+        return (double) this.fbSize.x / (double) this.fbSize.y;
+    }
+    
+    /**
+     * Sets the required aspect ratio of the content area of the window. If the
+     * window is full screen, the aspect ratio only takes effect once it is
+     * made windowed. If the window is not resizable, this function does
+     * nothing.
+     * <p>
+     * The aspect ratio is as a numerator and a denominator and both values
+     * must be greater than zero. For example, the common 16:9 aspect ratio is
+     * as 16 and 9, respectively.
+     * <p>
+     * If the numerator and denominator is set to
+     * {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE} then the aspect
+     * ratio limit is disabled.
+     * <p>
+     * The aspect ratio is applied immediately to a windowed mode window and
+     * may cause it to be resized.
+     *
+     * @param numer the numerator of the desired aspect ratio, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     * @param denom the denominator of the desired aspect ratio, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     */
+    public void aspectRatio(int numer, int denom)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAspectRatio(this.handle, numer, denom));
+    }
+    
+    /**
+     * Restores the window if it was previously iconified (minimized) or
+     * maximized. If the window is already restored, this function does
+     * nothing.
+     *
+     * <p>If the window is a full screen window, the resolution
+     * chosen for the window is restored on the selected monitor.</p>
+     */
+    public void restore()
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwRestoreWindow(this.handle));
+    }
+    
+    /**
+     * @return Retrieves if the window is resizable <i>by the user</i>.
+     */
+    public boolean resizable()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_RESIZABLE) == GLFW_TRUE);
+    }
+    
+    /**
+     * Indicates whether the window is resizable <i>by the user</i>.
+     *
+     * @param resizable if the window is resizable <i>by the user</i>.
+     */
+    public void resizable(boolean resizable)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAttrib(this.handle, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE));
+    }
+    
+    /**
+     * @return Retrieves if the window is visible. Window visibility can be controlled with {@link #show} and {@link #hide}.
+     */
+    public boolean visible()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_VISIBLE) == GLFW_TRUE);
+    }
+    
+    /**
+     * Makes the window visible if it was previously hidden. If the window is
+     * already visible or is in full screen mode, this function does nothing.
+     * <p>
+     * By default, windowed mode windows are focused when shown. Set the
+     * {@link Builder#focusOnShow(Boolean)}} window hint to change this
+     * behavior for all newly created windows, or change the behavior for an
+     * existing window with {@link #focusOnShow}.
+     */
+    public void show()
+    {
+        this.taskDelegator.runTask(() -> glfwShowWindow(this.handle));
+    }
+    
+    /**
+     * Hides the window, if it was previously visible. If the window is already
+     * hidden or is in full screen mode, this function does nothing.
+     */
+    public void hide()
+    {
+        this.taskDelegator.runTask(() -> glfwHideWindow(this.handle));
+    }
+    
+    /**
+     * @return Retrieves if the window has decorations such as a border, a close widget, etc.
+     */
+    public boolean decorated()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_DECORATED) == GLFW_TRUE);
+    }
+    
+    /**
+     * Indicates whether the window has decorations such as a border, a close
+     * widget, etc.
+     *
+     * @param decorated if the window has decorations.
+     */
+    public void decorated(boolean decorated)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAttrib(this.handle, GLFW_DECORATED, decorated ? GLFW_TRUE : GLFW_FALSE));
+    }
+    
+    /**
+     * @return Retrieves if the window is floating, also called topmost or always-on-top.
+     */
+    public boolean floating()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_FLOATING) == GLFW_TRUE);
+    }
+    
+    /**
+     * Indicates whether the window is floating, also called topmost or
+     * always-on-top.
+     *
+     * @param floating if the window is floating.
+     */
+    public void floating(boolean floating)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAttrib(this.handle, GLFW_FLOATING, floating ? GLFW_TRUE : GLFW_FALSE));
+    }
+    
+    /**
+     * @return Retrieves if the cursor is currently directly over the content area of the window, with no other windows between.
+     */
+    public boolean hovered()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_HOVERED) == GLFW_TRUE);
+    }
+    
+    /**
+     * @return Retrieves if input focuses on calling show window.
+     */
+    public boolean focusOnShow()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_FOCUS_ON_SHOW) == GLFW_TRUE);
+    }
+    
+    /**
+     * Indicates if input focuses on calling show window.
+     *
+     * @param focusOnShow if input focuses on calling show window.
+     */
+    public void focusOnShow(boolean focusOnShow)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAttrib(this.handle, GLFW_FOCUS_ON_SHOW, focusOnShow ? GLFW_TRUE : GLFW_FALSE));
+    }
+    
+    /**
+     * Raw access to {@link org.lwjgl.glfw.GLFW#glfwGetWindowAttrib}
+     *
+     * @param attribute The attribute to quarry
+     * @return The value of the attribute.
+     */
+    public int getAttribute(int attribute)
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, attribute));
+    }
+    
+    /**
+     * Raw access to {@link org.lwjgl.glfw.GLFW#glfwSetWindowAttrib}
+     *
+     * @param attribute The attribute
+     * @param value     The new value of the attribute.
+     */
+    public void setAttribute(int attribute, int value)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowAttrib(this.handle, attribute, value));
+    }
+    
+    /**
+     * Retrieves the minimum size, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The minimum size, in screen coordinates, of the content area.
+     */
+    public Vector2ic minSize()
+    {
+        return this.minSize;
+    }
+    
+    /**
+     * Retrieves the minimum width, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The minimum size, in screen coordinates, of the content area.
+     */
+    public int minWidth()
+    {
+        return this.minSize.x;
+    }
+    
+    /**
+     * Retrieves the minimum height, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The minimum size, in screen coordinates, of the content area.
+     */
+    public int minHeight()
+    {
+        return this.minSize.y;
+    }
+    
+    /**
+     * Retrieves the maximum size, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The maximum size, in screen coordinates, of the content area.
+     */
+    public Vector2ic maxSize()
+    {
+        return this.maxSize;
+    }
+    
+    /**
+     * Retrieves the maximum width, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The maximum size, in screen coordinates, of the content area.
+     */
+    public int maxWidth()
+    {
+        return this.maxSize.x;
+    }
+    
+    /**
+     * Retrieves the maximum height, in screen coordinates, of the content area
+     * of the window. If you wish to retrieve the size of the framebuffer of
+     * the window in pixels, see {@link #framebufferSize framebufferSize}.
+     *
+     * @return The maximum size, in screen coordinates, of the content area.
+     */
+    public int maxHeight()
+    {
+        return this.maxSize.y;
+    }
+    
+    /**
+     * Sets the size limits of the content area of the window. If the window is
+     * full screen, the size limits only take effect if once it is made
+     * windowed. If the window is not resizable, this function does nothing.
+     * <p>
+     * The size limits are applied immediately to a windowed mode window and
+     * may cause it to be resized.
+     * <p>
+     * The maximum dimensions must be greater than or equal to the minimum
+     * dimensions and all must be greater than or equal to zero.
+     *
+     * @param minWidth  the minimum width, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     * @param minHeight the minimum height, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     * @param maxWidth  the maximum width, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     * @param maxHeight the maximum height, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     */
+    public void sizeLimits(int minWidth, int minHeight, int maxWidth, int maxHeight)
+    {
+        this.minSize.set(minWidth, minHeight);
+        this.maxSize.set(maxWidth, maxHeight);
+        
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowSizeLimits(this.handle, minWidth, minHeight, maxWidth, maxHeight));
+    }
+    
+    /**
+     * Sets the size limits of the content area of the window. If the window is
+     * full screen, the size limits only take effect if once it is made
+     * windowed. If the window is not resizable, this function does nothing.
+     * <p>
+     * The size limits are applied immediately to a windowed mode window and
+     * may cause it to be resized.
+     * <p>
+     * The maximum dimensions must be greater than or equal to the minimum
+     * dimensions and all must be greater than or equal to zero.
+     *
+     * @param min the minimum size, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     * @param max the maximum size, in screen coordinates, of the content area, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     */
+    public void sizeLimits(Vector2ic min, Vector2ic max)
+    {
+        sizeLimits(min.x(), min.y(), max.x(), max.y());
+    }
+    
+    /**
+     * @return A read-only framebuffer view transformation matrix for this window.
+     */
+    public Matrix4dc viewMatrix()
+    {
+        return this.viewMatrix;
+    }
+    
+    public boolean isOpen()
+    {
+        return this.open;
+    }
+    
+    public boolean isCurrent()
+    {
+        return this.taskDelegator.waitReturnTask(() -> this.handle == glfwGetCurrentContext());
+    }
+    
+    // -------------------- Callback Related Things -------------------- //
+    
+    /**
+     * @return Retrieves the vsync status for the current OpenGL or OpenGL ES context
+     */
+    public boolean vsync()
+    {
+        return this.vsync;
+    }
+    
+    /**
+     * Sets the vsync status for the current OpenGL or OpenGL ES context, i.e.
+     * the number of screen updates to wait from the time
+     * {@link org.lwjgl.glfw.GLFW#glfwSwapBuffers SwapBuffers} was called
+     * before swapping the buffers and returning.
+     *
+     * @param vsync the new vsync status
+     */
+    public void vsync(boolean vsync)
+    {
+        this._vsync = vsync;
     }
     
     /**
@@ -127,43 +507,81 @@ public class Window
     }
     
     /**
-     * Brings the specified window to front and sets input focus. The window
-     * should already be visible and not iconified.
-     *
-     * <p>By default, both windowed and full screen mode windows are focused
-     * when initially created. Set the
-     * {@link Builder#focused(Boolean)} FOCUSED} flag to disable this
-     * behavior.</p>
-     *
-     * <p>Also by default, windowed mode windows are focused when shown with
+     * Brings the window to front and sets input focus. The window should
+     * already be visible and not iconified.
+     * <p>
+     * By default, both windowed and full screen mode windows are focused when
+     * initially created. Set the {@link Builder#focused(Boolean)} FOCUSED}
+     * flag to disable this behavior.
+     * <p>
+     * Also by default, windowed mode windows are focused when shown with
      * {@link #show}. Set the {@link Builder#focusOnShow(Boolean)} window hint
-     * to disable this behavior.</p>
-     *
-     * <p><b>Do not use this function</b> to steal focus from other
-     * applications unless you are certain that is what the user wants. Focus
-     * stealing can be extremely disruptive.</p>
-     *
-     * <p>For a less disruptive way of getting the user's attention, see
-     * {@link #requestFocus}.</p>
+     * to disable this behavior.
+     * <p>
+     * <b>Do not use this function</b> to steal focus from other applications
+     * unless you are certain that is what the user wants. Focus stealing can
+     * be extremely disruptive.
+     * <p>
+     * For a less disruptive way of getting the user's attention, see
+     * {@link #requestFocus}.
      */
     public void focus()
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwFocusWindow(this.handle), false);
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwFocusWindow(this.handle));
     }
     
     /**
-     * Requests user attention to the specified window.
-     *
-     * <p>This function requests user attention to the specified window. On
-     * platforms where this is not supported, attention is requested to the
-     * application as a whole.</p>
-     *
-     * <p>Once the user has given attention, usually by focusing the window or
-     * application, the system will end the request automatically.</p>
+     * Requests user attention to the window.
+     * <p>
+     * This function requests user attention to the window. On platforms where
+     * this is not supported, attention is requested to the application as a
+     * whole.
+     * <p>
+     * Once the user has given attention, usually by focusing the window or
+     * application, the system will end the request automatically.
      */
     public void requestFocus()
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwRequestWindowAttention(this.handle), false);
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwRequestWindowAttention(this.handle));
+    }
+    
+    /**
+     * @return Retrieves whether the window is iconified, whether by the user or with {@link #iconify}.
+     */
+    public boolean iconified()
+    {
+        return this.iconified;
+    }
+    
+    /**
+     * Iconifies (minimizes) the window if it was previously restored. If the
+     * window is already iconified, this function does nothing.
+     * <p>
+     * If the window is a full screen window, the original monitor resolution
+     * is restored until the window is restored.
+     */
+    public void iconify()
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwIconifyWindow(this.handle));
+    }
+    
+    /**
+     * @return Retrieves whether the window is maximized, whether by the user or {@link #maximize}.
+     */
+    public boolean maximized()
+    {
+        return this.maximized;
+    }
+    
+    /**
+     * Maximizes the window if it was previously not maximized. If the window
+     * is already maximized, this function does nothing.
+     * <p>
+     * If the window is a full screen window, this function does nothing.
+     */
+    public void maximize()
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwMaximizeWindow(this.handle));
     }
     
     /**
@@ -275,15 +693,15 @@ public class Window
     }
     
     /**
-     * Sets the size, in pixels, of the content area of the specified window.
-     *
-     * <p>For full screen windows, this function updates the resolution of its
+     * Sets the size, in pixels, of the content area of the window.
+     * <p>
+     * For full screen windows, this function updates the resolution of its
      * desired video mode and switches to the video mode closest to it, without
      * affecting the window's context. As the context is unaffected, the bit
-     * depths of the framebuffer remain unchanged.</p>
-     *
-     * <p>The window manager may put limits on what sizes are allowed. GLFW
-     * cannot and should not override these limits.</p>
+     * depths of the framebuffer remain unchanged.
+     * <p>
+     * The window manager may put limits on what sizes are allowed. GLFW cannot
+     * and should not override these limits.
      *
      * @param width  The desired width, in screen coordinates, of the window content area
      * @param height The desired height, in screen coordinates, of the window content area
@@ -294,21 +712,87 @@ public class Window
     }
     
     /**
-     * Sets the size, in pixels, of the content area of the specified window.
-     *
-     * <p>For full screen windows, this function updates the resolution of its
+     * Sets the size, in pixels, of the content area of the window.
+     * <p>
+     * For full screen windows, this function updates the resolution of its
      * desired video mode and switches to the video mode closest to it, without
      * affecting the window's context. As the context is unaffected, the bit
-     * depths of the framebuffer remain unchanged.</p>
-     *
-     * <p>The window manager may put limits on what sizes are allowed. GLFW
-     * cannot and should not override these limits.</p>
+     * depths of the framebuffer remain unchanged.
+     * <p>
+     * The window manager may put limits on what sizes are allowed. GLFW
+     * cannot and should not override these limits.
      *
      * @param size The desired size, in screen coordinates, of the window content area
      */
     public void size(Vector2ic size)
     {
         size(size.x(), size.y());
+    }
+    
+    /**
+     * Retrieves the content scale for the window.
+     * <p>
+     * This function retrieves the content scale for the window. The content
+     * scale is the ratio between the current DPI and the platform's default
+     * DPI. This is especially important for text and any UI elements. If the
+     * pixel dimensions of your UI scaled by this look appropriate on your
+     * machine then it should appear at a reasonable size on other machines
+     * regardless of their DPI and scaling settings. This relies on the system
+     * DPI and scaling settings being somewhat correct.
+     * <p>
+     * On systems where each monitor can have its own content scale, the window
+     * content scale will depend on which monitor the system considers the
+     * window to be on.
+     *
+     * @return the content scale for the window.
+     */
+    public Vector2dc contentScale()
+    {
+        return this.scale;
+    }
+    
+    /**
+     * Retrieves the horizontal content scale for the window.
+     * <p>
+     * This function retrieves the content scale for the window. The content
+     * scale is the ratio between the current DPI and the platform's default
+     * DPI. This is especially important for text and any UI elements. If the
+     * pixel dimensions of your UI scaled by this look appropriate on your
+     * machine then it should appear at a reasonable size on other machines
+     * regardless of their DPI and scaling settings. This relies on the system
+     * DPI and scaling settings being somewhat correct.
+     * <p>
+     * On systems where each monitor can have its own content scale, the window
+     * content scale will depend on which monitor the system considers the
+     * window to be on.
+     *
+     * @return the horizontal content scale for the window.
+     */
+    public double contentScaleX()
+    {
+        return this.scale.x;
+    }
+    
+    /**
+     * Retrieves the vertical content scale for the window.
+     * <p>
+     * This function retrieves the content scale for the window. The content
+     * scale is the ratio between the current DPI and the platform's default
+     * DPI. This is especially important for text and any UI elements. If the
+     * pixel dimensions of your UI scaled by this look appropriate on your
+     * machine then it should appear at a reasonable size on other machines
+     * regardless of their DPI and scaling settings. This relies on the system
+     * DPI and scaling settings being somewhat correct.
+     * <p>
+     * On systems where each monitor can have its own content scale, the window
+     * content scale will depend on which monitor the system considers the
+     * window to be on.
+     *
+     * @return the vertical content scale for the window.
+     */
+    public double contentScaleY()
+    {
+        return this.scale.y;
     }
     
     /**
@@ -347,17 +831,7 @@ public class Window
         return this.fbSize.y;
     }
     
-    public boolean isOpen()
-    {
-        return this.open;
-    }
-    
-    public boolean isCurrent()
-    {
-        return this.taskDelegator.waitReturnTask(() -> this.handle == glfwGetCurrentContext());
-    }
-    
-    // -------------------- Methods -------------------- //
+    // -------------------- GLFW Methods -------------------- //
     
     public void makeCurrent()
     {
@@ -369,16 +843,6 @@ public class Window
         this.taskDelegator.waitRunTask(() -> glfwMakeContextCurrent(0L));
     }
     
-    public void show()
-    {
-        this.taskDelegator.runTask(() -> glfwShowWindow(this.handle), false);
-    }
-    
-    public void hide()
-    {
-        this.taskDelegator.runTask(() -> glfwHideWindow(this.handle), false);
-    }
-    
     public void destroy()
     {
         if (this.open)
@@ -386,7 +850,7 @@ public class Window
             GLFW.TASK_DELEGATOR.runTask(() -> {
                 glfwFreeCallbacks(this.handle);
                 glfwDestroyWindow(this.handle);
-            }, false);
+            });
         }
         
         this.open = false;
@@ -406,27 +870,94 @@ public class Window
             
             while (!this.close && this.open)
             {
+                boolean updateMonitor = false;
+                
                 this.taskDelegator.runTasks();
                 
                 if (this.close != this._close)
                 {
                     this.close = this._close;
+                    LOGGER.finest("close", this.close);
+                }
+                
+                if (this.vsync != this._vsync)
+                {
+                    this.vsync = this._vsync;
+                    LOGGER.finest("vsync", this.vsync);
+                    glfwSwapInterval(this.vsync ? 1 : 0);
+                }
+                
+                if (this.focused != this._focused)
+                {
+                    this.focused = this._focused;
+                    LOGGER.finest("focused", this.focused);
+                }
+                
+                if (this.iconified != this._iconified)
+                {
+                    this.iconified = this._iconified;
+                    LOGGER.finest("iconified", this.iconified);
+                }
+                
+                if (this.maximized != this._maximized)
+                {
+                    this.maximized = this._maximized;
+                    LOGGER.finest("maximized", this.maximized);
                 }
                 
                 if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
                 {
                     this.pos.set(this._pos);
+                    LOGGER.finest("pos", this.pos);
+                    
+                    updateMonitor = true;
                 }
                 
                 if (this.size.x != this._size.x || this.size.y != this._size.y)
                 {
                     this.size.set(this._size);
+                    LOGGER.finest("size", this.size);
+                    
+                    updateMonitor = true;
+                }
+                
+                if (this.scale.x != this._scale.x || this.scale.y != this._scale.y)
+                {
+                    this.scale.set(this._scale);
+                    LOGGER.finest("scale", this.scale);
                 }
                 
                 if (this.fbSize.x != this._fbSize.x || this.fbSize.y != this._fbSize.y)
                 {
                     this.fbSize.set(this._fbSize);
+                    LOGGER.finest("fbSize", this.fbSize);
+                    
+                    this.viewMatrix.setOrtho(0, this.fbSize.x, this.fbSize.y, 0, -1F, 1F);
                 }
+                
+                if (updateMonitor)
+                {
+                    Monitor prevMonitor = this.monitor;
+                    
+                    int overlap, maxOverlap = 0;
+                    for (Monitor monitor : GLFW.monitors())
+                    {
+                        if ((overlap = monitor.windowOverlap(this)) > maxOverlap)
+                        {
+                            maxOverlap   = overlap;
+                            this.monitor = monitor;
+                        }
+                    }
+                    
+                    if (this.monitor != prevMonitor)
+                    {
+                        LOGGER.finest("monitor", this.monitor);
+                    }
+                }
+    
+                // TODO - Separate Rendering to on demand.
+                glViewport(0, 0, this.fbSize.x, this.fbSize.y);
+                glfwSwapBuffers(this.handle);
                 
                 Thread.yield();
             }
@@ -468,7 +999,7 @@ public class Window
         private boolean windowed = true;
         private boolean vsync    = false;
         
-        private String title = "";
+        private String title = "Window";
         
         private Boolean resizable              = null; // RESIZABLE TRUE TRUE or FALSE
         private Boolean visible                = null; // VISIBLE TRUE TRUE or FALSE
@@ -546,9 +1077,9 @@ public class Window
         
         /**
          * Sets the initial position, in screen coordinates, of the upper-left
-         * corner of the content area of the specified windowed mode window.
-         * Setting this will override the
-         * {@link org.lwjgl.glfw.GLFW#GLFW_VISIBLE VISIBLE} flag.
+         * corner of the content area of the windowed mode window. Setting this
+         * will override the {@link org.lwjgl.glfw.GLFW#GLFW_VISIBLE VISIBLE}
+         * flag.
          *
          * @param x The initial x coordinate of the window.
          * @param y The initial y coordinate of the window.
@@ -564,7 +1095,7 @@ public class Window
         
         /**
          * This function sets the initial size, in screen coordinates, of the
-         * content area of the specified window.
+         * content area of the window.
          * <p>
          * For full screen windows, this function updates the resolution of its
          * desired video mode and switches to the video mode closest to it,
@@ -586,9 +1117,9 @@ public class Window
         
         /**
          * This function sets the minimum size of the content area of the
-         * specified window. If the window is full screen, the size limits only
-         * take effect once it is made windowed. If the window is not
-         * resizable, this function does nothing.
+         * window. If the window is full screen, the size limits only take
+         * effect once it is made windowed. If the window is not resizable,
+         * this function does nothing.
          * <p>
          * The size limits are applied immediately to a windowed mode window and
          * may cause it to be resized.
@@ -609,9 +1140,9 @@ public class Window
         
         /**
          * This function sets the maximum size of the content area of the
-         * specified window. If the window is full screen, the size limits only
-         * take effect once it is made windowed. If the window is not
-         * resizable, this function does nothing.
+         * window. If the window is full screen, the size limits only take
+         * effect once it is made windowed. If the window is not resizable,
+         * this function does nothing.
          * <p>
          * The size limits are applied immediately to a windowed mode window and
          * may cause it to be resized.
@@ -755,7 +1286,7 @@ public class Window
          * @param floating if the windowed mode window will be floating above other regular windows. One of:<br><table><tr><td>{@code true }</td><td>{@code false }</td><td>{@code null }</td></tr></table>
          * @return This instance for call chaining.
          */
-        public Builder Floating(Boolean floating)
+        public Builder floating(Boolean floating)
         {
             this.floating = floating;
             return this;

@@ -4,17 +4,17 @@ import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWGammaRamp;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.NativeType;
 import rutils.Logger;
 import rutils.MemUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -139,9 +139,9 @@ public class Monitor
     /**
      * @return Every video mode associated with this monitor.
      */
-    public Collection<VideoMode> videoModes()
+    public List<VideoMode> videoModes()
     {
-        return this.videoModes;
+        return Collections.unmodifiableList(this.videoModes);
     }
     
     /**
@@ -348,12 +348,12 @@ public class Monitor
             try (MemoryStack stack = MemoryStack.stackPush())
             {
                 GLFWGammaRamp ramp = GLFWGammaRamp.callocStack(stack);
-        
+                
                 ramp.size(gammaRamp.size);
                 MemUtil.memCopy(gammaRamp.red, ramp.red());
                 MemUtil.memCopy(gammaRamp.green, ramp.green());
                 MemUtil.memCopy(gammaRamp.blue, ramp.blue());
-        
+                
                 glfwSetGammaRamp(this.handle, ramp);
             }
         });
@@ -362,5 +362,23 @@ public class Monitor
     public void gammaRamp(float ramp)
     {
         GLFW.TASK_DELEGATOR.waitRunTask(() -> glfwSetGamma(this.handle, ramp));
+    }
+    
+    public int windowOverlap(Window window)
+    {
+        VideoMode current = videoMode();
+        
+        int mx = x();
+        int my = y();
+        int mw = current.width;
+        int mh = current.height;
+        
+        int wx = window.x();
+        int wy = window.y();
+        int ww = window.width();
+        int wh = window.height();
+        
+        return Math.max(0, Math.min(wx + ww, mx + mw) - Math.max(wx, mx)) *
+               Math.max(0, Math.min(wy + wh, my + mh) - Math.max(wy, my));
     }
 }
