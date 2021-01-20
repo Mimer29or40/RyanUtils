@@ -259,7 +259,9 @@ public class Logger
         if (applyFilters(this.name)) return;
         if (Logger.FORMAT_PATTERN.matcher(format).find())
         {
-            logImpl(level, String.format(format, objects));
+            Object[] transformed = new Object[objects.length];
+            for (int i = 0; i < objects.length; i++) transformed[i] = transformObject(objects[i]);
+            logImpl(level, String.format(format, transformed));
         }
         else
         {
@@ -445,6 +447,17 @@ public class Logger
     public void all(String format, Object... objects)
     {
         log(Level.ALL, format, objects);
+    }
+    
+    private Object transformObject(Object o)
+    {
+        if (o instanceof Throwable)
+        {
+            final StringWriter sw = new StringWriter();
+            ((Throwable) o).printStackTrace(new PrintWriter(sw));
+            return sw.getBuffer();
+        }
+        return o;
     }
     
     private StringBuilder printObject(StringBuilder buffer, Object o)
