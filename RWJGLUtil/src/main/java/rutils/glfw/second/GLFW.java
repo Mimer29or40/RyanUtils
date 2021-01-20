@@ -6,7 +6,10 @@ import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
 import rutils.Logger;
 import rutils.TaskDelegator;
+import rutils.glfw.second.event.EventBus;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -19,6 +22,8 @@ public final class GLFW
     private static final Map<Integer, String> ERROR_CODES = APIUtil.apiClassTokens((field, value) -> 0x10000 < value && value < 0x20000, null, org.lwjgl.glfw.GLFW.class);
     
     public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
+    
+    public static final EventBus EVENT_BUS = new EventBus(true);
     
     private static final LinkedHashMap<Long, Monitor> MONITORS       = new LinkedHashMap<>();
     private static       Monitor                      primaryMonitor = null;
@@ -35,6 +40,7 @@ public final class GLFW
         GLFW.LOGGER.fine("GLFW Initialization");
         
         GLFW.TASK_DELEGATOR.setThread();
+        GLFW.EVENT_BUS.start();
         
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
@@ -44,6 +50,7 @@ public final class GLFW
         glfwSetJoystickCallback(GLFW::joystickCallback);
         
         loadMonitors();
+        
         GLFW.mainWindow = attachWindow(new Window.Builder().name("WindowMain"));
     }
     
@@ -70,6 +77,8 @@ public final class GLFW
     public static void destroy()
     {
         GLFW.LOGGER.fine("GLFW Destruction");
+        
+        GLFW.EVENT_BUS.shutdown();
         
         GLFW.WINDOWS.values().forEach(Window::destroy);
         
@@ -166,10 +175,10 @@ public final class GLFW
     
     private static void monitorCallback(long handle, int event)
     {
-        // TODO - Add GLFWEvent to this somehow.
-    
-        Monitor monitor = null;
-        String eventName = "";
+        // TODO - Add SubscribeEvent to this somehow.
+        
+        Monitor monitor   = null;
+        String  eventName = "";
         switch (event)
         {
             case GLFW_CONNECTED -> {
@@ -178,7 +187,7 @@ public final class GLFW
                 eventName = "GLFW_CONNECTED";
             }
             case GLFW_DISCONNECTED -> {
-                monitor = GLFW.MONITORS.remove(handle);
+                monitor   = GLFW.MONITORS.remove(handle);
                 eventName = "GLFW_DISCONNECTED";
             }
         }
@@ -189,7 +198,7 @@ public final class GLFW
     
     private static void joystickCallback(int jid, int event)
     {
-        // TODO - Add GLFWEvent to this somehow.
+        // TODO - Add SubscribeEvent to this somehow.
     }
     
     private static void windowCloseCallback(long handle)
@@ -310,5 +319,27 @@ public final class GLFW
         
         // GLFW.keyboard.window = window; // TODO
         // GLFW.keyboard.charCallback(codePoint); // TODO
+    }
+    
+    public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation)
+    {
+        final List<Method> methods = new ArrayList<>();
+        Class<?>           clazz   = type;
+        while (clazz != Object.class)
+        { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
+            // iterate though the list of methods declared in the class represented by clazz variable, and add those annotated with the specified annotation
+            for (final Method method : clazz.getDeclaredMethods())
+            {
+                if (method.isAnnotationPresent(annotation))
+                {
+                    Annotation annotationInstance = method.getAnnotation(annotation);
+                    // TODO process annotationInstance
+                    methods.add(method);
+                }
+            }
+            // move to the upper class in the hierarchy in search for more methods
+            clazz = clazz.getSuperclass();
+        }
+        return methods;
     }
 }

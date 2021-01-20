@@ -195,7 +195,7 @@ public class GLFW
     
     private static void monitorCallback(long monitorHandle, int event)
     {
-        // TODO - Add GLFWEvent to this somehow.
+        // TODO - Add SubscribeEvent to this somehow.
         GLFW.LOGGER.finest("GLFWMonitor Callback: monitorHandle=%s event=%s", monitorHandle, event);
         
         loadMonitors();

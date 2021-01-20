@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Generic {@link GLFWEvent} that represents a group of information related to something happening
  * <p>
- * All events are of type {@code GLFWEvent} so to delineate different events the parameter {@link GLFWEvent#type} stores the type.
+ * All events are of type {@code SubscribeEvent} so to delineate different events the parameter {@link GLFWEvent#type} stores the type.
  * <p>
  * To post an event call {@link GLFWEvents#post} with the event type string and parameters to ensure that all event
  * listeners are called.

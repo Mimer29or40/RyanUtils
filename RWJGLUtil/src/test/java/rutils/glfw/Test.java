@@ -21,7 +21,7 @@ public class Test
             
             GLFW.eventLoop();
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
             Test.LOGGER.severe(e);
         }

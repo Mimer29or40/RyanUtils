@@ -458,7 +458,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
         {
             this.pos.set(this._pos);
-            // GLFWEvents.post(GLFWEvent.WINDOW_MOVED, this.pos); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_MOVED, this.pos); // TODO
             
             GLFW.run(() -> glfwSetWindowPos(this.handle, this.pos.x, this.pos.y));
             
@@ -470,7 +470,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.size.x != this._size.x || this.size.y != this._size.y)
         {
             this.size.set(this._size);
-            // GLFWEvents.post(GLFWEvent.WINDOW_RESIZED, this.size); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_RESIZED, this.size); // TODO
             
             GLFW.run(() -> glfwSetWindowSize(this.handle, this.size.x, this.size.y));
             
@@ -485,7 +485,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.focused != this._focused)
         {
             this.focused = this._focused;
-            // GLFWEvents.post(GLFWEvent.WINDOW_FOCUSED, this.focused); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_FOCUSED, this.focused); // TODO
             
             GLFW.run(() -> glfwFocusWindow(this.handle));
         }
@@ -493,7 +493,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.windowed != this._windowed)
         {
             this.windowed = this._windowed;
-            // GLFWEvents.post(GLFWEvent.WINDOW_WINDOWED, this.windowed); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_WINDOWED, this.windowed); // TODO
             
             updateMonitorData = true;
         }
@@ -501,7 +501,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.vsync != this._vsync)
         {
             this.vsync = this._vsync;
-            // GLFWEvents.post(GLFWEvent.WINDOW_VSYNC, this.vsync); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_VSYNC, this.vsync); // TODO
             
             glfwSwapInterval(this.vsync ? 1 : 0);
             
@@ -511,7 +511,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.frameRate != this._frameRate)
         {
             this.frameRate = this._frameRate;
-            // GLFWEvents.post(GLFWEvent.WINDOW_FRAME_RATE, this.frameRate); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_FRAME_RATE, this.frameRate); // TODO
             
             updateMonitorData = true;
         }
@@ -519,7 +519,7 @@ public class GLFWWindow extends GLFWDevice
         if (!this.title.equals(this._title))
         {
             this.title = this._title;
-            // GLFWEvents.post(GLFWEvent.WINDOW_TITLE_CHANGED, this.title); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_TITLE_CHANGED, this.title); // TODO
             
             GLFW.run(() -> glfwSetWindowTitle(this.handle, this.title));
         }
@@ -529,7 +529,7 @@ public class GLFWWindow extends GLFWDevice
         if (this.framebufferSize.x != this._framebufferSize.x || this.framebufferSize.y != this._framebufferSize.y)
         {
             this.framebufferSize.set(this._framebufferSize);
-            // GLFWEvents.post(GLFWEvent.WINDOW_FRAMEBUFFER_RESIZED, this.frameBufferSize); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_FRAMEBUFFER_RESIZED, this.frameBufferSize); // TODO
             
             this.fbAspectRatio   = (double) this.framebufferSize.x / (double) this.framebufferSize.y;
             this.fbAspectChanged = true;
@@ -548,7 +548,7 @@ public class GLFWWindow extends GLFWDevice
             //         this.monitor = monitor;
             //     }
             // }
-            // GLFWEvents.post(GLFWEvent.WINDOW_MONITOR_CHANGED, this.monitor); // TODO
+            // GLFWEvents.post(SubscribeEvent.WINDOW_MONITOR_CHANGED, this.monitor); // TODO
             
             updateMonitorData = true;
         }

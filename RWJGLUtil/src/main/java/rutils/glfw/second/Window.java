@@ -962,9 +962,9 @@ public class Window
                 Thread.yield();
             }
         }
-        catch (Exception e)
+        catch (Throwable cause)
         {
-            Window.LOGGER.severe(e);
+            Window.LOGGER.severe(cause);
         }
         finally
         {
