@@ -1,9 +1,6 @@
 package rutils;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -244,8 +241,8 @@ public class Logger
         if (applyFilters(this.name)) return;
         int n = objects.length;
         if (n == 0) return;
-        StringBuilder builder = new StringBuilder().append(printObject(objects[0]));
-        for (int i = 1; i < n; i++) builder.append(' ').append(printObject(objects[i]));
+        StringBuilder builder = printObject(new StringBuilder(), objects[0]);
+        for (int i = 1; i < n; i++) printObject(builder.append(' '), objects[i]);
         logImpl(level, builder.toString());
     }
     
@@ -267,7 +264,7 @@ public class Logger
         else
         {
             StringBuilder builder = new StringBuilder(format);
-            for (Object object : objects) builder.append(' ').append(printObject(object));
+            for (Object object : objects) printObject(builder.append(' '), object);
             logImpl(level, builder.toString());
         }
     }
@@ -450,106 +447,51 @@ public class Logger
         log(Level.ALL, format, objects);
     }
     
-    private String printObject(Object o)
+    private StringBuilder printObject(StringBuilder buffer, Object o)
     {
         if (o instanceof Throwable)
         {
-            return printThrowable((Throwable) o);
+            final StringWriter sw = new StringWriter();
+            ((Throwable) o).printStackTrace(new PrintWriter(sw));
+            buffer.append(sw.getBuffer());
         }
         else if (o instanceof boolean[])
         {
-            return Arrays.toString((boolean[]) o);
+            return buffer.append(Arrays.toString((boolean[]) o));
         }
         else if (o instanceof byte[])
         {
-            return Arrays.toString((byte[]) o);
+            return buffer.append(Arrays.toString((byte[]) o));
         }
         else if (o instanceof short[])
         {
-            return Arrays.toString((short[]) o);
+            return buffer.append(Arrays.toString((short[]) o));
         }
         else if (o instanceof char[])
         {
-            return Arrays.toString((char[]) o);
+            return buffer.append(Arrays.toString((char[]) o));
         }
         else if (o instanceof int[])
         {
-            return Arrays.toString((int[]) o);
+            return buffer.append(Arrays.toString((int[]) o));
         }
         else if (o instanceof long[])
         {
-            return Arrays.toString((long[]) o);
+            return buffer.append(Arrays.toString((long[]) o));
         }
         else if (o instanceof float[])
         {
-            return Arrays.toString((float[]) o);
+            return buffer.append(Arrays.toString((float[]) o));
         }
         else if (o instanceof double[])
         {
-            return Arrays.toString((double[]) o);
+            return buffer.append(Arrays.toString((double[]) o));
         }
         else if (o instanceof Object[])
         {
-            return Arrays.toString((Object[]) o);
+            return buffer.append(Arrays.toString((Object[]) o));
         }
-        return String.valueOf(o);
-    }
-    
-    private String printThrowable(Throwable throwable)
-    {
-        Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<>());
-        dejaVu.add(throwable);
-        
-        StringBuilder builder = new StringBuilder();
-        
-        // Print our stack trace
-        builder.append(throwable.toString()).append(System.lineSeparator());
-        StackTraceElement[] trace = throwable.getStackTrace();
-        for (StackTraceElement traceElement : trace) builder.append("\tat ").append(traceElement).append(System.lineSeparator());
-        
-        // Print suppressed exceptions, if any
-        for (Throwable se : throwable.getSuppressed()) enclosedStackTrace(builder, se, trace, "Suppressed: ", "\t", dejaVu);
-        
-        // Print cause, if any
-        Throwable ourCause = throwable.getCause();
-        if (ourCause != null) enclosedStackTrace(builder, ourCause, trace, "Caused by: ", "", dejaVu);
-        
-        return builder.toString();
-    }
-    
-    private void enclosedStackTrace(StringBuilder builder, Throwable throwable, StackTraceElement[] enclosingTrace, String caption, String prefix, Set<Throwable> dejaVu)
-    {
-        if (dejaVu.contains(throwable))
-        {
-            builder.append("\t[CIRCULAR REFERENCE:").append(throwable).append("]").append(System.lineSeparator());
-        }
-        else
-        {
-            dejaVu.add(throwable);
-            // Compute number of frames in common between this and enclosing trace
-            StackTraceElement[] trace = throwable.getStackTrace();
-            
-            int m = trace.length - 1;
-            int n = enclosingTrace.length - 1;
-            while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n]))
-            {
-                m--;
-                n--;
-            }
-            int framesInCommon = trace.length - 1 - m;
-            
-            // Print our stack trace
-            builder.append(prefix).append(caption).append(throwable).append(System.lineSeparator());
-            for (int i = 0; i <= m; i++) builder.append(prefix).append("\tat ").append(trace[i]).append(System.lineSeparator());
-            if (framesInCommon != 0) builder.append(prefix).append("\t... ").append(framesInCommon).append(" more").append(System.lineSeparator());
-            
-            // Print suppressed exceptions, if any
-            for (Throwable se : throwable.getSuppressed()) enclosedStackTrace(builder, throwable, trace, "Suppressed: ", prefix + "\t", dejaVu);
-            
-            // Print cause, if any
-            Throwable ourCause = throwable.getCause();
-            if (ourCause != null) enclosedStackTrace(builder, ourCause, trace, "Caused by: ", prefix, dejaVu);
-        }
+        return buffer.append(o);
     }
     
     // Reset
