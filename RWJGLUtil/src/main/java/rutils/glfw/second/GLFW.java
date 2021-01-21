@@ -4,6 +4,7 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
@@ -13,6 +14,7 @@ import rutils.glfw.second.event.GLFWEventMonitorDisconnected;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.nio.IntBuffer;
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -33,18 +35,30 @@ public final class GLFW
     private static final LinkedHashMap<Long, Window> WINDOWS    = new LinkedHashMap<>();
     static               Window                      mainWindow = null;
     
+    static boolean supportRawMouseInput;
+    
     private GLFW() {}
     
     // -------------------- Global Methods -------------------- //
     
     public static void init()
     {
-        GLFW.LOGGER.fine("GLFW Initialization");
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            IntBuffer major = stack.mallocInt(1);
+            IntBuffer minor = stack.mallocInt(1);
+            IntBuffer rev   = stack.mallocInt(1);
+            
+            glfwGetVersion(major, minor, rev);
+            
+            GLFW.LOGGER.fine("GLFW Initialization %s.%s.%s", major.get(), minor.get(), rev.get());
+            GLFW.LOGGER.finer("RWJGLUtil Compiled to '%s'", glfwGetVersionString());
+        }
+        
+        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         GLFW.TASK_DELEGATOR.setThread();
         GLFW.EVENT_BUS.start();
-        
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         // GLFW.CALLBACKS.add();
         glfwSetErrorCallback(GLFW::errorCallback);
@@ -54,6 +68,8 @@ public final class GLFW
         loadMonitors();
         
         GLFW.mainWindow = new WindowMain();
+        
+        GLFW.supportRawMouseInput = glfwRawMouseMotionSupported();
     }
     
     public static void eventLoop()
@@ -66,7 +82,7 @@ public final class GLFW
             
             ArrayList<Long> toRemove = new ArrayList<>();
             GLFW.WINDOWS.values().forEach(w -> {
-                if (!w.isOpen()) toRemove.add(w.handle());
+                if (!w.isOpen()) toRemove.add(w.handle);
             });
             toRemove.forEach(GLFW.WINDOWS::remove);
             
@@ -120,7 +136,7 @@ public final class GLFW
     static void attachWindow(long handle, Window window)
     {
         GLFW.WINDOWS.put(handle, window);
-    
+        
         glfwSetWindowCloseCallback(handle, GLFW::windowCloseCallback);
         glfwSetWindowFocusCallback(handle, GLFW::windowFocusCallback);
         glfwSetWindowIconifyCallback(handle, GLFW::windowIconifyCallback);
@@ -131,12 +147,12 @@ public final class GLFW
         glfwSetFramebufferSizeCallback(handle, GLFW::framebufferSizeCallback);
         glfwSetWindowRefreshCallback(handle, GLFW::windowRefreshCallback);
         glfwSetDropCallback(handle, GLFW::dropCallback);
-    
+        
         glfwSetCursorEnterCallback(handle, GLFW::mouseEnteredCallback);
         glfwSetCursorPosCallback(handle, GLFW::mousePosCallback);
         glfwSetScrollCallback(handle, GLFW::scrollCallback);
         glfwSetMouseButtonCallback(handle, GLFW::mouseButtonCallback);
-    
+        
         glfwSetKeyCallback(handle, GLFW::keyCallback);
         glfwSetCharCallback(handle, GLFW::charCallback);
     }
@@ -144,6 +160,13 @@ public final class GLFW
     public static Window mainWindow()
     {
         return GLFW.mainWindow;
+    }
+    
+    // -------------------- Input -------------------- //
+    
+    public static boolean supportRawMouseInput()
+    {
+        return GLFW.supportRawMouseInput;
     }
     
     // -------------------- Callbacks -------------------- //
@@ -256,7 +279,7 @@ public final class GLFW
     private static void dropCallback(long handle, int count, long names)
     {
         Window window = GLFW.WINDOWS.get(handle);
-    
+        
         window._dropped = new String[count];
         PointerBuffer charPointers = MemoryUtil.memPointerBuffer(names, count);
         for (int i = 0; i < count; i++) window._dropped[i] = MemoryUtil.memUTF8(charPointers.get(i));
@@ -266,8 +289,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        // GLFW.mouse.window   = entered ? window : null; // TODO
-        // GLFW.mouse._entered = entered;
+        window.mouse._entered = entered;
     }
     
     private static void mousePosCallback(long handle, double x, double y)
@@ -276,8 +298,7 @@ public final class GLFW
         
         if (!Double.isFinite(x) || !Double.isFinite(y)) return;
         
-        // GLFW.mouse.window = window; // TODO
-        // GLFW.mouse._pos.set(x, y);
+        window.mouse._pos.set(x, y); // TODO
     }
     
     private static void scrollCallback(long handle, double dx, double dy)
@@ -286,8 +307,7 @@ public final class GLFW
         
         if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
         
-        // GLFW.mouse.window = window; // TODO
-        // GLFW.mouse._scroll.add(dx, dy);
+        window.mouse._scroll.add(dx, dy); // TODO
     }
     
     private static void mouseButtonCallback(long handle, int button, int action, int mods)

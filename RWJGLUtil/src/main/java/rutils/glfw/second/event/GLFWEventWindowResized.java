@@ -8,12 +8,14 @@ import rutils.glfw.second.Window;
 public class GLFWEventWindowResized extends GLFWEventWindow
 {
     private final Vector2i size;
+    private final Vector2i rel;
     
-    public GLFWEventWindowResized(Window window, Vector2i size)
+    public GLFWEventWindowResized(Window window, Vector2i size, Vector2i rel)
     {
         super(window);
-        
+    
         this.size = size;
+        this.rel  = rel;
     }
     
     @Property
@@ -30,5 +32,21 @@ public class GLFWEventWindowResized extends GLFWEventWindow
     public int height()
     {
         return this.size.y;
+    }
+    
+    @Property
+    public Vector2ic rel()
+    {
+        return this.rel;
+    }
+    
+    public int dWidth()
+    {
+        return this.rel.x;
+    }
+    
+    public int dHeight()
+    {
+        return this.rel.y;
     }
 }

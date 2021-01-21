@@ -8,12 +8,14 @@ import rutils.glfw.second.Window;
 public class GLFWEventWindowMoved extends GLFWEventWindow
 {
     private final Vector2i pos;
+    private final Vector2i rel;
     
-    public GLFWEventWindowMoved(Window window, Vector2i pos)
+    public GLFWEventWindowMoved(Window window, Vector2i pos, Vector2i rel)
     {
         super(window);
         
         this.pos = pos;
+        this.rel = rel;
     }
     
     @Property
@@ -30,5 +32,21 @@ public class GLFWEventWindowMoved extends GLFWEventWindow
     public int y()
     {
         return this.pos.y;
+    }
+    
+    @Property
+    public Vector2ic rel()
+    {
+        return this.rel;
+    }
+    
+    public int dx()
+    {
+        return this.rel.x;
+    }
+    
+    public int dy()
+    {
+        return this.rel.y;
     }
 }

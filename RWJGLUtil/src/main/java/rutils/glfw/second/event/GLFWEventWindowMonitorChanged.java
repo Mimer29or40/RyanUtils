@@ -6,18 +6,26 @@ import rutils.glfw.second.Window;
 @SuppressWarnings("unused")
 public class GLFWEventWindowMonitorChanged extends GLFWEventWindow
 {
-    private final Monitor monitor;
+    private final Monitor from;
+    private final Monitor to;
     
-    public GLFWEventWindowMonitorChanged(Window window, Monitor monitor)
+    public GLFWEventWindowMonitorChanged(Window window, Monitor from, Monitor to)
     {
         super(window);
         
-        this.monitor = monitor;
+        this.from = from;
+        this.to = to;
     }
     
-    @Property(printName = false)
-    public Monitor monitor()
+    @Property
+    public Monitor from()
     {
-        return this.monitor;
+        return this.from;
+    }
+    
+    @Property
+    public Monitor to()
+    {
+        return this.to;
     }
 }

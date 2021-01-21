@@ -8,12 +8,14 @@ import rutils.glfw.second.Window;
 public class GLFWEventWindowContentScaleChanged extends GLFWEventWindow
 {
     private final Vector2d scale;
+    private final Vector2d rel;
     
-    public GLFWEventWindowContentScaleChanged(Window window, Vector2d scale)
+    public GLFWEventWindowContentScaleChanged(Window window, Vector2d scale, Vector2d rel)
     {
         super(window);
         
         this.scale = scale;
+        this.rel   = rel;
     }
     
     @Property
@@ -30,5 +32,21 @@ public class GLFWEventWindowContentScaleChanged extends GLFWEventWindow
     public double contentScaleY()
     {
         return this.scale.y;
+    }
+    
+    @Property
+    public Vector2dc rel()
+    {
+        return this.rel;
+    }
+    
+    public double dx()
+    {
+        return this.rel.x;
+    }
+    
+    public double dy()
+    {
+        return this.rel.y;
     }
 }

@@ -25,6 +25,10 @@ public class Window
     
     protected final String name;
     protected final long   handle;
+    
+    public final Mouse    mouse;
+    public final Keyboard keyboard;
+    
     protected final Thread thread;
     
     protected Monitor monitor;
@@ -67,6 +71,11 @@ public class Window
     protected boolean _refresh;
     
     protected String[] _dropped;
+    
+    // -------------------- Internal Objects -------------------- //
+    
+    private final Vector2i deltaI = new Vector2i();
+    private final Vector2d deltaD = new Vector2d();
     
     public Window(final Builder builder)
     {
@@ -139,13 +148,15 @@ public class Window
             
             glfwSetWindowSizeLimits(handle, this.minSize.x, this.minSize.y, this.maxSize.x, this.maxSize.y);
             
-            // glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate); // TODO
-            // glfwSetInputMode(window, mode, value); // TODO
+            // glfwSetWindowMonitor(handle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate); // TODO
             
             GLFW.attachWindow(handle, this);
             
             return handle;
         });
+        
+        this.mouse    = new Mouse(this);
+        this.keyboard = new Keyboard(this);
         
         this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
         this.thread.start();
@@ -172,15 +183,15 @@ public class Window
         return "Window{" + "name='" + (this.name != null ? this.name : this.handle) + '\'' + '}';
     }
     
-    /**
-     * @return The GLFW address of the monitor.
-     */
-    public long handle()
-    {
-        return this.handle;
-    }
-    
     // -------------------- Properties -------------------- //
+    
+    /**
+     * @return The name of the window.
+     */
+    public String name()
+    {
+        return this.name != null ? this.name : ("Window-" + this.handle);
+    }
     
     /**
      * Sets the window title, encoded as UTF-8, of the window.
@@ -513,14 +524,6 @@ public class Window
     }
     
     /**
-     * @return A read-only framebuffer view transformation matrix for this window.
-     */
-    public Matrix4dc viewMatrix()
-    {
-        return this.viewMatrix;
-    }
-    
-    /**
      * Retrieves the size, in screen coordinates, of each edge of the frame of
      * the window. This size includes the title bar, if the window has one. The
      * size of the frame may vary depending on the
@@ -548,6 +551,14 @@ public class Window
                 return new int[] {left.get(), top.get(), right.get(), bottom.get()};
             }
         });
+    }
+    
+    /**
+     * @return A read-only framebuffer view transformation matrix for this window.
+     */
+    public Matrix4dc viewMatrix()
+    {
+        return this.viewMatrix;
     }
     
     public boolean isOpen()
@@ -955,8 +966,13 @@ public class Window
             
             org.lwjgl.opengl.GL.createCapabilities();
             
+            long t = System.nanoTime(), dt;
+            
             while (!this.close && this.open)
             {
+                dt = System.nanoTime() - t;
+                t = System.nanoTime();
+                
                 boolean updateMonitor = false;
                 
                 this.taskDelegator.runTasks();
@@ -994,30 +1010,34 @@ public class Window
                 
                 if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
                 {
+                    this._pos.sub(this.pos, this.deltaI);
                     this.pos.set(this._pos);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowMoved(this, this.pos));
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowMoved(this, this.pos, this.deltaI));
                     
                     updateMonitor = true;
                 }
                 
                 if (this.size.x != this._size.x || this.size.y != this._size.y)
                 {
+                    this._size.sub(this.size, this.deltaI);
                     this.size.set(this._size);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowResized(this, this.size));
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowResized(this, this.size, this.deltaI));
                     
                     updateMonitor = true;
                 }
                 
-                if (this.scale.x != this._scale.x || this.scale.y != this._scale.y)
+                if (Double.compare(this.scale.x, this._scale.x) != 0 || Double.compare(this.scale.y, this._scale.y) != 0)
                 {
+                    this._scale.sub(this.scale, this.deltaD);
                     this.scale.set(this._scale);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowContentScaleChanged(this, this.scale));
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowContentScaleChanged(this, this.scale, this.deltaD));
                 }
                 
                 if (this.fbSize.x != this._fbSize.x || this.fbSize.y != this._fbSize.y)
                 {
+                    this._fbSize.sub(this.fbSize, this.deltaI);
                     this.fbSize.set(this._fbSize);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowFramebufferResized(this, this.fbSize));
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowFramebufferResized(this, this.fbSize, this.deltaI));
                     
                     this.viewMatrix.setOrtho(0, this.fbSize.x, this.fbSize.y, 0, -1F, 1F);
                 }
@@ -1052,9 +1072,11 @@ public class Window
                     
                     if (this.monitor != prevMonitor)
                     {
-                        GLFW.EVENT_BUS.post(new GLFWEventWindowMonitorChanged(this, this.monitor));
+                        GLFW.EVENT_BUS.post(new GLFWEventWindowMonitorChanged(this, prevMonitor, this.monitor));
                     }
                 }
+                
+                this.mouse.postEvents(dt);
                 
                 // TODO - Separate Rendering to on demand.
                 glViewport(0, 0, this.fbSize.x, this.fbSize.y);

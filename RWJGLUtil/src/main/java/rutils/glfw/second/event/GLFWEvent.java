@@ -9,18 +9,29 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public class GLFWEvent
 {
     private static final Map<Class<? extends GLFWEvent>, Set<Method>> METHOD_CACHE = new ConcurrentHashMap<>();
     
+    private final double time;
+    
     private GLFWEventPriority phase = null;
+    
+    public GLFWEvent()
+    {
+        // this.time = System.nanoTime() / 1_000_000_000D;
+        this.time = glfwGetTime();
+    }
     
     @Override
     public String toString()
@@ -36,15 +47,26 @@ public class GLFWEvent
         Iterator<Method> iterator = methods.iterator();
         while (true)
         {
-            Method method = iterator.next();
-            if (method.getAnnotation(Property.class).printName()) s.append(method.getName()).append('=');
+            Method   method   = iterator.next();
+            Property property = method.getAnnotation(Property.class);
+            
+            if (property.printName()) s.append(method.getName()).append('=');
             try
             {
-                s.append(StringUtil.toString(method.invoke(this)));
+                Class<?> declaringClass = method.getDeclaringClass();
+                Method toString = declaringClass.getDeclaredMethod(method.getName() + "Transform");
+                s.append(toString.invoke(this));
             }
-            catch (IllegalAccessException | InvocationTargetException e)
+            catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored)
             {
-                s.append(method.getReturnType());
+                try
+                {
+                    s.append(StringUtil.toString(method.invoke(this)));
+                }
+                catch (IllegalAccessException | InvocationTargetException ignored1)
+                {
+                    s.append(method.getReturnType());
+                }
             }
             
             if (iterator.hasNext())
@@ -57,6 +79,17 @@ public class GLFWEvent
             }
         }
         return s.append("}").toString();
+    }
+    
+    @Property
+    public double time()
+    {
+        return this.time;
+    }
+    
+    protected String timeTransform()
+    {
+        return String.format("%.3f", this.time);
     }
     
     @Nullable

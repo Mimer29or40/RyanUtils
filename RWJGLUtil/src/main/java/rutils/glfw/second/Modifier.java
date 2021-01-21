@@ -1,8 +1,11 @@
 package rutils.glfw.second;
 
+import java.util.function.Predicate;
+
 import static org.lwjgl.glfw.GLFW.*;
 
-public enum Modifier
+@SuppressWarnings("unused")
+public enum Modifier implements Predicate<Integer>
 {
     NONE(0x00000000),
     SHIFT(GLFW_MOD_SHIFT),
@@ -30,9 +33,11 @@ public enum Modifier
      * Checks if this modifier is active in the provided bitmap.
      *
      * @param mods The modifier bitmap.
-     * @return True if this modifier is active in the bitmap.
+     * @return {@code true} if this modifier is active in the bitmap, otherwise
+     * {@code false}
      */
-    public boolean active(int mods)
+    @Override
+    public boolean test(Integer mods)
     {
         return (mods == 0 && this.value == 0) || (mods & this.value) != 0;
     }
