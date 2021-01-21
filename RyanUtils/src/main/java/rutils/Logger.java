@@ -3,7 +3,9 @@ package rutils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -191,7 +193,7 @@ public class Logger
         
         StringBuilder fullMessage = new StringBuilder();
         for (String line : SPLIT_PATTERN.split(message)) fullMessage.append(prefixString).append(line).append(Logger.RESET).append(System.lineSeparator());
-    
+        
         outputStream.write(fullMessage.toString().getBytes());
         outputStream.flush();
     }
@@ -200,7 +202,7 @@ public class Logger
     {
         StringBuilder fullMessage = new StringBuilder();
         for (String line : SPLIT_PATTERN.split(message)) fullMessage.append(prefix).append(line).append(System.lineSeparator());
-    
+        
         outputStream.write(fullMessage.toString().getBytes());
         outputStream.flush();
     }
@@ -213,7 +215,7 @@ public class Logger
             prefix.append('[').append(getCurrentTimeString()).append("] [").append(Thread.currentThread().getName()).append('/').append(level).append(']');
             if (!this.name.equals("")) prefix.append(" [").append(this.name).append(']');
             prefix.append(": ");
-
+            
             for (OutputStream outputStream : Logger.OUTPUT_STREAMS)
             {
                 if (outputStream instanceof BufferedOutputStream)
@@ -241,8 +243,8 @@ public class Logger
         if (applyFilters(this.name)) return;
         int n = objects.length;
         if (n == 0) return;
-        StringBuilder builder = printObject(new StringBuilder(), objects[0]);
-        for (int i = 1; i < n; i++) printObject(builder.append(' '), objects[i]);
+        StringBuilder builder = new StringBuilder(StringUtil.toString(objects[0]));
+        for (int i = 1; i < n; i++) builder.append(' ').append(StringUtil.toString(objects[i]));
         logImpl(level, builder.toString());
     }
     
@@ -266,7 +268,7 @@ public class Logger
         else
         {
             StringBuilder builder = new StringBuilder(format);
-            for (Object object : objects) printObject(builder.append(' '), object);
+            for (Object object : objects) builder.append(' ').append(StringUtil.toString(object));
             logImpl(level, builder.toString());
         }
     }
@@ -449,62 +451,10 @@ public class Logger
         log(Level.ALL, format, objects);
     }
     
-    private Object transformObject(Object o)
+    private Object transformObject(Object obj)
     {
-        if (o instanceof Throwable)
-        {
-            final StringWriter sw = new StringWriter();
-            ((Throwable) o).printStackTrace(new PrintWriter(sw));
-            return sw.getBuffer();
-        }
-        return o;
-    }
-    
-    private StringBuilder printObject(StringBuilder buffer, Object o)
-    {
-        if (o instanceof Throwable)
-        {
-            final StringWriter sw = new StringWriter();
-            ((Throwable) o).printStackTrace(new PrintWriter(sw));
-            buffer.append(sw.getBuffer());
-        }
-        else if (o instanceof boolean[])
-        {
-            return buffer.append(Arrays.toString((boolean[]) o));
-        }
-        else if (o instanceof byte[])
-        {
-            return buffer.append(Arrays.toString((byte[]) o));
-        }
-        else if (o instanceof short[])
-        {
-            return buffer.append(Arrays.toString((short[]) o));
-        }
-        else if (o instanceof char[])
-        {
-            return buffer.append(Arrays.toString((char[]) o));
-        }
-        else if (o instanceof int[])
-        {
-            return buffer.append(Arrays.toString((int[]) o));
-        }
-        else if (o instanceof long[])
-        {
-            return buffer.append(Arrays.toString((long[]) o));
-        }
-        else if (o instanceof float[])
-        {
-            return buffer.append(Arrays.toString((float[]) o));
-        }
-        else if (o instanceof double[])
-        {
-            return buffer.append(Arrays.toString((double[]) o));
-        }
-        else if (o instanceof Object[])
-        {
-            return buffer.append(Arrays.toString((Object[]) o));
-        }
-        return buffer.append(o);
+        if (obj instanceof Throwable || obj.getClass().isArray()) return StringUtil.toString(obj);
+        return obj;
     }
     
     // Reset
