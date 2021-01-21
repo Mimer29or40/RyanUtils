@@ -1,349 +1,355 @@
 package rutils.glfw;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.system.APIUtil;
+import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
+import rutils.TaskDelegator;
+import rutils.glfw.event.GLFWEventBus;
+import rutils.glfw.event.GLFWEventMonitorConnected;
+import rutils.glfw.event.GLFWEventMonitorDisconnected;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Objects;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.nio.IntBuffer;
+import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class GLFW
+public final class GLFW
 {
     private static final Logger LOGGER = new Logger();
     
-    private static final LinkedHashMap<Long, GLFWMonitor> MONITORS       = new LinkedHashMap<>();
-    private static       GLFWMonitor                      defaultMonitor = null;
+    private static final Map<Integer, String> ERROR_CODES = APIUtil.apiClassTokens((field, value) -> 0x10000 < value && value < 0x20000, null, org.lwjgl.glfw.GLFW.class);
     
-    private static final LinkedHashMap<Long, GLFWWindow> WINDOWS       = new LinkedHashMap<>();
-    static               GLFWWindow                      focusedWindow = null;
-    static               GLFWWindow                      window        = null;
-    static               GLFWWindow                      window1       = null;
+    public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
     
-    private static final ArrayList<GLFWInputDevice> INPUT_DEVICES = new ArrayList<>();
-    static               GLFWMouse                  mouse         = null;
-    static               GLFWKeyboard               keyboard      = null;
+    public static final GLFWEventBus EVENT_BUS = new GLFWEventBus(true);
     
-    private static final ArrayDeque<Runnable> mainThreadDeque = new ArrayDeque<>();
+    private static final LinkedHashMap<Long, Monitor> MONITORS       = new LinkedHashMap<>();
+    static               Monitor                      primaryMonitor = null;
+    
+    private static final LinkedHashMap<Long, Window> WINDOWS    = new LinkedHashMap<>();
+    static               Window                      mainWindow = null;
+    
+    static boolean supportRawMouseInput;
+    
+    private GLFW() {}
+    
+    // -------------------- Global Methods -------------------- //
     
     public static void init()
     {
-        GLFW.LOGGER.finest("GLFWEnum Initialization");
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            IntBuffer major = stack.mallocInt(1);
+            IntBuffer minor = stack.mallocInt(1);
+            IntBuffer rev   = stack.mallocInt(1);
+            
+            glfwGetVersion(major, minor, rev);
+            
+            GLFW.LOGGER.fine("GLFW Initialization %s.%s.%s", major.get(), minor.get(), rev.get());
+            GLFW.LOGGER.finer("RWJGLUtil Compiled to '%s'", glfwGetVersionString());
+        }
         
-        GLFWErrorCallback.createPrint(System.err).set();
-        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFWEnum");
+        if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        GLFW.TASK_DELEGATOR.setThread();
+        GLFW.EVENT_BUS.start();
+        
+        // GLFW.CALLBACKS.add();
+        glfwSetErrorCallback(GLFW::errorCallback);
+        glfwSetMonitorCallback(GLFW::monitorCallback);
+        glfwSetJoystickCallback(GLFW::joystickCallback);
         
         loadMonitors();
         
-        createMainWindow();
+        GLFW.mainWindow = new WindowMain();
         
-        GLFW.INPUT_DEVICES.add(GLFW.mouse = new GLFWMouse());
-        GLFW.INPUT_DEVICES.add(GLFW.keyboard = new GLFWKeyboard());
-        
-        glfwSetMonitorCallback(GLFW::monitorCallback);
-        glfwSetJoystickCallback(GLFW::joystickCallback);
+        GLFW.supportRawMouseInput = glfwRawMouseMotionSupported();
     }
     
-    /**
-     * Generates all GLFWEnum events for a single frame to be consumed by the application.
-     */
-    public static void generateFrameEvents(long time, long delta)
+    public static void eventLoop()
     {
-        GLFW.MONITORS.values().forEach(m -> m.generateGLFWEvents(time, delta));
-        GLFW.WINDOWS.values().forEach(w -> w.generateGLFWEvents(time, delta));
-        GLFW.INPUT_DEVICES.forEach(m -> m.generateGLFWEvents(time, delta));
+        while (GLFW.WINDOWS.size() > 1)
+        {
+            glfwPollEvents();
+            
+            GLFW.TASK_DELEGATOR.runTasks();
+            
+            ArrayList<Long> toRemove = new ArrayList<>();
+            GLFW.WINDOWS.values().forEach(w -> {
+                if (!w.isOpen()) toRemove.add(w.handle);
+            });
+            toRemove.forEach(GLFW.WINDOWS::remove);
+            
+            Thread.yield();
+        }
     }
     
-    /**
-     * Processes all pending events on the main thread. This will call the callback methods.
-     *
-     * @return false if no windows remain.
-     */
-    public static boolean processEvents()
-    {
-        glfwPollEvents();
-        
-        // GLFW.focusedWindow = GLFW.WINDOWS.get(glfwFocusWindow(this.handle);)
-        
-        while (!GLFW.mainThreadDeque.isEmpty()) GLFW.mainThreadDeque.poll().run();
-        
-        ArrayList<Long> toRemove = new ArrayList<>();
-        GLFW.WINDOWS.values().forEach(w -> {
-            if (w.shouldClose()) toRemove.add(w.handle);
-        });
-        toRemove.forEach(GLFW::windowCloseCallback);
-        
-        return GLFW.WINDOWS.size() > 0;
-    }
-    
-    /**
-     * Destroys the glfw resources.
-     */
     public static void destroy()
     {
-        glfwSetMonitorCallback(null);
-        glfwSetJoystickCallback(null);
+        GLFW.LOGGER.fine("GLFW Destruction");
         
-        GLFW.WINDOWS.values().forEach(GLFWWindow::destroy);
+        GLFW.EVENT_BUS.shutdown();
         
-        GLFWErrorCallback errorCallback = glfwSetErrorCallback(null);
-        if (errorCallback != null) errorCallback.free();
+        GLFW.WINDOWS.values().forEach(Window::destroy);
+        
+        Callback[] callbacks = new Callback[] {
+                glfwSetErrorCallback(null),
+                glfwSetMonitorCallback(null),
+                glfwSetJoystickCallback(null)
+        };
+        for (Callback callback : callbacks) if (callback != null) callback.free();
         
         glfwTerminate();
     }
     
-    public static GLFWMonitor defaultMonitor()
-    {
-        return GLFW.defaultMonitor;
-    }
-    
-    public static GLFWWindow window()
-    {
-        return GLFW.window;
-    }
-    
-    public static GLFWMouse mouse()
-    {
-        return GLFW.mouse;
-    }
-    
-    public static GLFWKeyboard keyboard()
-    {
-        return GLFW.keyboard;
-    }
-    
-    // ---------- Monitor Things ---------- //
-    
-    public static GLFWMonitor monitor(int index)
-    {
-        for (GLFWMonitor monitor : GLFW.MONITORS.values())
-        {
-            if (monitor.index() == index) return monitor;
-        }
-        return GLFW.defaultMonitor;
-    }
+    // -------------------- Monitor -------------------- //
     
     private static void loadMonitors()
     {
-        GLFW.LOGGER.finer("Loading Monitors");
+        GLFW.LOGGER.fine("Loading Monitors");
         
         PointerBuffer monitors = Objects.requireNonNull(glfwGetMonitors(), "No monitors found.");
         GLFW.MONITORS.clear();
         long handle;
-        for (int i = 0, n = monitors.limit(); i < n; i++) GLFW.MONITORS.put(handle = monitors.get(), new GLFWMonitor(handle, i));
-        GLFW.defaultMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
-        
-        GLFW.LOGGER.finest(GLFW.MONITORS.values());
+        for (int i = 0, n = monitors.limit(); i < n; i++) GLFW.MONITORS.put(handle = monitors.get(), new Monitor(handle, i));
+        GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
     }
     
-    // ---------- Window Things ---------- //
-    
-    private static void createMainWindow()
+    public static Collection<Monitor> monitors()
     {
-        // TODO - Load from config here
-        GLFWWindow.Builder builder = new GLFWWindow.Builder();
-        builder.title("Main Window");
-        GLFW.window  = bindWindow(builder);
-        GLFW.window1 = bindWindow(builder);
+        return Collections.unmodifiableCollection(GLFW.MONITORS.values());
     }
     
-    private static GLFWWindow bindWindow(GLFWWindow.Builder builder)
+    public static Monitor primaryMonitor()
     {
-        GLFWWindow window = new GLFWWindow(builder);
-        
-        GLFW.WINDOWS.put(window.handle(), window);
-        
-        glfwSetWindowCloseCallback(window.handle(), GLFW::windowCloseCallback);
-        glfwSetWindowPosCallback(window.handle(), GLFW::windowPosCallback);
-        glfwSetWindowSizeCallback(window.handle(), GLFW::windowSizeCallback);
-        glfwSetWindowFocusCallback(window.handle(), GLFW::windowFocusCallback);
-        glfwSetWindowContentScaleCallback(window.handle(), GLFW::windowContentScaleCallback);
-        glfwSetWindowIconifyCallback(window.handle(), GLFW::windowIconifyCallback);
-        glfwSetWindowMaximizeCallback(window.handle(), GLFW::windowMaximizeCallback);
-        glfwSetWindowRefreshCallback(window.handle(), GLFW::windowRefreshCallback);
-        
-        glfwSetFramebufferSizeCallback(window.handle(), GLFW::framebufferSizeCallback);
-        
-        glfwSetCursorEnterCallback(window.handle(), GLFW::mouseEnteredCallback);
-        glfwSetCursorPosCallback(window.handle(), GLFW::mousePosCallback);
-        glfwSetScrollCallback(window.handle(), GLFW::scrollCallback);
-        glfwSetMouseButtonCallback(window.handle(), GLFW::mouseButtonCallback);
-        
-        glfwSetDropCallback(window.handle(), GLFW::dropCallback);
-        
-        glfwSetKeyCallback(window.handle(), GLFW::keyCallback);
-        glfwSetCharCallback(window.handle(), GLFW::charCallback);
-        glfwSetCharModsCallback(window.handle(), GLFW::charModsCallback);
-        
-        return window;
+        return GLFW.primaryMonitor;
     }
     
-    // ---------- Run on Main Thread ---------- //
+    // -------------------- Window -------------------- //
     
-    static void run(Runnable runnable)
+    static void attachWindow(long handle, Window window)
     {
-        GLFW.mainThreadDeque.offer(runnable);
+        GLFW.WINDOWS.put(handle, window);
+        
+        glfwSetWindowCloseCallback(handle, GLFW::windowCloseCallback);
+        glfwSetWindowFocusCallback(handle, GLFW::windowFocusCallback);
+        glfwSetWindowIconifyCallback(handle, GLFW::windowIconifyCallback);
+        glfwSetWindowMaximizeCallback(handle, GLFW::windowMaximizeCallback);
+        glfwSetWindowPosCallback(handle, GLFW::windowPosCallback);
+        glfwSetWindowSizeCallback(handle, GLFW::windowSizeCallback);
+        glfwSetWindowContentScaleCallback(handle, GLFW::windowContentScaleCallback);
+        glfwSetFramebufferSizeCallback(handle, GLFW::framebufferSizeCallback);
+        glfwSetWindowRefreshCallback(handle, GLFW::windowRefreshCallback);
+        glfwSetDropCallback(handle, GLFW::dropCallback);
+        
+        glfwSetCursorEnterCallback(handle, GLFW::mouseEnteredCallback);
+        glfwSetCursorPosCallback(handle, GLFW::mousePosCallback);
+        glfwSetScrollCallback(handle, GLFW::scrollCallback);
+        glfwSetMouseButtonCallback(handle, GLFW::mouseButtonCallback);
+        
+        glfwSetKeyCallback(handle, GLFW::keyCallback);
+        glfwSetCharCallback(handle, GLFW::charCallback);
     }
     
-    // ---------- Callbacks ---------- //
-    
-    private static void monitorCallback(long monitorHandle, int event)
+    public static Window mainWindow()
     {
-        // TODO - Add SubscribeGLFWEvent to this somehow.
-        GLFW.LOGGER.finest("GLFWMonitor Callback: monitorHandle=%s event=%s", monitorHandle, event);
+        return GLFW.mainWindow;
+    }
+    
+    // -------------------- Input -------------------- //
+    
+    public static boolean supportRawMouseInput()
+    {
+        return GLFW.supportRawMouseInput;
+    }
+    
+    // -------------------- Callbacks -------------------- //
+    
+    private static void errorCallback(int error, long description)
+    {
+        String msg = GLFWErrorCallback.getDescription(description);
         
-        loadMonitors();
-        
-        for (GLFWWindow window : GLFW.WINDOWS.values())
+        StringBuilder message = new StringBuilder();
+        message.append("[LWJGL] ").append(GLFW.ERROR_CODES.get(error)).append(" error\n");
+        message.append("\tDescription : ").append(msg).append('\n');
+        message.append("\tStacktrace  :\n");
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 4; i < stack.length; i++)
         {
-            double nextPercent, maxPercent = 0.0;
-            for (GLFWMonitor monitor : GLFW.MONITORS.values())
-            {
-                if ((nextPercent = monitor.isWindowIn(window)) > maxPercent)
-                {
-                    maxPercent     = nextPercent;
-                    window.monitor = monitor;
-                }
-            }
-            window.x((window.monitor.width() - window.size.x) >> 1); // TODO - This may be handled by the OS
-            window.y((window.monitor.height() - window.size.y) >> 1);
+            message.append("\t\t");
+            message.append(stack[i].toString());
+            message.append('\n');
         }
+        
+        GLFW.LOGGER.severe(message);
+    }
+    
+    private static void monitorCallback(long handle, int event)
+    {
+        switch (event)
+        {
+            case GLFW_CONNECTED -> {
+                Monitor monitor = new Monitor(handle, GLFW.MONITORS.size());
+                GLFW.MONITORS.put(handle, monitor);
+                GLFW.EVENT_BUS.post(new GLFWEventMonitorConnected(monitor));
+            }
+            case GLFW_DISCONNECTED -> {
+                Monitor monitor = GLFW.MONITORS.remove(handle);
+                GLFW.EVENT_BUS.post(new GLFWEventMonitorDisconnected(monitor));
+            }
+        }
+        
+        GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
     }
     
     private static void joystickCallback(int jid, int event)
     {
-        // TODO
+        // TODO - Add SubscribeGLFWEvent to this somehow.
     }
     
     private static void windowCloseCallback(long handle)
     {
-        GLFWWindow window = GLFW.WINDOWS.remove(handle);
-        if (window == GLFW.window)
-        {
-            for (GLFWWindow w : GLFW.WINDOWS.values())
-            {
-                GLFW.window = w;
-                break;
-            }
-        }
-        window.destroy();
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._close = true;
+    }
+    
+    private static void windowFocusCallback(long handle, boolean focused)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._focused = focused;
+    }
+    
+    private static void windowIconifyCallback(long handle, boolean iconified)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._iconified = iconified;
+    }
+    
+    private static void windowMaximizeCallback(long handle, boolean maximized)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._maximized = maximized;
+    }
+    
+    private static void windowRefreshCallback(long handle)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._refresh = true;
     }
     
     private static void windowPosCallback(long handle, int x, int y)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
         window._pos.set(x, y);
     }
     
     private static void windowSizeCallback(long handle, int width, int height)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
-        window._size.set((int) (width / window.monitor.scaleX()), (int) (height / window.monitor.scaleY()));
+        window._size.set(width, height);
     }
     
-    private static void windowFocusCallback(long handle, boolean focused)
+    private static void windowContentScaleCallback(long handle, float xScale, float yScale)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
-        if (focused) GLFW.focusedWindow = window;
-        window._focused = focused;
-    }
-    
-    private static void windowContentScaleCallback(long handle, float xscale, float yscale)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle); // TODO
-    }
-    
-    private static void windowIconifyCallback(long handle, boolean iconified)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle); // TODO
-    }
-    
-    private static void windowMaximizeCallback(long handle, boolean maximized)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle); // TODO
-    }
-    
-    private static void windowRefreshCallback(long handle)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle); // TODO
+        window._scale.set(xScale, yScale);
     }
     
     private static void framebufferSizeCallback(long handle, int width, int height)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
-        window._framebufferSize.set(width, height);
-    }
-    
-    private static void mouseEnteredCallback(long handle, boolean entered)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
-        
-        GLFW.mouse.window   = entered ? window : null;
-        GLFW.mouse._entered = entered;
-    }
-    
-    private static void mousePosCallback(long handle, double x, double y)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
-        
-        if (!Double.isFinite(x) || !Double.isFinite(y)) return;
-        
-        GLFW.mouse.window = window;
-        GLFW.mouse._pos.set(x, y);
-    }
-    
-    private static void scrollCallback(long handle, double dx, double dy)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
-        
-        if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
-        
-        GLFW.mouse.window = window;
-        GLFW.mouse._scroll.add(dx, dy);
-    }
-    
-    private static void mouseButtonCallback(long handle, int button, int action, int mods)
-    {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
-        
-        GLFW.mouse.window = window;
-        GLFW.mouse.stateCallback(button, action, mods); // TODO
+        window._fbSize.set(width, height);
     }
     
     private static void dropCallback(long handle, int count, long names)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle); // TODO
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window._dropped = new String[count];
+        PointerBuffer charPointers = MemoryUtil.memPointerBuffer(names, count);
+        for (int i = 0; i < count; i++) window._dropped[i] = MemoryUtil.memUTF8(charPointers.get(i));
+    }
+    
+    private static void mouseEnteredCallback(long handle, boolean entered)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window.mouse._entered = entered;
+    }
+    
+    private static void mousePosCallback(long handle, double x, double y)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        if (!Double.isFinite(x) || !Double.isFinite(y)) return;
+        
+        window.mouse._pos.set(x, y);
+    }
+    
+    private static void scrollCallback(long handle, double dx, double dy)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
+        
+        window.mouse._scroll.add(dx, dy);
+    }
+    
+    private static void mouseButtonCallback(long handle, int button, int action, int mods)
+    {
+        Window window = GLFW.WINDOWS.get(handle);
+        
+        window.mouse.stateCallback(button, action, mods); // TODO
     }
     
     private static void keyCallback(long handle, int key, int scancode, int action, int mods)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
-        GLFW.keyboard.stateCallback(key, action, mods); // TODO
+        // window.keyboard.stateCallback(key, action, mods); // TODO
     }
     
     private static void charCallback(long handle, int codePoint)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
+        Window window = GLFW.WINDOWS.get(handle);
         
-        GLFW.keyboard.charCallback(codePoint); // TODO
+        // window.keyboard.charCallback(codePoint); // TODO
     }
     
-    private static void charModsCallback(long handle, int codepoint, int mods)
+    public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation)
     {
-        GLFWWindow window = GLFW.WINDOWS.get(handle);
-        // GLFW.keyboard.charModsCallback(codePoint); // TODO
+        final List<Method> methods = new ArrayList<>();
+        Class<?>           clazz   = type;
+        while (clazz != Object.class)
+        { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
+            // iterate though the list of methods declared in the class represented by clazz variable, and add those annotated with the specified annotation
+            for (final Method method : clazz.getDeclaredMethods())
+            {
+                if (method.isAnnotationPresent(annotation))
+                {
+                    Annotation annotationInstance = method.getAnnotation(annotation);
+                    // TODO process annotationInstance
+                    methods.add(method);
+                }
+            }
+            // move to the upper class in the hierarchy in search for more methods
+            clazz = clazz.getSuperclass();
+        }
+        return methods;
     }
-    
-    private GLFW() {}
 }

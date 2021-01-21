@@ -1,62 +1,48 @@
 package rutils.glfw;
 
-public interface GLFWInput
+
+import java.util.function.Predicate;
+
+public class GLFWInput
 {
-    /**
-     * @return If the input is in the down state.
-     */
-    boolean down();
+    protected boolean down, up, held, repeat;
     
-    /**
-     * @return If the input is in the up state.
-     */
-    boolean up();
+    protected int _action, action;
     
-    /**
-     * @return If the input is in the held state.
-     */
-    boolean held();
+    protected int _mods, mods;
     
-    /**
-     * @return If the input is in the repeat state.
-     */
-    boolean repeat();
-    
-    /**
-     * @return The bit map of mods currently affecting this input.
-     */
-    int mods();
+    protected long downTime;
     
     /**
      * @return If the GLFWInput is in the down state with optional modifiers. This will only be true for one frame.
      */
-    default boolean down(GLFWModifier... modifiers)
+    public boolean down(Modifier... modifiers)
     {
-        return down() && checkModifiers(modifiers);
+        return this.down && checkModifiers(modifiers);
     }
     
     /**
      * @return If the GLFWInput was released with optional modifiers. This will only be true for one frame.
      */
-    default boolean up(GLFWModifier... modifiers)
+    public boolean up(Modifier... modifiers)
     {
-        return up() && checkModifiers(modifiers);
+        return this.up && checkModifiers(modifiers);
     }
     
     /**
      * @return If the GLFWInput is being held down with optional modifiers.
      */
-    default boolean held(GLFWModifier... modifiers)
+    public boolean held(Modifier... modifiers)
     {
-        return held() && checkModifiers(modifiers);
+        return this.held && checkModifiers(modifiers);
     }
     
     /**
      * @return If the GLFWInput is being repeated with optional modifiers. This will be true for one frame at a time.
      */
-    default boolean repeat(GLFWModifier... modifiers)
+    public boolean repeat(Modifier... modifiers)
     {
-        return repeat() && checkModifiers(modifiers);
+        return this.repeat && checkModifiers(modifiers);
     }
     
     /**
@@ -65,11 +51,11 @@ public interface GLFWInput
      * @param modifiers The array of modifiers.
      * @return True if the supplied modifiers matches the actual modifiers.
      */
-    default boolean checkModifiers(GLFWModifier[] modifiers)
+    protected boolean checkModifiers(Modifier[] modifiers)
     {
         if (modifiers.length == 0) return true;
-        int mods = 0;
-        for (GLFWModifier modifier : modifiers) mods |= modifier.value();
-        return (mods == 0 && mods() == 0) || (mods() & mods) != 0;
+        Predicate<Integer> predicate = modifiers[0];
+        for (int i = 1; i < modifiers.length; i++) predicate = predicate.and(modifiers[i]);
+        return predicate.test(this.mods);
     }
 }

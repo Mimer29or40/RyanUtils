@@ -1,10 +1,8 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.second.GLFW;
-import rutils.glfw.second.Window;
-import rutils.glfw.second.event.GLFWEvent;
-import rutils.glfw.second.event.SubscribeGLFWEvent;
+import rutils.glfw.event.GLFWEvent;
+import rutils.glfw.event.SubscribeGLFWEvent;
 
 import java.util.logging.Level;
 
