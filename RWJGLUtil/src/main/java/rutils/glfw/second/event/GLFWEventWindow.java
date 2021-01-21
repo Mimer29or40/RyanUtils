@@ -2,6 +2,7 @@ package rutils.glfw.second.event;
 
 import rutils.glfw.second.Window;
 
+@SuppressWarnings("unused")
 public class GLFWEventWindow extends GLFWEvent
 {
     private final Window window;
@@ -11,7 +12,7 @@ public class GLFWEventWindow extends GLFWEvent
         this.window = window;
     }
     
-    @Property
+    @Property(printName = false)
     public Window window()
     {
         return this.window;

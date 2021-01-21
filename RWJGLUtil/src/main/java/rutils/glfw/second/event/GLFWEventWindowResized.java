@@ -4,6 +4,7 @@ import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import rutils.glfw.second.Window;
 
+@SuppressWarnings("unused")
 public class GLFWEventWindowResized extends GLFWEventWindow
 {
     private final Vector2i size;

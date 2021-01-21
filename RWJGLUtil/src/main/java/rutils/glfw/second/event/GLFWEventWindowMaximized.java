@@ -2,6 +2,7 @@ package rutils.glfw.second.event;
 
 import rutils.glfw.second.Window;
 
+@SuppressWarnings("unused")
 public class GLFWEventWindowMaximized extends GLFWEventWindow
 {
     private final boolean maximized;

@@ -3,9 +3,9 @@ package rutils.glfw.second.event;
 import rutils.glfw.second.Window;
 
 @SuppressWarnings("unused")
-public class GLFWEventWindowClosed extends GLFWEventWindow
+public class GLFWEventWindowRefreshed extends GLFWEventWindow
 {
-    public GLFWEventWindowClosed(Window window)
+    public GLFWEventWindowRefreshed(Window window)
     {
         super(window);
     }

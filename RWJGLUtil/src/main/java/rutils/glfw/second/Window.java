@@ -9,12 +9,13 @@ import rutils.glfw.second.event.*;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window
 {
@@ -22,13 +23,13 @@ public class Window
     
     public final TaskDelegator taskDelegator = new TaskDelegator();
     
-    private final String name;
-    private final long   handle;
-    private final Thread thread;
+    protected final String name;
+    protected final long   handle;
+    protected final Thread thread;
     
-    private Monitor monitor;
+    protected Monitor monitor;
     
-    private boolean open;
+    protected boolean open;
     
     protected final Vector2i minSize = new Vector2i();
     protected final Vector2i maxSize = new Vector2i();
@@ -37,91 +38,114 @@ public class Window
     
     // -------------------- Callback Objects -------------------- //
     protected boolean close;
-    boolean _close;
+    protected boolean _close;
     
     protected boolean vsync;
-    boolean _vsync;
+    protected boolean _vsync;
     
     protected boolean focused;
-    boolean _focused;
+    protected boolean _focused;
     
     protected boolean iconified;
-    boolean _iconified;
+    protected boolean _iconified;
     
     protected boolean maximized;
-    boolean _maximized;
+    protected boolean _maximized;
     
     protected final Vector2i pos  = new Vector2i();
-    final           Vector2i _pos = new Vector2i();
+    protected final Vector2i _pos = new Vector2i();
     
     protected final Vector2i size  = new Vector2i();
-    final           Vector2i _size = new Vector2i();
+    protected final Vector2i _size = new Vector2i();
     
     protected final Vector2d scale  = new Vector2d();
-    final           Vector2d _scale = new Vector2d();
+    protected final Vector2d _scale = new Vector2d();
     
     protected final Vector2i fbSize  = new Vector2i();
-    final           Vector2i _fbSize = new Vector2i();
+    protected final Vector2i _fbSize = new Vector2i();
     
-    Window(Builder builder)
+    protected boolean _refresh;
+    
+    protected String[] _dropped;
+    
+    public Window(final Builder builder)
     {
         this.name = builder.name;
         
-        if (builder.setPos) builder.visible(false);
-        builder.applyHints();
-        
-        // TODO - Use the builder to load monitor from config.
-        this.monitor = builder.monitor != null ? builder.monitor : GLFW.primaryMonitor();
-        
-        Window main = GLFW.mainWindow();
-        if (main != null) main.unmakeCurrent();
-        
-        this.handle = glfwCreateWindow(builder.width, builder.height, builder.title, builder.windowed ? NULL : this.monitor.handle(), main != null ? main.handle : 0L);
-        if (this.handle == NULL) throw new RuntimeException("Failed to create the GLFW window");
-        
-        focus();
-        
-        if (main != null) main.makeCurrent();
-        
-        this.open = true;
-        
-        this._vsync = builder.vsync;
-        
-        this._focused   = glfwGetWindowAttrib(this.handle, GLFW_FOCUSED) == GLFW_TRUE;
-        this._iconified = glfwGetWindowAttrib(this.handle, GLFW_ICONIFIED) == GLFW_TRUE;
-        this._maximized = glfwGetWindowAttrib(this.handle, GLFW_MAXIMIZED) == GLFW_TRUE;
-        
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            IntBuffer x = stack.mallocInt(1);
-            IntBuffer y = stack.mallocInt(1);
+        this.handle = GLFW.TASK_DELEGATOR.waitReturnTask(() -> {
+            if (builder.setPos) builder.visible(false);
+            builder.applyHints();
             
-            FloatBuffer xf = stack.mallocFloat(1);
-            FloatBuffer yf = stack.mallocFloat(1);
+            // TODO - Use the builder to load monitor from config.
+            this.monitor = builder.monitor != null ? builder.monitor : GLFW.primaryMonitor;
             
-            if (builder.setPos)
+            String title   = builder.title != null ? builder.title : this.name != null ? this.name : "Window";
+            long   monitor = builder.windowed ? 0L : this.monitor.handle();
+            long   window  = GLFW.mainWindow != null ? GLFW.mainWindow.handle : 0L;
+            
+            long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);
+            if (handle == 0L) throw new RuntimeException("Failed to create the GLFW window");
+            
+            this.open = true;
+            
+            this._vsync = builder.vsync;
+            this.vsync  = !this._vsync;
+            
+            this._focused = glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
+            this.focused  = !this._focused;
+            
+            this._iconified = glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE;
+            this.iconified  = !this._iconified;
+            
+            this._maximized = glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) == GLFW_TRUE;
+            this.maximized  = !this._maximized;
+            
+            try (MemoryStack stack = MemoryStack.stackPush())
             {
-                pos(builder.x, builder.y);
-                show();
+                IntBuffer x = stack.mallocInt(1);
+                IntBuffer y = stack.mallocInt(1);
+                
+                FloatBuffer xf = stack.mallocFloat(1);
+                FloatBuffer yf = stack.mallocFloat(1);
+                
+                if (builder.setPos)
+                {
+                    glfwSetWindowPos(handle, builder.x, builder.y);
+                    this.pos.set(-builder.x, -builder.y);
+                    glfwShowWindow(handle);
+                }
+                else
+                {
+                    glfwGetWindowPos(handle, x, y);
+                    this._pos.set(x.get(0), y.get(0));
+                    this._pos.negate(this.pos);
+                }
+                
+                glfwGetWindowSize(handle, x, y);
+                this._size.set(x.get(0), y.get(0));
+                this._size.negate(this.size);
+                
+                glfwGetWindowContentScale(handle, xf, yf);
+                this._scale.set(xf.get(0), yf.get(0));
+                this._scale.negate(this.scale);
+                
+                glfwGetFramebufferSize(handle, x, y);
+                this._fbSize.set(x.get(0), y.get(0));
+                this._fbSize.negate(this.fbSize);
             }
-            else
-            {
-                glfwGetWindowPos(this.handle, x, y);
-                this._pos.set(x.get(0), y.get(0));
-            }
             
-            glfwGetWindowSize(this.handle, x, y);
-            this._size.set(x.get(0), y.get(0));
+            this.minSize.set(builder.minWidth, builder.minHeight);
+            this.maxSize.set(builder.maxWidth, builder.maxHeight);
             
-            glfwGetWindowContentScale(this.handle, xf, yf);
-            this._scale.set(xf.get(0), yf.get(0));
+            glfwSetWindowSizeLimits(handle, this.minSize.x, this.minSize.y, this.maxSize.x, this.maxSize.y);
             
-            glfwGetFramebufferSize(this.handle, x, y);
-            this._fbSize.set(x.get(0), y.get(0));
-        }
-        
-        sizeLimits(builder.minWidth, builder.minHeight, builder.maxWidth, builder.maxHeight);
-        // glfwGetWindowFrameSize(); // TODO
+            // glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate); // TODO
+            // glfwSetInputMode(window, mode, value); // TODO
+            
+            GLFW.attachWindow(handle, this);
+            
+            return handle;
+        });
         
         this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
         this.thread.start();
@@ -145,7 +169,7 @@ public class Window
     @Override
     public String toString()
     {
-        return "Window{" + "name='" + this.name + '\'' + ", handle=" + this.handle + '}';
+        return "Window{" + "name='" + (this.name != null ? this.name : this.handle) + '\'' + '}';
     }
     
     /**
@@ -157,6 +181,16 @@ public class Window
     }
     
     // -------------------- Properties -------------------- //
+    
+    /**
+     * Sets the window title, encoded as UTF-8, of the window.
+     *
+     * @param title The new title.
+     */
+    public void title(CharSequence title)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowTitle(this.handle, title));
+    }
     
     /**
      * Sets the icon for the window.
@@ -177,7 +211,7 @@ public class Window
      *
      * @param icon The new icon.
      */
-    public void windowIcon(GLFWImage.Buffer icon)
+    public void icon(GLFWImage.Buffer icon)
     {
         GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowIcon(this.handle, icon));
     }
@@ -484,6 +518,36 @@ public class Window
     public Matrix4dc viewMatrix()
     {
         return this.viewMatrix;
+    }
+    
+    /**
+     * Retrieves the size, in screen coordinates, of each edge of the frame of
+     * the window. This size includes the title bar, if the window has one. The
+     * size of the frame may vary depending on the
+     * <a target="_blank" href="http://www.glfw.org/docs/latest/window.html#window-hints_wnd">window-related hints</a>
+     * used to create it.
+     * <p>
+     * Because this function retrieves the size of each window frame edge and
+     * not the offset along a particular coordinate axis, the retrieved values
+     * will always be zero or positive.
+     *
+     * @return An {@link Integer} array with the edge sizes: {@code {left, top, right, bottom}}
+     */
+    public int[] getFrameSize()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> {
+            try (MemoryStack stack = MemoryStack.stackPush())
+            {
+                IntBuffer left   = stack.callocInt(1);
+                IntBuffer top    = stack.callocInt(1);
+                IntBuffer right  = stack.callocInt(1);
+                IntBuffer bottom = stack.callocInt(1);
+                
+                glfwGetWindowFrameSize(this.handle, left, top, right, bottom);
+                
+                return new int[] {left.get(), top.get(), right.get(), bottom.get()};
+            }
+        });
     }
     
     public boolean isOpen()
@@ -879,7 +943,7 @@ public class Window
         this.open = false;
     }
     
-    private void runInThread()
+    protected void runInThread()
     {
         try
         {
@@ -903,11 +967,11 @@ public class Window
                     GLFW.EVENT_BUS.post(new GLFWEventWindowClosed(this));
                 }
                 
-                if (this.vsync != this._vsync)
+                if (this.vsync != this._vsync && isCurrent())
                 {
                     this.vsync = this._vsync;
                     glfwSwapInterval(this.vsync ? 1 : 0);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowVsync(this, this.vsync));
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowVsyncChanged(this, this.vsync));
                 }
                 
                 if (this.focused != this._focused)
@@ -958,6 +1022,20 @@ public class Window
                     this.viewMatrix.setOrtho(0, this.fbSize.x, this.fbSize.y, 0, -1F, 1F);
                 }
                 
+                if (this._refresh)
+                {
+                    this._refresh = false;
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowRefreshed(this));
+                }
+                
+                if (this._dropped != null)
+                {
+                    Path[] paths = new Path[this._dropped.length];
+                    for (int i = 0; i < this._dropped.length; i++) paths[i] = Paths.get(this._dropped[i]);
+                    this._dropped = null;
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowDropped(this, paths));
+                }
+                
                 if (updateMonitor)
                 {
                     Monitor prevMonitor = this.monitor;
@@ -974,10 +1052,10 @@ public class Window
                     
                     if (this.monitor != prevMonitor)
                     {
-                        LOGGER.finest("monitor", this.monitor);
+                        GLFW.EVENT_BUS.post(new GLFWEventWindowMonitorChanged(this, this.monitor));
                     }
                 }
-    
+                
                 // TODO - Separate Rendering to on demand.
                 glViewport(0, 0, this.fbSize.x, this.fbSize.y);
                 glfwSwapBuffers(this.handle);
@@ -1022,7 +1100,7 @@ public class Window
         private boolean windowed = true;
         private boolean vsync    = false;
         
-        private String title = "Window";
+        private String title = null;
         
         private Boolean resizable              = null; // RESIZABLE TRUE TRUE or FALSE
         private Boolean visible                = null; // VISIBLE TRUE TRUE or FALSE
@@ -1071,6 +1149,14 @@ public class Window
         
         private String x11ClassName    = null; // X11_CLASS_NAME "" An ASCII encoded WM_CLASS class name
         private String x11InstanceName = null; // X11_INSTANCE_NAME "" An ASCII encoded WM_CLASS instance name
+        
+        /**
+         * @return A new window with the properties provided by the builder.
+         */
+        public Window build()
+        {
+            return new Window(this);
+        }
         
         /**
          * Sets the name of the window. This is currently only used to name the

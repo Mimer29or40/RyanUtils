@@ -2,6 +2,7 @@ package rutils.glfw;
 
 import rutils.Logger;
 import rutils.glfw.second.GLFW;
+import rutils.glfw.second.Window;
 import rutils.glfw.second.event.GLFWEvent;
 import rutils.glfw.second.event.SubscribeGLFWEvent;
 
@@ -19,7 +20,7 @@ public class Test
     
     public static void main(String[] args)
     {
-        Logger.setLevel(Level.FINEST);
+        Logger.setLevel(Level.ALL);
         
         try
         {
@@ -28,7 +29,10 @@ public class Test
             GLFW.init();
             
             GLFW.EVENT_BUS.register(Test.class);
-            
+    
+            new Window.Builder().name("First").build();
+            // new Window.Builder().name("Second").build();
+    
             GLFW.eventLoop();
         }
         catch (Throwable e)

@@ -94,7 +94,7 @@ public class Monitor
     @Override
     public String toString()
     {
-        return "Monitor{" + "handle=" + this.handle + ", index=" + this.index + ", name='" + this.name + '\'' + '}';
+        return "Monitor{" + "name='"  + this.name + '\'' + ", index=" + this.index+ '}';
     }
     
     /**

@@ -4,9 +4,10 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
-import rutils.glfw.second.event.EventBus;
+import rutils.glfw.second.event.GLFWEventBus;
 import rutils.glfw.second.event.GLFWEventMonitorConnected;
 import rutils.glfw.second.event.GLFWEventMonitorDisconnected;
 
@@ -24,13 +25,13 @@ public final class GLFW
     
     public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
     
-    public static final EventBus EVENT_BUS = new EventBus(true);
+    public static final GLFWEventBus EVENT_BUS = new GLFWEventBus(true);
     
     private static final LinkedHashMap<Long, Monitor> MONITORS       = new LinkedHashMap<>();
-    private static       Monitor                      primaryMonitor = null;
+    static               Monitor                      primaryMonitor = null;
     
     private static final LinkedHashMap<Long, Window> WINDOWS    = new LinkedHashMap<>();
-    private static       Window                      mainWindow = null;
+    static               Window                      mainWindow = null;
     
     private GLFW() {}
     
@@ -52,14 +53,12 @@ public final class GLFW
         
         loadMonitors();
         
-        GLFW.mainWindow = attachWindow(new Window.Builder().name("Main"));
+        GLFW.mainWindow = new WindowMain();
     }
     
     public static void eventLoop()
     {
-        attachWindow(new Window.Builder().name("Second"));
-        
-        while (GLFW.mainWindow.isOpen())
+        while (GLFW.WINDOWS.size() > 1)
         {
             glfwPollEvents();
             
@@ -118,34 +117,28 @@ public final class GLFW
     
     // -------------------- Window -------------------- //
     
-    private static Window attachWindow(Window.Builder builder)
+    static void attachWindow(long handle, Window window)
     {
-        Window window = new Window(builder);
-        
-        GLFW.WINDOWS.put(window.handle(), window);
-        
-        glfwSetWindowCloseCallback(window.handle(), GLFW::windowCloseCallback);
-        glfwSetWindowFocusCallback(window.handle(), GLFW::windowFocusCallback);
-        glfwSetWindowIconifyCallback(window.handle(), GLFW::windowIconifyCallback);
-        glfwSetWindowMaximizeCallback(window.handle(), GLFW::windowMaximizeCallback);
-        glfwSetWindowRefreshCallback(window.handle(), GLFW::windowRefreshCallback);
-        glfwSetWindowPosCallback(window.handle(), GLFW::windowPosCallback);
-        glfwSetWindowSizeCallback(window.handle(), GLFW::windowSizeCallback);
-        glfwSetWindowContentScaleCallback(window.handle(), GLFW::windowContentScaleCallback);
-        
-        glfwSetFramebufferSizeCallback(window.handle(), GLFW::framebufferSizeCallback);
-        
-        glfwSetDropCallback(window.handle(), GLFW::dropCallback);
-        
-        glfwSetCursorEnterCallback(window.handle(), GLFW::mouseEnteredCallback);
-        glfwSetCursorPosCallback(window.handle(), GLFW::mousePosCallback);
-        glfwSetScrollCallback(window.handle(), GLFW::scrollCallback);
-        glfwSetMouseButtonCallback(window.handle(), GLFW::mouseButtonCallback);
-        
-        glfwSetKeyCallback(window.handle(), GLFW::keyCallback);
-        glfwSetCharCallback(window.handle(), GLFW::charCallback);
-        
-        return window;
+        GLFW.WINDOWS.put(handle, window);
+    
+        glfwSetWindowCloseCallback(handle, GLFW::windowCloseCallback);
+        glfwSetWindowFocusCallback(handle, GLFW::windowFocusCallback);
+        glfwSetWindowIconifyCallback(handle, GLFW::windowIconifyCallback);
+        glfwSetWindowMaximizeCallback(handle, GLFW::windowMaximizeCallback);
+        glfwSetWindowPosCallback(handle, GLFW::windowPosCallback);
+        glfwSetWindowSizeCallback(handle, GLFW::windowSizeCallback);
+        glfwSetWindowContentScaleCallback(handle, GLFW::windowContentScaleCallback);
+        glfwSetFramebufferSizeCallback(handle, GLFW::framebufferSizeCallback);
+        glfwSetWindowRefreshCallback(handle, GLFW::windowRefreshCallback);
+        glfwSetDropCallback(handle, GLFW::dropCallback);
+    
+        glfwSetCursorEnterCallback(handle, GLFW::mouseEnteredCallback);
+        glfwSetCursorPosCallback(handle, GLFW::mousePosCallback);
+        glfwSetScrollCallback(handle, GLFW::scrollCallback);
+        glfwSetMouseButtonCallback(handle, GLFW::mouseButtonCallback);
+    
+        glfwSetKeyCallback(handle, GLFW::keyCallback);
+        glfwSetCharCallback(handle, GLFW::charCallback);
     }
     
     public static Window mainWindow()
@@ -229,7 +222,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        // window._refresh = true; // TODO
+        window._refresh = true;
     }
     
     private static void windowPosCallback(long handle, int x, int y)
@@ -262,7 +255,11 @@ public final class GLFW
     
     private static void dropCallback(long handle, int count, long names)
     {
-        Window window = GLFW.WINDOWS.get(handle); // TODO
+        Window window = GLFW.WINDOWS.get(handle);
+    
+        window._dropped = new String[count];
+        PointerBuffer charPointers = MemoryUtil.memPointerBuffer(names, count);
+        for (int i = 0; i < count; i++) window._dropped[i] = MemoryUtil.memUTF8(charPointers.get(i));
     }
     
     private static void mouseEnteredCallback(long handle, boolean entered)

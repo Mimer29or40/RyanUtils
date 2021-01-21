@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class EventBus
+public class GLFWEventBus
 {
     private static final Logger LOGGER = new Logger();
     
@@ -25,17 +25,17 @@ public class EventBus
     
     private final boolean trackPhases;
     
-    private final    int     busID    = EventBus.maxID.getAndIncrement();
+    private final    int     busID    = GLFWEventBus.maxID.getAndIncrement();
     private volatile boolean shutdown = false;
     
-    public EventBus(boolean trackPhases)
+    public GLFWEventBus(boolean trackPhases)
     {
         this.trackPhases = trackPhases;
         
         for (GLFWEventPriority priority : GLFWEventPriority.values()) this.classListenersMaps.put(priority, new HashMap<>());
     }
     
-    public EventBus()
+    public GLFWEventBus()
     {
         this(false);
     }
@@ -47,7 +47,7 @@ public class EventBus
     
     public void shutdown()
     {
-        EventBus.LOGGER.warning("EventBus %s shutting down - future events will not be posted.\n%s", this.busID, new Exception("stacktrace"));
+        // GLFWEventBus.LOGGER.warning("GLFWEventBus %s shutting down - future events will not be posted.\n%s", this.busID, new Exception("stacktrace"));
         this.shutdown = true;
     }
     
@@ -86,7 +86,7 @@ public class EventBus
     {
         if (this.shutdown) return;
         
-        EventBus.LOGGER.finest("Posting", event);
+        GLFWEventBus.LOGGER.finest("Posting", event);
         
         Set<IGLFWEventListener> listeners = getListeners(event.getClass());
         
@@ -111,7 +111,7 @@ public class EventBus
             final StringWriter sw = new StringWriter();
             throwable.printStackTrace(new PrintWriter(sw));
             builder.append(sw.getBuffer());
-            EventBus.LOGGER.severe(builder.toString());
+            GLFWEventBus.LOGGER.severe(builder.toString());
             throw throwable;
         }
     }
@@ -172,7 +172,7 @@ public class EventBus
     
     private void addToListeners(final Object target, final Class<?> eventType, final IGLFWEventListener listener, final GLFWEventPriority priority)
     {
-        EventBus.LOGGER.finer("Adding listener '%s' of '%s' to target '%s' with priority=%s", listener, eventType.getSimpleName(), target, priority);
+        GLFWEventBus.LOGGER.finer("Adding listener '%s' of '%s' to target '%s' with priority=%s", listener, eventType.getSimpleName(), target, priority);
         
         List<IGLFWEventListener> objectListeners = this.objectListeners.computeIfAbsent(target, c -> Collections.synchronizedList(new ArrayList<>()));
         objectListeners.add(listener);
@@ -195,8 +195,8 @@ public class EventBus
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
-                EventBus.LOGGER.severe("Could not access listener method.");
-                EventBus.LOGGER.severe(e);
+                GLFWEventBus.LOGGER.severe("Could not access listener method.");
+                GLFWEventBus.LOGGER.severe(e);
             }
         });
     }

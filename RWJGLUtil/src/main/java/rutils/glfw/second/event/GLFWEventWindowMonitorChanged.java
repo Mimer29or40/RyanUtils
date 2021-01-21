@@ -1,13 +1,17 @@
 package rutils.glfw.second.event;
 
 import rutils.glfw.second.Monitor;
+import rutils.glfw.second.Window;
 
-public class GLFWEventMonitor extends GLFWEvent
+@SuppressWarnings("unused")
+public class GLFWEventWindowMonitorChanged extends GLFWEventWindow
 {
     private final Monitor monitor;
     
-    public GLFWEventMonitor(Monitor monitor)
+    public GLFWEventWindowMonitorChanged(Window window, Monitor monitor)
     {
+        super(window);
+        
         this.monitor = monitor;
     }
     

@@ -3,6 +3,7 @@ package rutils.glfw.second.event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import rutils.ClassUtil;
+import rutils.StringUtil;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -10,20 +11,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class GLFWEvent
 {
-    private static final Map<Class<? extends GLFWEvent>, Set<Method>> METHOD_CACHE = new HashMap<>();
+    private static final Map<Class<? extends GLFWEvent>, Set<Method>> METHOD_CACHE = new ConcurrentHashMap<>();
     
     private GLFWEventPriority phase = null;
     
     @Override
     public String toString()
     {
-        Set<Method> methods = GLFWEvent.METHOD_CACHE.computeIfAbsent(getClass(), c -> ClassUtil.getMethods(c, m -> m.isAnnotationPresent(Property.class)));
+        Set<Method> methods;
+        synchronized (GLFWEvent.METHOD_CACHE)
+        {
+            methods = GLFWEvent.METHOD_CACHE.computeIfAbsent(getClass(), c -> ClassUtil.getMethods(c, m -> m.isAnnotationPresent(Property.class)));
+        }
         
         StringBuilder s = new StringBuilder(getClass().getSimpleName()).append("{");
         
@@ -31,10 +37,10 @@ public class GLFWEvent
         while (true)
         {
             Method method = iterator.next();
-            s.append(method.getName()).append('=');
+            if (method.getAnnotation(Property.class).printName()) s.append(method.getName()).append('=');
             try
             {
-                s.append(method.invoke(this));
+                s.append(StringUtil.toString(method.invoke(this)));
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
@@ -43,7 +49,7 @@ public class GLFWEvent
             
             if (iterator.hasNext())
             {
-                s.append(' ');
+                s.append(", ");
             }
             else
             {
@@ -69,5 +75,8 @@ public class GLFWEvent
     
     @Retention(value = RUNTIME)
     @Target(value = METHOD)
-    protected @interface Property {}
+    protected @interface Property
+    {
+        boolean printName() default true;
+    }
 }
