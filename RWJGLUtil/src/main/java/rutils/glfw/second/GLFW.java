@@ -7,13 +7,14 @@ import org.lwjgl.system.Callback;
 import rutils.Logger;
 import rutils.TaskDelegator;
 import rutils.glfw.second.event.EventBus;
+import rutils.glfw.second.event.GLFWEventMonitorConnected;
+import rutils.glfw.second.event.GLFWEventMonitorDisconnected;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 
 public final class GLFW
 {
@@ -51,7 +52,7 @@ public final class GLFW
         
         loadMonitors();
         
-        GLFW.mainWindow = attachWindow(new Window.Builder().name("WindowMain"));
+        GLFW.mainWindow = attachWindow(new Window.Builder().name("Main"));
     }
     
     public static void eventLoop()
@@ -175,30 +176,25 @@ public final class GLFW
     
     private static void monitorCallback(long handle, int event)
     {
-        // TODO - Add SubscribeEvent to this somehow.
-        
-        Monitor monitor   = null;
-        String  eventName = "";
         switch (event)
         {
             case GLFW_CONNECTED -> {
-                monitor = new Monitor(handle, GLFW.MONITORS.size());
+                Monitor monitor = new Monitor(handle, GLFW.MONITORS.size());
                 GLFW.MONITORS.put(handle, monitor);
-                eventName = "GLFW_CONNECTED";
+                GLFW.EVENT_BUS.post(new GLFWEventMonitorConnected(monitor));
             }
             case GLFW_DISCONNECTED -> {
-                monitor   = GLFW.MONITORS.remove(handle);
-                eventName = "GLFW_DISCONNECTED";
+                Monitor monitor = GLFW.MONITORS.remove(handle);
+                GLFW.EVENT_BUS.post(new GLFWEventMonitorDisconnected(monitor));
             }
         }
-        GLFW.LOGGER.fine("GLFW Monitor Callback:", monitor, eventName);
         
         GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
     }
     
     private static void joystickCallback(int jid, int event)
     {
-        // TODO - Add SubscribeEvent to this somehow.
+        // TODO - Add SubscribeGLFWEvent to this somehow.
     }
     
     private static void windowCloseCallback(long handle)

@@ -128,7 +128,7 @@ public class GLFWTests
                                 // {
                                 //     for (EngineEvent event : EngineEvents.get())
                                 //     {
-                                //         GLFWTests.LOGGER.finer("State Handing SubscribeEvent:", event);
+                                //         GLFWTests.LOGGER.finer("State Handing SubscribeGLFWEvent:", event);
                                 //
                                 //         Application.state.handleEvent(d_t, d_dt, event);
                                 //     }

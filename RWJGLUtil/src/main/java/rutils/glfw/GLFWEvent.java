@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Generic {@link GLFWEvent} that represents a group of information related to something happening
  * <p>
- * All events are of type {@code SubscribeEvent} so to delineate different events the parameter {@link GLFWEvent#type} stores the type.
+ * All events are of type {@code SubscribeGLFWEvent} so to delineate different events the parameter {@link GLFWEvent#type} stores the type.
  * <p>
  * To post an event call {@link GLFWEvents#post} with the event type string and parameters to ensure that all event
  * listeners are called.
@@ -71,7 +71,7 @@ public class GLFWEvent
         throw new RuntimeException(String.format("Invalid Parameter: '%s' is not a parameter of event type '%s'", parameter, this.type));
     }
     
-    public static final String WINDOW_FOCUSED    = "EventWindowFocused";
+    public static final String WINDOW_FOCUSED    = "GLFWEventWindowFocused";
     public static final String WINDOW_FULLSCREEN = "EventWindowFullscreen";
     public static final String WINDOW_MOVED      = "EventWindowMoved";
     public static final String WINDOW_RESIZED    = "EventWindowResized";

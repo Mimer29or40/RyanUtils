@@ -1,6 +1,6 @@
 package rutils.glfw.second.event;
 
-public enum EventPriority implements IEventListener
+public enum GLFWEventPriority implements IGLFWEventListener
 {
     /**
      * Priority of event listeners, listeners will be sorted with respect to this priority level.
@@ -17,7 +17,7 @@ public enum EventPriority implements IEventListener
     
     
     @Override
-    public void invoke(Event event)
+    public void invoke(GLFWEvent event)
     {
         event.setPhase(this);
     }

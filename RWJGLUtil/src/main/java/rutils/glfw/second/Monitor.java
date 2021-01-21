@@ -73,7 +73,7 @@ public class Monitor
         
         glfwSetGamma(this.handle, 1.0F);
         
-        Monitor.LOGGER.finer("Created Monitor: ", this);
+        Monitor.LOGGER.finer("Created", this);
     }
     
     @Override

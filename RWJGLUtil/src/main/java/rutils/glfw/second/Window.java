@@ -5,9 +5,11 @@ import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.system.MemoryStack;
 import rutils.Logger;
 import rutils.TaskDelegator;
+import rutils.glfw.second.event.*;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -121,8 +123,29 @@ public class Window
         sizeLimits(builder.minWidth, builder.minHeight, builder.maxWidth, builder.maxHeight);
         // glfwGetWindowFrameSize(); // TODO
         
-        this.thread = new Thread(this::runInThread, this.name != null ? this.name : "Window" + this.handle);
+        this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
         this.thread.start();
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Window window = (Window) o;
+        return this.handle == window.handle;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.handle);
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "Window{" + "name='" + this.name + '\'' + ", handle=" + this.handle + '}';
     }
     
     /**
@@ -877,38 +900,38 @@ public class Window
                 if (this.close != this._close)
                 {
                     this.close = this._close;
-                    LOGGER.finest("close", this.close);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowClosed(this));
                 }
                 
                 if (this.vsync != this._vsync)
                 {
                     this.vsync = this._vsync;
-                    LOGGER.finest("vsync", this.vsync);
                     glfwSwapInterval(this.vsync ? 1 : 0);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowVsync(this, this.vsync));
                 }
                 
                 if (this.focused != this._focused)
                 {
                     this.focused = this._focused;
-                    LOGGER.finest("focused", this.focused);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowFocused(this, this.focused));
                 }
                 
                 if (this.iconified != this._iconified)
                 {
                     this.iconified = this._iconified;
-                    LOGGER.finest("iconified", this.iconified);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowIconified(this, this.iconified));
                 }
                 
                 if (this.maximized != this._maximized)
                 {
                     this.maximized = this._maximized;
-                    LOGGER.finest("maximized", this.maximized);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowMaximized(this, this.maximized));
                 }
                 
                 if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
                 {
                     this.pos.set(this._pos);
-                    LOGGER.finest("pos", this.pos);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowMoved(this, this.pos));
                     
                     updateMonitor = true;
                 }
@@ -916,7 +939,7 @@ public class Window
                 if (this.size.x != this._size.x || this.size.y != this._size.y)
                 {
                     this.size.set(this._size);
-                    LOGGER.finest("size", this.size);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowResized(this, this.size));
                     
                     updateMonitor = true;
                 }
@@ -924,13 +947,13 @@ public class Window
                 if (this.scale.x != this._scale.x || this.scale.y != this._scale.y)
                 {
                     this.scale.set(this._scale);
-                    LOGGER.finest("scale", this.scale);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowContentScaleChanged(this, this.scale));
                 }
                 
                 if (this.fbSize.x != this._fbSize.x || this.fbSize.y != this._fbSize.y)
                 {
                     this.fbSize.set(this._fbSize);
-                    LOGGER.finest("fbSize", this.fbSize);
+                    GLFW.EVENT_BUS.post(new GLFWEventWindowFramebufferResized(this, this.fbSize));
                     
                     this.viewMatrix.setOrtho(0, this.fbSize.x, this.fbSize.y, 0, -1F, 1F);
                 }

@@ -19,13 +19,13 @@ public class GLFWEvents
     private static final HashMap<String, HashSet<Consumer<GLFWEvent>>> SUBSCRIPTIONS = new HashMap<>();
     
     /**
-     * Registers an SubscribeEvent with parameters that can be posted.
+     * Registers an SubscribeGLFWEvent with parameters that can be posted.
      * @param eventType The event type
      * @param parameters The event parameters
      */
     public static void register(String eventType, String[] parameters)
     {
-        GLFWEvents.LOGGER.fine("Registered SubscribeEvent '%s' with parameters %s", eventType, Arrays.toString(parameters));
+        GLFWEvents.LOGGER.fine("Registered SubscribeGLFWEvent '%s' with parameters %s", eventType, Arrays.toString(parameters));
         
         GLFWEvents.REGISTRY.put(eventType, parameters);
     }
@@ -43,7 +43,7 @@ public class GLFWEvents
     }
     
     /**
-     * @param eventTypes SubscribeEvent type filter
+     * @param eventTypes SubscribeGLFWEvent type filter
      * @return All events posted during the current frame that are of the types provided.
      */
     public static Iterable<GLFWEvent> get(String... eventTypes)
@@ -83,17 +83,17 @@ public class GLFWEvents
      * Posts an event that can be consumed and subscribed to.
      *
      * @param eventType The event class to post.
-     * @param arguments The parameters that are passed to the SubscribeEvent class
+     * @param arguments The parameters that are passed to the SubscribeGLFWEvent class
      */
     public static void post(String eventType, Object... arguments)
     {
-        if (!GLFWEvents.REGISTRY.containsKey(eventType)) throw new RuntimeException(String.format("SubscribeEvent '%s' not registered", eventType));
+        if (!GLFWEvents.REGISTRY.containsKey(eventType)) throw new RuntimeException(String.format("SubscribeGLFWEvent '%s' not registered", eventType));
         
         GLFWEvents.EVENTS.computeIfAbsent(eventType, e -> new ArrayList<>());
         GLFWEvent event = new GLFWEvent(eventType, GLFWEvents.REGISTRY.get(eventType), arguments);
         GLFWEvents.EVENTS.get(eventType).add(event);
         
-        GLFWEvents.LOGGER.finer("SubscribeEvent Posted:", event);
+        GLFWEvents.LOGGER.finer("SubscribeGLFWEvent Posted:", event);
         
         GLFWEvents.SUBSCRIPTIONS.computeIfAbsent(eventType, e -> new HashSet<>());
         for (Consumer<GLFWEvent> function : GLFWEvents.SUBSCRIPTIONS.get(eventType))
@@ -112,7 +112,7 @@ public class GLFWEvents
      */
     public static void subscribe(String eventType, Consumer<GLFWEvent> function)
     {
-        GLFWEvents.LOGGER.finer("SubscribeEvent Subscription for type:", eventType);
+        GLFWEvents.LOGGER.finer("SubscribeGLFWEvent Subscription for type:", eventType);
         
         GLFWEvents.SUBSCRIPTIONS.computeIfAbsent(eventType, e -> new HashSet<>());
         GLFWEvents.SUBSCRIPTIONS.get(eventType).add(function);
@@ -131,7 +131,7 @@ public class GLFWEvents
     
     public static void unsubscribe(String eventType, Consumer<GLFWEvent> function)
     {
-        GLFWEvents.LOGGER.finer("SubscribeEvent Un-subscription for type:", eventType);
+        GLFWEvents.LOGGER.finer("SubscribeGLFWEvent Un-subscription for type:", eventType);
     
         GLFWEvents.SUBSCRIPTIONS.computeIfAbsent(eventType, e -> new HashSet<>());
         GLFWEvents.SUBSCRIPTIONS.get(eventType).remove(function);

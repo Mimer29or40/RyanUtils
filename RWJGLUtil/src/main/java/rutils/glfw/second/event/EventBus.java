@@ -1,5 +1,6 @@
 package rutils.glfw.second.event;
 
+import rutils.ClassUtil;
 import rutils.Logger;
 
 import java.io.PrintWriter;
@@ -17,10 +18,10 @@ public class EventBus
     
     private static final AtomicInteger maxID = new AtomicInteger(0);
     
-    private final Map<Integer, IEventListener>                            wrappedCache       = new HashMap<>();
-    private final Map<Object, List<IEventListener>>                       objectListeners    = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Set<IEventListener>>                      eventListeners     = new ConcurrentHashMap<>();
-    private final Map<EventPriority, Map<Class<?>, List<IEventListener>>> classListenersMaps = new ConcurrentHashMap<>();
+    private final Map<Integer, IGLFWEventListener>                                wrappedCache       = new HashMap<>();
+    private final Map<Object, List<IGLFWEventListener>>                           objectListeners    = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Set<IGLFWEventListener>>                          eventListeners     = new ConcurrentHashMap<>();
+    private final Map<GLFWEventPriority, Map<Class<?>, List<IGLFWEventListener>>> classListenersMaps = new ConcurrentHashMap<>();
     
     private final boolean trackPhases;
     
@@ -31,7 +32,7 @@ public class EventBus
     {
         this.trackPhases = trackPhases;
         
-        for (EventPriority priority : EventPriority.values()) this.classListenersMaps.put(priority, new HashMap<>());
+        for (GLFWEventPriority priority : GLFWEventPriority.values()) this.classListenersMaps.put(priority, new HashMap<>());
     }
     
     public EventBus()
@@ -46,7 +47,7 @@ public class EventBus
     
     public void shutdown()
     {
-        EventBus.LOGGER.severe("EventBus {} shutting down - future events will not be posted.", this.busID, new Exception("stacktrace"));
+        EventBus.LOGGER.warning("EventBus %s shutting down - future events will not be posted.\n%s", this.busID, new Exception("stacktrace"));
         this.shutdown = true;
     }
     
@@ -69,32 +70,32 @@ public class EventBus
     
     public void unregister(final Object target)
     {
-        List<IEventListener> toRemove = this.objectListeners.remove(target);
+        List<IGLFWEventListener> toRemove = this.objectListeners.remove(target);
         
         if (toRemove == null) return;
-        for (Map<Class<?>, List<IEventListener>> classListenersMap : this.classListenersMaps.values())
+        for (Map<Class<?>, List<IGLFWEventListener>> classListenersMap : this.classListenersMaps.values())
         {
-            for (List<IEventListener> classListeners : classListenersMap.values())
+            for (List<IGLFWEventListener> classListeners : classListenersMap.values())
             {
                 classListeners.removeAll(toRemove);
             }
         }
     }
     
-    public void post(Event event)
+    public void post(GLFWEvent event)
     {
         if (this.shutdown) return;
         
-        EventBus.LOGGER.finer("Posting", event);
+        EventBus.LOGGER.finest("Posting", event);
         
-        Set<IEventListener> listeners = getListeners(event.getClass());
+        Set<IGLFWEventListener> listeners = getListeners(event.getClass());
         
         int index = 0;
         try
         {
-            for (IEventListener listener : listeners)
+            for (IGLFWEventListener listener : listeners)
             {
-                if (!this.trackPhases && Objects.equals(listener.getClass(), EventPriority.class)) continue;
+                if (!this.trackPhases && Objects.equals(listener.getClass(), GLFWEventPriority.class)) continue;
                 listener.invoke(event);
                 index++;
             }
@@ -106,7 +107,7 @@ public class EventBus
             builder.append("\tIndex: ").append(index).append('\n');
             builder.append("\tListeners:\n");
             index = 0;
-            for (IEventListener listener : listeners) builder.append("\t\t").append(index++).append(": ").append(listener).append('\n');
+            for (IGLFWEventListener listener : listeners) builder.append("\t\t").append(index++).append(": ").append(listener).append('\n');
             final StringWriter sw = new StringWriter();
             throwable.printStackTrace(new PrintWriter(sw));
             builder.append(sw.getBuffer());
@@ -117,45 +118,42 @@ public class EventBus
     
     private void registerClass(final Class<?> clazz)
     {
-        for (Method m : clazz.getMethods())
+        for (Method m : ClassUtil.getMethods(clazz, method -> Modifier.isStatic(method.getModifiers())))
         {
-            if (Modifier.isStatic(m.getModifiers()))
+            if (m.isAnnotationPresent(SubscribeGLFWEvent.class))
             {
-                if (m.isAnnotationPresent(SubscribeEvent.class))
-                {
-                    registerListener(clazz, m, m);
-                }
+                registerListener(clazz, m);
             }
         }
     }
     
     private void registerObject(final Object obj)
     {
-        final HashSet<Class<?>> classes = new HashSet<>();
-        typesFor(obj.getClass(), classes);
-        for (Method m : obj.getClass().getMethods())
-        {
-            if (!Modifier.isStatic(m.getModifiers()))
-            {
-                for (Class<?> c : classes)
-                {
-                    Optional<Method> declMethod = getDeclaredMethod(c, m);
-                    if (declMethod.isPresent() && declMethod.get().isAnnotationPresent(SubscribeEvent.class))
-                    {
-                        registerListener(obj, m, declMethod.get());
-                        break;
-                    }
-                }
-            }
-        }
+        // final HashSet<Class<?>> classes = new HashSet<>();
+        // ClassUtil.getTypes(obj.getClass(), classes);
+        // for (Method m : obj.getClass().getMethods())
+        // {
+        //     if (!Modifier.isStatic(m.getModifiers()))
+        //     {
+        //         for (Class<?> c : classes)
+        //         {
+        //             Optional<Method> declaredMethod = ClassUtil.getDeclaredMethod(c, m);
+        //             if (declaredMethod.isPresent() && declaredMethod.get().isAnnotationPresent(SubscribeGLFWEvent.class))
+        //             {
+        //                 registerListener(obj, m);
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
     }
     
-    private void registerListener(final Object target, final Method method, final Method real)
+    private void registerListener(final Object target, final Method method)
     {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 1)
         {
-            throw new IllegalArgumentException("Method " + method + " has @SubscribeEvent annotation. " +
+            throw new IllegalArgumentException("Method " + method + " has @SubscribeGLFWEvent annotation. " +
                                                "It has " + parameterTypes.length + " arguments, " +
                                                "but event handler methods require a single argument only."
             );
@@ -163,52 +161,31 @@ public class EventBus
         
         Class<?> eventType = parameterTypes[0];
         
-        if (!Event.class.isAssignableFrom(eventType))
+        if (!GLFWEvent.class.isAssignableFrom(eventType))
         {
-            throw new IllegalArgumentException("Method " + method + " has @SubscribeEvent annotation, " +
-                                               "but takes an argument that is not an Event subtype : " + eventType);
+            throw new IllegalArgumentException("Method " + method + " has @SubscribeGLFWEvent annotation, " +
+                                               "but takes an argument that is not an GLFWEvent subtype : " + eventType);
         }
         
-        addToListeners(target, eventType, wrapMethod(target, real), method.getAnnotation(SubscribeEvent.class).priority());
+        addToListeners(target, eventType, wrapMethod(target, method), method.getAnnotation(SubscribeGLFWEvent.class).priority());
     }
     
-    private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority)
+    private void addToListeners(final Object target, final Class<?> eventType, final IGLFWEventListener listener, final GLFWEventPriority priority)
     {
         EventBus.LOGGER.finer("Adding listener '%s' of '%s' to target '%s' with priority=%s", listener, eventType.getSimpleName(), target, priority);
         
-        List<IEventListener> objectListeners = this.objectListeners.computeIfAbsent(target, c -> Collections.synchronizedList(new ArrayList<>()));
+        List<IGLFWEventListener> objectListeners = this.objectListeners.computeIfAbsent(target, c -> Collections.synchronizedList(new ArrayList<>()));
         objectListeners.add(listener);
         
-        Map<Class<?>, List<IEventListener>> classListenersMap = this.classListenersMaps.get(priority);
+        Map<Class<?>, List<IGLFWEventListener>> classListenersMap = this.classListenersMaps.get(priority);
         
         this.eventListeners.remove(eventType);
         
-        List<IEventListener> classListeners = classListenersMap.computeIfAbsent(eventType, c -> Collections.synchronizedList(new ArrayList<>()));
+        List<IGLFWEventListener> classListeners = classListenersMap.computeIfAbsent(eventType, c -> Collections.synchronizedList(new ArrayList<>()));
         classListeners.add(listener);
     }
     
-    private void typesFor(final Class<?> clz, final Set<Class<?>> visited)
-    {
-        if (clz.getSuperclass() == null) return;
-        typesFor(clz.getSuperclass(), visited);
-        for (Class<?> i : clz.getInterfaces()) typesFor(i, visited);
-        visited.add(clz);
-    }
-    
-    
-    private Optional<Method> getDeclaredMethod(final Class<?> clz, final Method in)
-    {
-        try
-        {
-            return Optional.of(clz.getDeclaredMethod(in.getName(), in.getParameterTypes()));
-        }
-        catch (NoSuchMethodException nse)
-        {
-            return Optional.empty();
-        }
-    }
-    
-    public IEventListener wrapMethod(final Object target, final Method method)
+    public IGLFWEventListener wrapMethod(final Object target, final Method method)
     {
         int hash = Objects.hash(target, method);
         return this.wrappedCache.computeIfAbsent(hash, h -> event -> {
@@ -224,19 +201,19 @@ public class EventBus
         });
     }
     
-    private Set<IEventListener> getListeners(final Class<?> eventClass)
+    private Set<IGLFWEventListener> getListeners(final Class<?> eventClass)
     {
         return this.eventListeners.computeIfAbsent(eventClass, c -> {
-            Set<IEventListener> listeners = new LinkedHashSet<>();
-            for (EventPriority priority : EventPriority.values())
+            Set<IGLFWEventListener> listeners = new LinkedHashSet<>();
+            for (GLFWEventPriority priority : GLFWEventPriority.values())
             {
-                Map<Class<?>, List<IEventListener>> classListenersMap = this.classListenersMaps.get(priority);
+                Map<Class<?>, List<IGLFWEventListener>> classListenersMap = this.classListenersMaps.get(priority);
                 
                 Class<?> clazz = eventClass;
                 boolean  toAdd = true;
                 while (clazz != Object.class)
                 {
-                    List<IEventListener> eventListeners = classListenersMap.get(clazz);
+                    List<IGLFWEventListener> eventListeners = classListenersMap.get(clazz);
                     
                     if (eventListeners != null)
                     {
