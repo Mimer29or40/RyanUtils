@@ -65,34 +65,6 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     }
     
     /**
-     * <p>Gets the key from this pair.</p>
-     *
-     * <p>This method implements the {@code Map.Entry} interface returning the
-     * a element as the key.</p>
-     *
-     * @return the a element as the key, may be null
-     */
-    @Override
-    public A getKey()
-    {
-        return this.a;
-    }
-    
-    /**
-     * <p>Gets the value from this pair.</p>
-     *
-     * <p>This method implements the {@code Map.Entry} interface returning the
-     * b element as the value.</p>
-     *
-     * @return the b element as the value, may be null
-     */
-    @Override
-    public B getValue()
-    {
-        return this.b;
-    }
-    
-    /**
      * Sets the {@code Map.Entry} value.
      * This sets the b element of the pair.
      *
