@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-@SuppressWarnings("unused")
 public class IOUtil
 {
     private IOUtil() { }

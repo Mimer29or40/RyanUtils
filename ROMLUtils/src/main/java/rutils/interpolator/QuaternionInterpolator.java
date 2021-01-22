@@ -6,7 +6,6 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import rutils.joml.JOMLUtil;
 
-@SuppressWarnings("unused")
 public class QuaternionInterpolator extends Interpolator<Quaterniond>
 {
     private static final double DELTA = 1e-6;

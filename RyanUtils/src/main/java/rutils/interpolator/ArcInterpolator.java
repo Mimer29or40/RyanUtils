@@ -1,6 +1,5 @@
 package rutils.interpolator;
 
-@SuppressWarnings("unused")
 public class ArcInterpolator extends ScalarInterpolator
 {
     private static final double PI2 = Math.PI * 2.0;

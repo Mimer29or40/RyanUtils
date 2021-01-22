@@ -16,7 +16,6 @@ import static org.lwjgl.opengl.GL43.glCopyImageSubData;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
 
-@SuppressWarnings("unused")
 public class GLTexture
 {
     private static final Logger LOGGER = new Logger();

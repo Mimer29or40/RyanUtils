@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("unused")
 public class StrUtil
 {
     private StrUtil() { }

@@ -8,7 +8,6 @@ import java.util.function.Function;
 
 import static rutils.NumUtil.round;
 
-@SuppressWarnings("unused")
 public class Profiler
 {
     private static final Logger LOGGER = new Logger();

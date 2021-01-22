@@ -2,7 +2,6 @@ package rutils.joml;
 
 import org.joml.*;
 
-@SuppressWarnings("unused")
 public class JOMLUnit
 {
     public static final Vector2ic ZERO2i = new Vector2i(0, 0);

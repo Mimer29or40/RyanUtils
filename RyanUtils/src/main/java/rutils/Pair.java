@@ -7,7 +7,6 @@ import java.util.Objects;
 /**
  * A Generic pair of two objects. The objects can be modified or completely replaced.
  */
-@SuppressWarnings("unused")
 public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Serializable
 {
     public A a;

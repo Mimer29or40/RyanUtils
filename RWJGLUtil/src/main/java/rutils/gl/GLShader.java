@@ -16,7 +16,6 @@ import static rutils.IOUtil.getPath;
 /**
  * A shader that can be used to render things.
  */
-@SuppressWarnings("unused")
 public class GLShader
 {
     private static final Logger LOGGER = new Logger();

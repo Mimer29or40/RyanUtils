@@ -3,7 +3,6 @@ package rutils;
 /**
  * Interface to a read-only view of a Tuple.
  */
-@SuppressWarnings("unused")
 public interface ITuple<A, B, C>
 {
     /**

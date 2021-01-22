@@ -16,7 +16,6 @@ import static rutils.StrUtil.getCurrentTimeString;
  * <p>
  * Use the global {@link #setLevel} to allow for log message to be displayed to the console.
  */
-@SuppressWarnings("unused")
 public class Logger
 {
     private static final Logger LOGGER = new Logger();

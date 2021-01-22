@@ -1,6 +1,5 @@
 package rutils;
 
-@SuppressWarnings("unused")
 public class NumUtil
 {
     private NumUtil() { }

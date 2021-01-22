@@ -3,7 +3,6 @@ package rutils.interpolator;
 /**
  * Class to allow for interpolation between its current scalar value to an arbitrary target scalar value.
  */
-@SuppressWarnings("unused")
 public class ScalarInterpolator extends Interpolator<Double>
 {
     /**

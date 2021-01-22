@@ -2,7 +2,6 @@ package rutils;
 
 import java.nio.*;
 
-@SuppressWarnings("unused")
 public class MemUtil
 {
     private MemUtil() { }

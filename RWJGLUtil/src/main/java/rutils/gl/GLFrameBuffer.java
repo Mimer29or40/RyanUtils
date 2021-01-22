@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import static org.lwjgl.opengl.GL30.*;
 
-@SuppressWarnings("unused")
 public class GLFrameBuffer
 {
     private static final Logger LOGGER = new Logger();

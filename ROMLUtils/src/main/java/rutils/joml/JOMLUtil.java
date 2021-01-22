@@ -3,7 +3,6 @@ package rutils.joml;
 import org.joml.Math;
 import org.joml.*;
 
-@SuppressWarnings("unused")
 public class JOMLUtil
 {
     private static final Vector3f WORKING3f = new Vector3f();

@@ -6,7 +6,6 @@ import java.util.Objects;
 /**
  * A Generic tuple of three objects. The objects can be modified or completely replaced.
  */
-@SuppressWarnings("unused")
 public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, C>>, Serializable
 {
     public A a;

@@ -3,7 +3,6 @@ package rutils.interpolator;
 import org.joml.Math;
 import org.joml.Vector4d;
 
-@SuppressWarnings("unused")
 public class Vector4Interpolator extends Interpolator<Vector4d>
 {
     private static final double DELTA = 1e-6;

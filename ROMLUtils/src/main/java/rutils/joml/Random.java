@@ -2,7 +2,6 @@ package rutils.joml;
 
 import org.joml.*;
 
-@SuppressWarnings("unused")
 public class Random extends rutils.Random
 {
     public static final rutils.Random INSTANCE = new rutils.Random();
