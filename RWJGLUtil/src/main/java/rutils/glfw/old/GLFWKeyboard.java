@@ -72,7 +72,7 @@ public class GLFWKeyboard extends GLFWInputDevice
     /**
      * This is called by the Device to post any events that it may have generated this frame.
      *
-     * @param key   The GLFWInput
+     * @param key   The Input
      * @param time  The time in nano seconds that it happened.
      * @param delta The time in nano seconds since the last frame.
      */
@@ -100,7 +100,7 @@ public class GLFWKeyboard extends GLFWInputDevice
     /**
      * This is the callback used by the window whenever an input is pressed, released, or repeated
      *
-     * @param reference The GLFWInput
+     * @param reference The Input
      * @param state     The action that took place
      * @param mods      The modifier info
      */

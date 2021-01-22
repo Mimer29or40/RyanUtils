@@ -198,7 +198,7 @@ public class Keyboard
         }
         
         /**
-         * @return Gets the GLFWInput that corresponds to the GLFW constant.
+         * @return Gets the Input that corresponds to the GLFW constant.
          */
         public static Key get(int ref)
         {

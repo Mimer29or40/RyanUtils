@@ -28,7 +28,7 @@ public interface GLFWInput
     int mods();
     
     /**
-     * @return If the GLFWInput is in the down state with optional modifiers. This will only be true for one frame.
+     * @return If the Input is in the down state with optional modifiers. This will only be true for one frame.
      */
     default boolean down(GLFWModifier... modifiers)
     {
@@ -36,7 +36,7 @@ public interface GLFWInput
     }
     
     /**
-     * @return If the GLFWInput was released with optional modifiers. This will only be true for one frame.
+     * @return If the Input was released with optional modifiers. This will only be true for one frame.
      */
     default boolean up(GLFWModifier... modifiers)
     {
@@ -44,7 +44,7 @@ public interface GLFWInput
     }
     
     /**
-     * @return If the GLFWInput is being held down with optional modifiers.
+     * @return If the Input is being held down with optional modifiers.
      */
     default boolean held(GLFWModifier... modifiers)
     {
@@ -52,7 +52,7 @@ public interface GLFWInput
     }
     
     /**
-     * @return If the GLFWInput is being repeated with optional modifiers. This will be true for one frame at a time.
+     * @return If the Input is being repeated with optional modifiers. This will be true for one frame at a time.
      */
     default boolean repeat(GLFWModifier... modifiers)
     {

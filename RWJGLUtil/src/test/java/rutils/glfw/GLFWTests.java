@@ -43,11 +43,11 @@ public class GLFWTests
             new Thread(() -> {
                 GLFWTests.LOGGER.fine("OpenGL Thread Started");
                 GLFWWindow window  = GLFW.window();
-                GLFWWindow window1 = GLFW.window1;
+                // GLFWWindow window1 = GLFW.window1;
                 try
                 {
                     window.show();
-                    window1.show();
+                    // window1.show();
                     window.makeCurrent();
                     
                     org.lwjgl.opengl.GL.createCapabilities();
@@ -104,12 +104,12 @@ public class GLFWTests
                                 if (GLFWKeyboardKey.Q.down())
                                 {
                                     LOGGER.info("PRESSED");
-                                    window1.captureMouse();
+                                    // window1.captureMouse();
                                 }
                                 if (GLFWKeyboardKey.W.down())
                                 {
                                     LOGGER.info("PRESSED1");
-                                    window1.releaseMouse();
+                                    // window1.releaseMouse();
                                 }
                                 
                                 // try (Section mouse = profiler.startSection("Mouse"))

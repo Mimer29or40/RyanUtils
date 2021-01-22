@@ -11,7 +11,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     protected static long doubleDelay = 100_000_000;
     
     /**
-     * @return The delay in seconds before an GLFWInput is "held".
+     * @return The delay in seconds before an Input is "held".
      */
     public static double holdDelay()
     {
@@ -19,7 +19,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     }
     
     /**
-     * Sets the delay in seconds before an GLFWInput is "held".
+     * Sets the delay in seconds before an Input is "held".
      *
      * @param holdDelay The new delay in seconds.
      */
@@ -31,7 +31,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     }
     
     /**
-     * @return The delay in seconds before an GLFWInput is "repeated".
+     * @return The delay in seconds before an Input is "repeated".
      */
     public static double repeatDelay()
     {
@@ -39,7 +39,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     }
     
     /**
-     * Sets the delay in seconds before an GLFWInput is "repeated".
+     * Sets the delay in seconds before an Input is "repeated".
      *
      * @param repeatDelay The new delay in seconds.
      */
@@ -51,7 +51,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     }
     
     /**
-     * @return The delay in seconds before an GLFWInput is pressed/clicked twice to be a double pressed/clicked.
+     * @return The delay in seconds before an Input is pressed/clicked twice to be a double pressed/clicked.
      */
     public static double doubleDelay()
     {
@@ -59,7 +59,7 @@ public abstract class GLFWInputDevice extends GLFWDevice
     }
     
     /**
-     * Sets the delay in seconds before an GLFWInput is pressed/clicked twice to be a double pressed/clicked.
+     * Sets the delay in seconds before an Input is pressed/clicked twice to be a double pressed/clicked.
      *
      * @param doubleDelay The new delay in seconds.
      */

@@ -326,7 +326,7 @@ public class GLFWMouse extends GLFWInputDevice
     /**
      * This is the callback used by the window whenever an input is pressed, released, or repeated
      *
-     * @param reference The GLFWInput
+     * @param reference The Input
      * @param state     The action that took place
      * @param mods      The modifier info
      */

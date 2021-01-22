@@ -468,7 +468,7 @@ public enum GLFWEnum
     FOCUS_ON_SHOW(GLFW_FOCUS_ON_SHOW),
     
     /**
-     * GLFWInput options.
+     * Input options.
      */
     CURSOR(GLFW_CURSOR),
     STICKY_KEYS(GLFW_STICKY_KEYS),

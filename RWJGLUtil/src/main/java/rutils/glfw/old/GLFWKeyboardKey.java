@@ -190,7 +190,7 @@ public enum GLFWKeyboardKey implements GLFWInput
     }
     
     /**
-     * @return Gets the GLFWInput that corresponds to the GLFW constant.
+     * @return Gets the Input that corresponds to the GLFW constant.
      */
     public static GLFWKeyboardKey get(int reference)
     {
