@@ -9,6 +9,6 @@ public class GLFWEventMouseButtonUp extends GLFWEventMouseButton
 {
     public GLFWEventMouseButtonUp(Window window, Mouse.Button button, int mods, Vector2d pos)
     {
-        super(window, button, mods, pos);
+        super(window, mods, button, pos);
     }
 }

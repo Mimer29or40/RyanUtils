@@ -17,6 +17,7 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glViewport;
 
+@SuppressWarnings("unused")
 public class Window
 {
     private static final Logger LOGGER = new Logger();
@@ -25,9 +26,6 @@ public class Window
     
     protected final String name;
     protected final long   handle;
-    
-    // public final Mouse    mouse;
-    // public final Keyboard keyboard;
     
     protected final Thread thread;
     
@@ -86,11 +84,11 @@ public class Window
             builder.applyHints();
             
             // TODO - Use the builder to load monitor from config.
-            this.monitor = builder.monitor != null ? builder.monitor : GLFW.primaryMonitor;
+            this.monitor = builder.monitor != null ? builder.monitor : GLFW.PRIMARY_MONITOR;
             
             String title   = builder.title != null ? builder.title : this.name != null ? this.name : "Window";
             long   monitor = builder.windowed ? 0L : this.monitor.handle();
-            long   window  = GLFW.mainWindow != null ? GLFW.mainWindow.handle : 0L;
+            long   window  = GLFW.MAIN_WINDOW != null ? GLFW.MAIN_WINDOW.handle : 0L;
             
             long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);
             if (handle == 0L) throw new RuntimeException("Failed to create the GLFW window");
@@ -148,15 +146,14 @@ public class Window
             
             glfwSetWindowSizeLimits(handle, this.minSize.x, this.minSize.y, this.maxSize.x, this.maxSize.y);
             
+            glfwSetInputMode(handle, GLFW_LOCK_KEY_MODS, Modifier.lockMods() ? GLFW_TRUE : GLFW_FALSE);
+            
             // glfwSetWindowMonitor(handle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate); // TODO
             
             GLFW.attachWindow(handle, this);
             
             return handle;
         });
-        
-        // this.mouse    = new Mouse(this);
-        // this.keyboard = new Keyboard(this);
         
         this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
         this.thread.start();
@@ -1070,9 +1067,6 @@ public class Window
                         GLFW.EVENT_BUS.post(new GLFWEventWindowMonitorChanged(this, prevMonitor, this.monitor));
                     }
                 }
-                
-                // this.mouse.postEvents(t, dt);
-                // this.keyboard.postEvents(t, dt);
                 
                 // TODO - Separate Rendering to on demand.
                 glViewport(0, 0, this.fbSize.x, this.fbSize.y);

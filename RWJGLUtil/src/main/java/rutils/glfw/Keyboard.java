@@ -1,49 +1,26 @@
 package rutils.glfw;
 
 import org.jetbrains.annotations.NotNull;
+import rutils.IPair;
 import rutils.Logger;
+import rutils.glfw.event.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
+public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
 {
     private static final Logger LOGGER = new Logger();
     
-    // private final Window window;
-    
-    // Keyboard(Window window)
-    // {
-    //     this.window = window;
-    // }
-    
-    /**
-     * Sets the lock mods flag. Set {@code true} to enable lock key modifier
-     * bits, or {@code false} to disable them. If enabled, callbacks that
-     * receive modifier bits will also have the {@link Modifier#CAPS_LOCK}
-     * set when the event was generated with Caps Lock on, and the
-     * {@link Modifier#NUM_LOCK} set when Num Lock was on.
-     *
-     * @param lockMods {@code true} to enable lockMods mode, otherwise {@code false}.
-     */
-    public void lockMods(Window window, boolean lockMods)
-    {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_LOCK_KEY_MODS, lockMods ? GLFW_TRUE : GLFW_FALSE));
-    }
-    
-    /**
-     * @return Retrieves the lock mods flag.
-     */
-    public boolean lockModsEnabled(Window window)
-    {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_LOCK_KEY_MODS) == GLFW_TRUE);
-    }
+    protected Queue<IPair<Window, String>> _charChanges = new ConcurrentLinkedQueue<>();
     
     /**
      * Sets the sticky keys flag. If sticky mouse buttons are enabled, a mouse
-     * button press will ensure that {@link EventKeyboardKeyPressed} is posted
+     * button press will ensure that {@link GLFWEventKeyboardKeyPressed} is posted
      * even if the mouse button had been released before the call. This is
      * useful when you are only interested in whether mouse buttons have been
      * pressed but not when or in which order.
@@ -64,11 +41,30 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
     }
     
     @Override
-    protected @NotNull Map<Key, Input> generateMap()
+    protected @NotNull Map<Key, KInput> generateMap()
     {
-        Map<Keyboard.Key, Keyboard.Input> map = new HashMap<>();
-        for (Keyboard.Key key : Key.values()) map.put(key, new Keyboard.Input(key));
+        Map<Keyboard.Key, KInput> map = new HashMap<>();
+        for (Keyboard.Key key : Key.values()) map.put(key, new KInput(key));
         return map;
+    }
+    
+    /**
+     * This method is called by the window it is attached to. This is where
+     * events should be posted to when something has changed.
+     *
+     * @param time  The system time in nanoseconds.
+     * @param delta The time in nanoseconds since the last time this method was called.
+     */
+    @Override
+    protected void postEvents(long time, long delta)
+    {
+        super.postEvents(time, delta);
+        
+        IPair<Window, String> charChange;
+        while ((charChange = this._charChanges.poll()) != null)
+        {
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), Modifier.activeMods(), charChange.getB()));
+        }
     }
     
     /**
@@ -79,14 +75,37 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
      * @param delta The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postInputEvents(Input input, long time, long delta)
+    protected void postInputEvents(KInput input, long time, long delta)
     {
-    
+        if (input.down)
+        {
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, input.mods, input.input));
+        }
+        if (input.up)
+        {
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, input.mods, input.input));
+            
+            if (time - input.pressTime < InputDevice.doublePressedDelay)
+            {
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input.mods, input.input, true));
+                input.pressTime = 0;
+            }
+            else
+            {
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input.mods, input.input, false));
+                input.pressTime = time;
+            }
+        }
+        if (input.held)
+        {
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, input.mods, input.input));
+        }
+        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, input.mods, input.input));
     }
     
-    class Input extends InputDevice<Keyboard.Key, Keyboard.Input>.Input
+    class KInput extends InputDevice<Keyboard.Key, KInput>.Input
     {
-        public Input(Keyboard.Key input)
+        public KInput(Keyboard.Key input)
         {
             super(input);
         }
@@ -232,7 +251,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
         }
         
         /**
-         * @return Gets the Input that corresponds to the GLFW constant.
+         * @return Gets the KInput that corresponds to the GLFW constant.
          */
         public static Key get(int ref)
         {

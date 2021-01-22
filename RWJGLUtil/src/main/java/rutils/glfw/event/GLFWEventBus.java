@@ -104,10 +104,7 @@ public class GLFWEventBus
     
     public void register(final Object target)
     {
-        if (this.objectListeners.containsKey(target))
-        {
-            return;
-        }
+        if (this.objectListeners.containsKey(target)) return;
         
         if (target.getClass() == Class.class)
         {

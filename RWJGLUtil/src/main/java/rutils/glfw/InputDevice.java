@@ -17,7 +17,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     protected static long doublePressedDelay = 200_000_000L;
     
     /**
-     * @return The delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * @return The delay, in seconds, before an KInput is "held" before it starts to be "repeated".
      */
     public static double repeatDelay()
     {
@@ -25,9 +25,9 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     }
     
     /**
-     * Sets the delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * Sets the delay, in seconds, before an KInput is "held" before it starts to be "repeated".
      *
-     * @param repeatDelay The delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * @param repeatDelay The delay, in seconds, before an KInput is "held" before it starts to be "repeated".
      */
     public static void repeatDelay(double repeatDelay)
     {
@@ -37,7 +37,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     }
     
     /**
-     * @return The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * @return The frequency, in seconds, that an KInput is "repeated" after the initial delay has passed.
      */
     public static double repeatFrequency()
     {
@@ -45,9 +45,9 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     }
     
     /**
-     * Sets the frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * Sets the frequency, in seconds, that an KInput is "repeated" after the initial delay has passed.
      *
-     * @param repeatFrequency The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * @param repeatFrequency The frequency, in seconds, that an KInput is "repeated" after the initial delay has passed.
      */
     public static void repeatFrequency(double repeatFrequency)
     {
@@ -57,7 +57,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     }
     
     /**
-     * @return The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * @return The delay, in seconds, before an KInput is pressed twice to be a double pressed.
      */
     public static double doublePressedDelay()
     {
@@ -65,9 +65,9 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     }
     
     /**
-     * Sets the delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * Sets the delay, in seconds, before an KInput is pressed twice to be a double pressed.
      *
-     * @param doublePressedDelay The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * @param doublePressedDelay The delay, in seconds, before an KInput is pressed twice to be a double pressed.
      */
     public static void doublePressedDelay(double doublePressedDelay)
     {
@@ -80,8 +80,6 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
     
     protected       boolean running;
     protected final Thread  thread;
-    
-    protected int _mods; // TODO - Use keyboard to determine mods globally
     
     public InputDevice()
     {
@@ -127,7 +125,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
             input.down   = false;
             input.up     = false;
             input.repeat = false;
-            input.mods   = 0;
+            input.mods   = Modifier.activeMods();
             
             if (input._action != input.action)
             {
@@ -144,14 +142,11 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
                     input.downTime = Long.MAX_VALUE;
                 }
                 input.action = input._action;
-                input.mods   = this._mods;
             }
-            if (input.held) input.mods = this._mods;
             if (input.action == GLFW_REPEAT || time - input.downTime > InputDevice.repeatFrequency)
             {
                 input.downTime += InputDevice.repeatFrequency;
                 input.repeat = true;
-                input.mods   = this._mods;
             }
             
             postInputEvents(input, time, delta);
@@ -179,7 +174,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
         
         protected int mods;
         
-        protected long pressTime = Long.MAX_VALUE;
+        protected long pressTime = 0;
         protected long downTime  = Long.MAX_VALUE;
         
         public Input(E input)
@@ -188,7 +183,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
         }
         
         /**
-         * @return If the Input is in the down state with optional modifiers. This will only be true for one frame.
+         * @return If the KInput is in the down state with optional modifiers. This will only be true for one frame.
          */
         public boolean down(Modifier... modifiers)
         {
@@ -196,7 +191,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
         }
         
         /**
-         * @return If the Input was released with optional modifiers. This will only be true for one frame.
+         * @return If the KInput was released with optional modifiers. This will only be true for one frame.
          */
         public boolean up(Modifier... modifiers)
         {
@@ -204,7 +199,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
         }
         
         /**
-         * @return If the Input is being held down with optional modifiers.
+         * @return If the KInput is being held down with optional modifiers.
          */
         public boolean held(Modifier... modifiers)
         {
@@ -212,7 +207,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>
         }
         
         /**
-         * @return If the Input is being repeated with optional modifiers. This will be true for one frame at a time.
+         * @return If the KInput is being repeated with optional modifiers. This will be true for one frame at a time.
          */
         public boolean repeat(Modifier... modifiers)
         {

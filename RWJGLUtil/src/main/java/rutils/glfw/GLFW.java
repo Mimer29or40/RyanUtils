@@ -13,8 +13,6 @@ import rutils.glfw.event.GLFWEventBus;
 import rutils.glfw.event.GLFWEventMonitorConnected;
 import rutils.glfw.event.GLFWEventMonitorDisconnected;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 import java.util.*;
 
@@ -30,16 +28,16 @@ public final class GLFW
     
     public static final GLFWEventBus EVENT_BUS = new GLFWEventBus(true);
     
-    private static final Map<Long, Monitor> MONITORS       = new LinkedHashMap<>();
-    static               Monitor            primaryMonitor = null;
+    static final Map<Long, Monitor> MONITORS        = new LinkedHashMap<>();
+    static       Monitor            PRIMARY_MONITOR = null;
     
-    private static final Map<Long, Window> WINDOWS    = new LinkedHashMap<>();
-    static               Window            mainWindow = null;
+    static final Map<Long, Window> WINDOWS     = new LinkedHashMap<>();
+    static       Window            MAIN_WINDOW = null;
     
-    static Mouse    mouse;
-    static Keyboard keyboard;
+    static Mouse    MOUSE;
+    static Keyboard KEYBOARD;
     
-    static boolean supportRawMouseInput;
+    static boolean SUPPORT_RAW_MOUSE_MOTION;
     
     private GLFW() {}
     
@@ -64,19 +62,20 @@ public final class GLFW
         GLFW.TASK_DELEGATOR.setThread();
         GLFW.EVENT_BUS.start();
         
-        // GLFW.CALLBACKS.add();
+        // GLFW.EVENT_BUS.register(Modifier.class);
+        
         glfwSetErrorCallback(GLFW::errorCallback);
         glfwSetMonitorCallback(GLFW::monitorCallback);
         glfwSetJoystickCallback(GLFW::joystickCallback);
         
         loadMonitors();
         
-        GLFW.mainWindow = new WindowMain();
+        GLFW.MAIN_WINDOW = new WindowMain();
         
-        GLFW.mouse    = new Mouse();
-        GLFW.keyboard = new Keyboard();
+        GLFW.MOUSE    = new Mouse();
+        GLFW.KEYBOARD = new Keyboard();
         
-        GLFW.supportRawMouseInput = glfwRawMouseMotionSupported();
+        GLFW.SUPPORT_RAW_MOUSE_MOTION = glfwRawMouseMotionSupported();
     }
     
     public static void eventLoop()
@@ -105,8 +104,8 @@ public final class GLFW
         
         GLFW.WINDOWS.values().forEach(Window::destroy);
         
-        GLFW.mouse.running    = false;
-        GLFW.keyboard.running = false;
+        GLFW.MOUSE.running    = false;
+        GLFW.KEYBOARD.running = false;
         
         Callback[] callbacks = new Callback[] {
                 glfwSetErrorCallback(null),
@@ -128,7 +127,7 @@ public final class GLFW
         GLFW.MONITORS.clear();
         long handle;
         for (int i = 0, n = monitors.limit(); i < n; i++) GLFW.MONITORS.put(handle = monitors.get(), new Monitor(handle, i));
-        GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
+        GLFW.PRIMARY_MONITOR = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
     }
     
     public static Collection<Monitor> monitors()
@@ -138,7 +137,7 @@ public final class GLFW
     
     public static Monitor primaryMonitor()
     {
-        return GLFW.primaryMonitor;
+        return GLFW.PRIMARY_MONITOR;
     }
     
     // -------------------- Window -------------------- //
@@ -169,14 +168,14 @@ public final class GLFW
     
     public static Window mainWindow()
     {
-        return GLFW.mainWindow;
+        return GLFW.MAIN_WINDOW;
     }
     
-    // -------------------- Input -------------------- //
+    // -------------------- KInput -------------------- //
     
     public static boolean supportRawMouseInput()
     {
-        return GLFW.supportRawMouseInput;
+        return GLFW.SUPPORT_RAW_MOUSE_MOTION;
     }
     
     // -------------------- Callbacks -------------------- //
@@ -215,7 +214,7 @@ public final class GLFW
             }
         }
         
-        GLFW.primaryMonitor = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
+        GLFW.PRIMARY_MONITOR = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
     }
     
     private static void joystickCallback(int jid, int event)
@@ -299,7 +298,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        GLFW.mouse._enteredChanges.offer(new Pair<>(window, entered));
+        GLFW.MOUSE._enteredChanges.offer(new Pair<>(window, entered));
     }
     
     private static void mousePosCallback(long handle, double x, double y)
@@ -308,8 +307,8 @@ public final class GLFW
         
         if (!Double.isFinite(x) || !Double.isFinite(y)) return;
         
-        GLFW.mouse._pos.set(x, y);
-        GLFW.mouse._posW = window;
+        GLFW.MOUSE._pos.set(x, y);
+        GLFW.MOUSE._posW = window;
     }
     
     private static void scrollCallback(long handle, double dx, double dy)
@@ -318,56 +317,38 @@ public final class GLFW
         
         if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
         
-        GLFW.mouse._scroll.add(dx, dy);
-        GLFW.mouse._scrollW = window;
+        GLFW.MOUSE._scroll.add(dx, dy);
+        GLFW.MOUSE._scrollW = window;
     }
     
     private static void mouseButtonCallback(long handle, int button, int action, int mods)
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        // GLFW.mouse.stateCallback(window, button, action, mods); // TODO
-        Mouse.Input input = GLFW.mouse.inputMap.get(Mouse.Button.get(button));
+        Mouse.BInput input = GLFW.MOUSE.inputMap.get(Mouse.Button.get(button));
         
         input._window = window;
         input._action = action;
         
-        GLFW.mouse._mods = mods;
+        Modifier.updateMods(mods);
     }
     
     private static void keyCallback(long handle, int key, int scancode, int action, int mods)
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        // window.keyboard.stateCallback(key, action, mods); // TODO
+        Keyboard.KInput input = GLFW.KEYBOARD.inputMap.get(Keyboard.Key.get(key));
+        
+        input._window = window;
+        input._action = action;
+        
+        Modifier.updateMods(mods);
     }
     
     private static void charCallback(long handle, int codePoint)
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        // window.keyboard.charCallback(codePoint); // TODO
-    }
-    
-    public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation)
-    {
-        final List<Method> methods = new ArrayList<>();
-        Class<?>           clazz   = type;
-        while (clazz != Object.class)
-        { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
-            // iterate though the list of methods declared in the class represented by clazz variable, and add those annotated with the specified annotation
-            for (final Method method : clazz.getDeclaredMethods())
-            {
-                if (method.isAnnotationPresent(annotation))
-                {
-                    Annotation annotationInstance = method.getAnnotation(annotation);
-                    // TODO process annotationInstance
-                    methods.add(method);
-                }
-            }
-            // move to the upper class in the hierarchy in search for more methods
-            clazz = clazz.getSuperclass();
-        }
-        return methods;
+        GLFW.KEYBOARD._charChanges.offer(new Pair<>(window, Character.toString(codePoint)));
     }
 }

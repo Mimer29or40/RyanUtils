@@ -1,17 +1,16 @@
 package rutils.glfw.event;
 
-import org.joml.Vector2d;
-import rutils.glfw.Mouse;
+import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
 @SuppressWarnings("unused")
-public class GLFWEventMouseButtonPressed extends GLFWEventMouseButton
+public class GLFWEventKeyboardKeyPressed extends GLFWEventKeyboardKey
 {
     private final boolean doublePressed;
     
-    public GLFWEventMouseButtonPressed(Window window, Mouse.Button button, int mods, Vector2d pos, boolean doublePressed)
+    public GLFWEventKeyboardKeyPressed(Window window, int mods, Keyboard.Key key, boolean doublePressed)
     {
-        super(window, mods, button, pos);
+        super(window, mods, key);
     
         this.doublePressed = doublePressed;
     }

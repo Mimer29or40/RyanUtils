@@ -2,7 +2,6 @@ package rutils.glfw.event;
 
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
-import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
 @SuppressWarnings("unused")
@@ -10,9 +9,9 @@ public class GLFWEventMouseScrolled extends GLFWEventMouse
 {
     private final Vector2d scroll;
     
-    public GLFWEventMouseScrolled(Window window, Vector2d scroll)
+    public GLFWEventMouseScrolled(Window window, int mods, Vector2d scroll)
     {
-        super(window);
+        super(window, mods);
         
         this.scroll = scroll;
     }

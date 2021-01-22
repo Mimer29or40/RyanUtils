@@ -5,9 +5,9 @@ import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
 @SuppressWarnings("unused")
-public class GLFWEventMouseButtonDown extends GLFWEventMouseButton
+public class GLFWEventMouseButtonRepeated extends GLFWEventMouseButton
 {
-    public GLFWEventMouseButtonDown(Window window, Mouse.Button button, int mods, Vector2d pos)
+    public GLFWEventMouseButtonRepeated(Window window, Mouse.Button button, int mods, Vector2d pos)
     {
         super(window, mods, button, pos);
     }

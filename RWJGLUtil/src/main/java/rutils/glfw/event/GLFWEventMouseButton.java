@@ -9,15 +9,13 @@ import rutils.glfw.Window;
 public class GLFWEventMouseButton extends GLFWEventMouse
 {
     private final Mouse.Button button;
-    private final int          mods;
     private final Vector2d     pos;
     
-    public GLFWEventMouseButton(Window window, Mouse.Button button, int mods, Vector2d pos)
+    public GLFWEventMouseButton(Window window, int mods, Mouse.Button button, Vector2d pos)
     {
-        super(window);
+        super(window, mods);
     
         this.button = button;
-        this.mods   = mods;
         this.pos    = pos;
     }
     
@@ -25,12 +23,6 @@ public class GLFWEventMouseButton extends GLFWEventMouse
     public Mouse.Button button()
     {
         return this.button;
-    }
-    
-    @Property
-    public int mods()
-    {
-        return this.mods;
     }
     
     @Property
