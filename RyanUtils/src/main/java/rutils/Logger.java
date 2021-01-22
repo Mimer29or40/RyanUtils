@@ -259,7 +259,7 @@ public class Logger
     {
         if (level.intValue() < Logger.level.intValue()) return;
         if (applyFilters(this.name)) return;
-        if (Logger.FORMAT_PATTERN.matcher(format).find())
+        if (format != null && Logger.FORMAT_PATTERN.matcher(format).find())
         {
             Object[] transformed = new Object[objects.length];
             for (int i = 0; i < objects.length; i++) transformed[i] = transformObject(objects[i]);
@@ -267,7 +267,7 @@ public class Logger
         }
         else
         {
-            StringBuilder builder = new StringBuilder(format);
+            StringBuilder builder = new StringBuilder(format != null ? format : "null");
             for (Object object : objects) builder.append(' ').append(StringUtil.toString(object));
             logImpl(level, builder.toString());
         }
