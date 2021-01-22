@@ -17,7 +17,6 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glViewport;
 
-@SuppressWarnings("unused")
 public class Window
 {
     private static final Logger LOGGER = new Logger();

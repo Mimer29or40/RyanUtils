@@ -2,7 +2,6 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindowIconified extends GLFWEventWindow
 {
     private final boolean iconified;

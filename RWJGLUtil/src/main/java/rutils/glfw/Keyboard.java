@@ -12,11 +12,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
+public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
 {
     private static final Logger LOGGER = new Logger();
     
+    // -------------------- Callback Objects -------------------- //
+    
     protected Queue<IPair<Window, String>> _charChanges = new ConcurrentLinkedQueue<>();
+    
+    @Override
+    public String toString()
+    {
+        return "Mouse{" + '}';
+    }
     
     /**
      * Sets the sticky keys flag. If sticky mouse buttons are enabled, a mouse
@@ -41,10 +49,10 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
     }
     
     @Override
-    protected @NotNull Map<Key, KInput> generateMap()
+    protected @NotNull Map<Key, Input> generateMap()
     {
-        Map<Keyboard.Key, KInput> map = new HashMap<>();
-        for (Keyboard.Key key : Key.values()) map.put(key, new KInput(key));
+        Map<Keyboard.Key, Input> map = new HashMap<>();
+        for (Keyboard.Key key : Key.values()) map.put(key, new Input(key));
         return map;
     }
     
@@ -63,7 +71,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), Modifier.activeMods(), charChange.getB()));
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), charChange.getB()));
         }
     }
     
@@ -75,37 +83,37 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
      * @param delta The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postInputEvents(KInput input, long time, long delta)
+    protected void postInputEvents(Input input, long time, long delta)
     {
         if (input.down)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, input.mods, input.input));
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, input));
         }
         if (input.up)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, input.mods, input.input));
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, input));
             
             if (time - input.pressTime < InputDevice.doublePressedDelay)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input.mods, input.input, true));
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input, true));
                 input.pressTime = 0;
             }
             else
             {
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input.mods, input.input, false));
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input, false));
                 input.pressTime = time;
             }
         }
         if (input.held)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, input.mods, input.input));
+            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, input));
         }
-        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, input.mods, input.input));
+        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, input));
     }
     
-    class KInput extends InputDevice<Keyboard.Key, KInput>.Input
+    public static class Input extends InputDevice.Input<Key>
     {
-        public KInput(Keyboard.Key input)
+        private Input(Keyboard.Key input)
         {
             super(input);
         }
@@ -251,7 +259,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.KInput>
         }
         
         /**
-         * @return Gets the KInput that corresponds to the GLFW constant.
+         * @return Gets the Input that corresponds to the GLFW constant.
          */
         public static Key get(int ref)
         {

@@ -14,11 +14,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
+public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
 {
     private static final Logger LOGGER = new Logger();
     
-    // private final Window window;
+    // -------------------- State Objects -------------------- //
+    
+    protected Window captureWindow = null;
     
     // -------------------- Callback Objects -------------------- //
     
@@ -57,7 +59,11 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
      */
     public void show(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL));
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            if (glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) this._pos.set(this.pos.set(window.width() * 0.5, window.height() * 0.5));
+            glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            if (this.captureWindow == window) this.captureWindow = null;
+        });
     }
     
     /**
@@ -74,7 +80,10 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
      */
     public void hide(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN));
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            if (this.captureWindow == window) this.captureWindow = null;
+        });
     }
     
     /**
@@ -92,7 +101,12 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
      */
     public void capture(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED));
+        this._pos.set(this.pos.set(window.width() * 0.5, window.height() * 0.5));
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            glfwSetCursorPos(window.handle, this._pos.x, this._pos.y);
+            glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            this.captureWindow = window;
+        });
     }
     
     /**
@@ -101,6 +115,14 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
     public boolean isCaptured(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
+    }
+    
+    /**
+     * @return Retrieves if the mouse is captured by any window.
+     */
+    public boolean isCaptured()
+    {
+        return this.captureWindow == null;
     }
     
     // TODO - The following can possible be global flags
@@ -161,10 +183,10 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
     // -------------------- Callback Related Things -------------------- //
     
     @Override
-    protected @NotNull Map<Button, BInput> generateMap()
+    protected @NotNull Map<Button, Input> generateMap()
     {
-        Map<Button, BInput> map = new HashMap<>();
-        for (Button button : Button.values()) map.put(button, new BInput(button));
+        Map<Button, Input> map = new HashMap<>();
+        for (Button button : Button.values()) map.put(button, new Input(button));
         return map;
     }
     
@@ -185,7 +207,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
         IPair<Window, Boolean> enteredChange;
         while ((enteredChange = this._enteredChanges.poll()) != null)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(enteredChange.getA(), Modifier.activeMods(), enteredChange.getB()));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(enteredChange.getA(), enteredChange.getB()));
             if (enteredChange.getB())
             {
                 entered = true;
@@ -200,7 +222,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
         {
             this._pos.sub(this.pos, this.rel);
             this.pos.set(this._pos);
-            GLFW.EVENT_BUS.post(new GLFWEventMouseMoved(this._posW, Modifier.activeMods(), this.pos, this.rel));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseMoved(this._posW, this.pos, this.rel));
         }
         
         this.scroll.set(0);
@@ -208,7 +230,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
         {
             this.scroll.set(this._scroll);
             this._scroll.set(0);
-            GLFW.EVENT_BUS.post(new GLFWEventMouseScrolled(this._scrollW, Modifier.activeMods(), this.scroll));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseScrolled(this._scrollW, this.scroll));
         }
     }
     
@@ -220,29 +242,29 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
      * @param delta The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postInputEvents(BInput input, long time, long delta)
+    protected void postInputEvents(Input input, long time, long delta)
     {
         if (input.down)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(input._window, input.input, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(input._window, input, this.pos));
             
             input.click.set(this.pos);
         }
         if (input.up)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(input._window, input.input, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(input._window, input, this.pos));
             
             boolean inClickRange  = Math.abs(this.pos.x - input.click.x) < 2 && Math.abs(this.pos.y - input.click.y) < 2;
             boolean inDClickRange = Math.abs(this.pos.x - input.dClick.x) < 2 && Math.abs(this.pos.y - input.dClick.y) < 2;
             
             if (inDClickRange && time - input.pressTime < InputDevice.doublePressedDelay)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input.input, input.mods, this.pos, true));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input, this.pos, true));
                 input.pressTime = 0;
             }
             else if (inClickRange)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input.input, input.mods, this.pos, false));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input, this.pos, false));
                 input.dClick.set(this.pos);
                 input.pressTime = time;
             }
@@ -250,26 +272,26 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
         input.dragged = false;
         if (input.held)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(input._window, input.input, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(input._window, input, this.pos));
             
             if (this.rel.x != 0 || this.rel.y != 0)
             {
                 input.dragged = true;
                 
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(input._window, input.input, input.mods, this.pos, this.rel, input.click));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(input._window, input, this.pos, this.rel, input.click));
             }
         }
-        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeated(input._window, input.input, input.mods, this.pos));
+        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeated(input._window, input, this.pos));
     }
     
-    class BInput extends InputDevice<Mouse.Button, BInput>.Input
+    public static class Input extends InputDevice.Input<Button>
     {
         protected boolean dragged;
         
         final Vector2d click  = new Vector2d();
         final Vector2d dClick = new Vector2d();
         
-        public BInput(Button input)
+        private Input(Button input)
         {
             super(input);
         }
@@ -309,7 +331,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.BInput>
         }
         
         /**
-         * @return Gets the KInput that corresponds to the GLFW constant.
+         * @return Gets the Input that corresponds to the GLFW constant.
          */
         public static Button get(int ref)
         {

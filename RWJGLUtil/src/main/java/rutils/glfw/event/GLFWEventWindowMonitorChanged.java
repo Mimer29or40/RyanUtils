@@ -3,7 +3,6 @@ package rutils.glfw.event;
 import rutils.glfw.Monitor;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindowMonitorChanged extends GLFWEventWindow
 {
     private final Monitor from;

@@ -15,7 +15,6 @@ import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-@SuppressWarnings("unused")
 public class GLFWMonitor extends GLFWDevice
 {
     private final long   handle;

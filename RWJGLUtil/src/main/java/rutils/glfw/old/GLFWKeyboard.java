@@ -3,7 +3,6 @@ package rutils.glfw.old;
 import org.lwjgl.glfw.GLFW;
 import rutils.Logger;
 
-@SuppressWarnings("unused")
 public class GLFWKeyboard extends GLFWInputDevice
 {
     private static final Logger LOGGER = new Logger();

@@ -5,15 +5,14 @@ import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventMouseButtonDragged extends GLFWEventMouseButton
 {
     private final Vector2d rel;
     private final Vector2d dragStart;
     
-    public GLFWEventMouseButtonDragged(Window window, Mouse.Button button, int mods, Vector2d pos, Vector2d rel, Vector2d dragStart)
+    public GLFWEventMouseButtonDragged(Window window, Mouse.Input button, Vector2d pos, Vector2d rel, Vector2d dragStart)
     {
-        super(window, mods, button, pos);
+        super(window, button, pos);
     
         this.rel = rel;
         this.dragStart = dragStart;

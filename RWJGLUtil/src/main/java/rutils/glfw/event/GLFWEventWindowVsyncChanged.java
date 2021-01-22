@@ -2,7 +2,6 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindowVsyncChanged extends GLFWEventWindow
 {
     private final boolean vsync;

@@ -4,14 +4,13 @@ import org.joml.Vector2d;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventMouseButtonPressed extends GLFWEventMouseButton
 {
     private final boolean doublePressed;
     
-    public GLFWEventMouseButtonPressed(Window window, Mouse.Button button, int mods, Vector2d pos, boolean doublePressed)
+    public GLFWEventMouseButtonPressed(Window window, Mouse.Input button, Vector2d pos, boolean doublePressed)
     {
-        super(window, mods, button, pos);
+        super(window, button, pos);
     
         this.doublePressed = doublePressed;
     }

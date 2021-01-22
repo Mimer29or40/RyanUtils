@@ -1,22 +1,38 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.event.GLFWEvent;
+import rutils.glfw.event.GLFWEventKeyboardKey;
+import rutils.glfw.event.GLFWEventKeyboardKeyDown;
 import rutils.glfw.event.SubscribeGLFWEvent;
 
 import java.util.logging.Level;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 public class Test
 {
     private static final Logger LOGGER = new Logger();
+    
+    static Window window;
+    static Window window1;
     
     // @SubscribeGLFWEvent
     // public static void allEvents(GLFWEvent event)
     // {
     //     // LOGGER.info(event);
     // }
+    
+    @SubscribeGLFWEvent
+    public static void keyEvents(GLFWEventKeyboardKey event)
+    {
+        if (event instanceof GLFWEventKeyboardKeyDown)
+        {
+            switch (event.key().input)
+            {
+                case S -> GLFW.mouse().show(window);
+                case H -> GLFW.mouse().hide(window);
+                case C -> GLFW.mouse().capture(window);
+            }
+        }
+    }
     
     public static void main(String[] args)
     {
@@ -26,13 +42,13 @@ public class Test
         try
         {
             Test.LOGGER.fine("Application Starting");
-        
+            
             GLFW.init();
             
             GLFW.EVENT_BUS.register(Test.class);
-    
-            new Window.Builder().name("First").build();
-            // new Window.Builder().name("Second").build();
+            
+            window  = new Window.Builder().name("First").build();
+            window1 = new Window.Builder().name("Second").build();
             
             GLFW.eventLoop();
         }
@@ -43,7 +59,7 @@ public class Test
         finally
         {
             Test.LOGGER.fine("Application Stopping");
-        
+            
             GLFW.destroy();
         }
     }

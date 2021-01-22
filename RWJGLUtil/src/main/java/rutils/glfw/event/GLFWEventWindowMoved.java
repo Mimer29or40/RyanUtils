@@ -4,7 +4,6 @@ import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindowMoved extends GLFWEventWindow
 {
     private final Vector2i pos;

@@ -6,7 +6,6 @@ import rutils.Logger;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-@SuppressWarnings("unused")
 public class GLFWMouse extends GLFWInputDevice
 {
     private static final Logger LOGGER = new Logger();

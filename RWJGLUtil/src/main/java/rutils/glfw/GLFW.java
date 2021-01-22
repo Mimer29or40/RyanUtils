@@ -166,16 +166,21 @@ public final class GLFW
         glfwSetCharCallback(handle, GLFW::charCallback);
     }
     
-    public static Window mainWindow()
-    {
-        return GLFW.MAIN_WINDOW;
-    }
-    
-    // -------------------- KInput -------------------- //
+    // -------------------- Input -------------------- //
     
     public static boolean supportRawMouseInput()
     {
         return GLFW.SUPPORT_RAW_MOUSE_MOTION;
+    }
+    
+    public static Mouse mouse()
+    {
+        return GLFW.MOUSE;
+    }
+    
+    public static Keyboard keyboard()
+    {
+        return GLFW.KEYBOARD;
     }
     
     // -------------------- Callbacks -------------------- //
@@ -325,7 +330,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Mouse.BInput input = GLFW.MOUSE.inputMap.get(Mouse.Button.get(button));
+        Mouse.Input input = GLFW.MOUSE.inputMap.get(Mouse.Button.get(button));
         
         input._window = window;
         input._action = action;
@@ -337,7 +342,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Keyboard.KInput input = GLFW.KEYBOARD.inputMap.get(Keyboard.Key.get(key));
+        Keyboard.Input input = GLFW.KEYBOARD.inputMap.get(Keyboard.Key.get(key));
         
         input._window = window;
         input._action = action;

@@ -3,20 +3,19 @@ package rutils.glfw.event;
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventKeyboardKey extends GLFWEventKeyboard
 {
-    private final Keyboard.Key key;
+    private final Keyboard.Input key;
     
-    public GLFWEventKeyboardKey(Window window, int mods, Keyboard.Key key)
+    public GLFWEventKeyboardKey(Window window, Keyboard.Input key)
     {
-        super(window, mods);
+        super(window);
         
         this.key = key;
     }
     
-    @Property
-    public Keyboard.Key key()
+    @Property(printName = false)
+    public Keyboard.Input key()
     {
         return this.key;
     }

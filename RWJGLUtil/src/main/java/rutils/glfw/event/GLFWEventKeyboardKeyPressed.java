@@ -3,14 +3,13 @@ package rutils.glfw.event;
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventKeyboardKeyPressed extends GLFWEventKeyboardKey
 {
     private final boolean doublePressed;
     
-    public GLFWEventKeyboardKeyPressed(Window window, int mods, Keyboard.Key key, boolean doublePressed)
+    public GLFWEventKeyboardKeyPressed(Window window, Keyboard.Input key, boolean doublePressed)
     {
-        super(window, mods, key);
+        super(window, key);
     
         this.doublePressed = doublePressed;
     }

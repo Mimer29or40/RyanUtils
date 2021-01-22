@@ -5,22 +5,21 @@ import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventMouseButton extends GLFWEventMouse
 {
-    private final Mouse.Button button;
-    private final Vector2d     pos;
+    private final Mouse.Input button;
+    private final Vector2d    pos;
     
-    public GLFWEventMouseButton(Window window, int mods, Mouse.Button button, Vector2d pos)
+    public GLFWEventMouseButton(Window window, Mouse.Input button, Vector2d pos)
     {
-        super(window, mods);
+        super(window);
     
         this.button = button;
         this.pos    = pos;
     }
     
-    @Property
-    public Mouse.Button button()
+    @Property(printName = false)
+    public Mouse.Input button()
     {
         return this.button;
     }

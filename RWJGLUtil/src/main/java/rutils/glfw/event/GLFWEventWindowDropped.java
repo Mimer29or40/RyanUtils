@@ -4,7 +4,6 @@ import rutils.glfw.Window;
 
 import java.nio.file.Path;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindowDropped extends GLFWEventWindow
 {
     private final Path[] paths;

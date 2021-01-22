@@ -4,7 +4,6 @@ import java.util.function.Predicate;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-@SuppressWarnings("unused")
 public enum Modifier implements Predicate<Integer>
 {
     NONE(0x00000000),
@@ -29,6 +28,11 @@ public enum Modifier implements Predicate<Integer>
         return Modifier.activeMods;
     }
     
+    /**
+     * Internal methods to update the active modifier bitmap.
+     *
+     * @param mods The updated modifier bitmap.
+     */
     static void updateMods(int mods)
     {
         Modifier.activeMods = mods;

@@ -2,7 +2,6 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-@SuppressWarnings("unused")
 public class GLFWEventWindow extends GLFWEvent
 {
     private final Window window;

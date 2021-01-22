@@ -6,9 +6,9 @@ public class GLFWEventMouseEntered extends GLFWEventMouse
 {
     private final boolean entered;
     
-    public GLFWEventMouseEntered(Window window, int mods, boolean entered)
+    public GLFWEventMouseEntered(Window window, boolean entered)
     {
-        super(window, mods);
+        super(window);
         
         this.entered = entered;
     }
