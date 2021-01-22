@@ -7,6 +7,7 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
+import rutils.Pair;
 import rutils.TaskDelegator;
 import rutils.glfw.event.GLFWEventBus;
 import rutils.glfw.event.GLFWEventMonitorConnected;
@@ -298,8 +299,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        GLFW.mouse._entered  = entered;
-        GLFW.mouse._enteredW = window;
+        GLFW.mouse._enteredChanges.offer(new Pair<>(window, entered));
     }
     
     private static void mousePosCallback(long handle, double x, double y)

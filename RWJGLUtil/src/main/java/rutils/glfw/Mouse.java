@@ -3,11 +3,14 @@ package rutils.glfw;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
 import org.lwjgl.system.Platform;
+import rutils.IPair;
 import rutils.Logger;
 import rutils.glfw.event.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -19,9 +22,8 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     // -------------------- Callback Objects -------------------- //
     
-    protected boolean entered;
-    protected boolean _entered;
-    protected Window  _enteredW = null;
+    protected Queue<IPair<Window, Boolean>> _enteredChanges = new ConcurrentLinkedQueue<>();
+    protected Window                        _enteredW       = null;
     
     protected final Vector2d pos   = new Vector2d();
     protected final Vector2d _pos  = new Vector2d();
@@ -35,28 +37,18 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     // -------------------- Internal Objects -------------------- //
     
-    // TODO - Only have one mouse instance.
-    // Mouse(Window window)
-    // {
-    //     this.window = window;
-    // }
-    
     @Override
     public String toString()
     {
-        // return "Mouse{" + "window=" + this.window.name() + '}';
         return "Mouse{" + '}';
     }
     
-    // /**
-    //  * @return The window that this mouse is attached to.
-    //  */
-    // public Window window()
-    // {
-    //     return this.window;
-    // }
-    
     // -------------------- Properties -------------------- //
+    
+    public boolean isOver(Window window)
+    {
+        return this._enteredW == window;
+    }
     
     // TODO - Query GLFW.WINDOWS to check if any/all window are shown/hidden/captured
     
@@ -176,16 +168,6 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         return map;
     }
     
-    protected void stateCallback(Window window, int ref, int action, int mods)
-    {
-        Input input = this.inputMap.get(Button.get(ref));
-        
-        input._window = window;
-        input._action = action;
-        
-        this._mods = mods;
-    }
-    
     /**
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
@@ -200,13 +182,15 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         
         boolean entered = false;
         
-        if (this.entered != this._entered)
+        IPair<Window, Boolean> enteredChange;
+        while ((enteredChange = this._enteredChanges.poll()) != null)
         {
-            this.entered = this._entered;
-            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(this._enteredW, this.entered));
-            if (this.entered)
+            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(enteredChange.getA(), enteredChange.getB()));
+            if (enteredChange.getB())
             {
                 entered = true;
+                
+                this._enteredW = enteredChange.getA();
                 this.pos.set(this._pos);
             }
         }

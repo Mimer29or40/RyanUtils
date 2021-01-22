@@ -12,15 +12,16 @@ public class Test
 {
     private static final Logger LOGGER = new Logger();
     
-    @SubscribeGLFWEvent
-    public static void allEvents(GLFWEvent event)
-    {
-        // LOGGER.info(event);
-    }
+    // @SubscribeGLFWEvent
+    // public static void allEvents(GLFWEvent event)
+    // {
+    //     // LOGGER.info(event);
+    // }
     
     public static void main(String[] args)
     {
         Logger.setLevel(Level.ALL);
+        // Logger.setLevel(Level.FINER);
         
         try
         {
