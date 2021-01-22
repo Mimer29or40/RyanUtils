@@ -6,6 +6,8 @@ import rutils.glfw.event.SubscribeGLFWEvent;
 
 import java.util.logging.Level;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 public class Test
 {
     private static final Logger LOGGER = new Logger();
@@ -29,8 +31,8 @@ public class Test
             GLFW.EVENT_BUS.register(Test.class);
     
             new Window.Builder().name("First").build();
-            // new Window.Builder().name("Second").build();
-    
+            new Window.Builder().name("Second").build();
+            
             GLFW.eventLoop();
         }
         catch (Throwable e)

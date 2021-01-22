@@ -2,7 +2,6 @@ package rutils.glfw;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
-import org.joml.Vector2i;
 import org.lwjgl.system.Platform;
 import rutils.Logger;
 import rutils.glfw.event.*;
@@ -16,78 +15,82 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
 {
     private static final Logger LOGGER = new Logger();
     
-    private final Window window;
+    // private final Window window;
     
     // -------------------- Callback Objects -------------------- //
     
     protected boolean entered;
     protected boolean _entered;
+    protected Window  _enteredW = null;
     
-    protected final Vector2d pos  = new Vector2d();
-    protected final Vector2d _pos = new Vector2d();
+    protected final Vector2d pos   = new Vector2d();
+    protected final Vector2d _pos  = new Vector2d();
+    protected       Window   _posW = null;
     
     protected final Vector2d rel = new Vector2d(0);
     
-    protected final Vector2d scroll  = new Vector2d();
-    protected final Vector2d _scroll = new Vector2d();
+    protected final Vector2d scroll   = new Vector2d();
+    protected final Vector2d _scroll  = new Vector2d();
+    protected       Window   _scrollW = null;
     
     // -------------------- Internal Objects -------------------- //
     
-    private final Vector2i deltaI = new Vector2i();
-    
     // TODO - Only have one mouse instance.
-    Mouse(Window window)
-    {
-        this.window = window;
-    }
+    // Mouse(Window window)
+    // {
+    //     this.window = window;
+    // }
     
     @Override
     public String toString()
     {
-        return "Mouse{" + "window=" + this.window.name() + '}';
+        // return "Mouse{" + "window=" + this.window.name() + '}';
+        return "Mouse{" + '}';
     }
     
-    /**
-     * @return The window that this mouse is attached to.
-     */
-    public Window window()
-    {
-        return this.window;
-    }
+    // /**
+    //  * @return The window that this mouse is attached to.
+    //  */
+    // public Window window()
+    // {
+    //     return this.window;
+    // }
     
     // -------------------- Properties -------------------- //
+    
+    // TODO - Query GLFW.WINDOWS to check if any/all window are shown/hidden/captured
     
     /**
      * Makes the cursor visible and behaving normally.
      */
-    public void show()
+    public void show(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL));
     }
     
     /**
      * @return Retrieves if the mouse is visible and behaving normally in its window.
      */
-    public boolean isShown()
+    public boolean isShown(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_CURSOR) == GLFW_CURSOR_NORMAL);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_NORMAL);
     }
     
     /**
      * Makes the cursor invisible when it is over the content area of the
      * window but does not restrict the cursor from leaving.
      */
-    public void hide()
+    public void hide(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN));
     }
     
     /**
      * @return Retrieves if the mouse is hidden over its window.
      */
-    public boolean isHidden()
+    public boolean isHidden(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_CURSOR) == GLFW_CURSOR_HIDDEN);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_HIDDEN);
     }
     
     /**
@@ -95,18 +98,20 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
      * movement. This is useful for implementing for example 3D camera
      * controls.
      */
-    public void capture()
+    public void capture(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED));
     }
     
     /**
      * @return Retrieves if the mouse is captured by its window.
      */
-    public boolean isCaptured()
+    public boolean isCaptured(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
     }
+    
+    // TODO - The following can possible be global flags
     
     /**
      * Sets the raw mouse motion flag. Set {@code true} to enable raw (unscaled
@@ -116,49 +121,49 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
      *
      * @param rawInput {@code true} to enable raw mouse motion mode, otherwise {@code false}.
      */
-    public void rawInput(boolean rawInput)
+    public void rawInput(Window window, boolean rawInput)
     {
         if (!GLFW.supportRawMouseInput)
         {
             Mouse.LOGGER.warning("Raw Mouse Motion is not support on", Platform.get());
             return;
         }
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_RAW_MOUSE_MOTION, rawInput ? GLFW_TRUE : GLFW_FALSE));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_RAW_MOUSE_MOTION, rawInput ? GLFW_TRUE : GLFW_FALSE));
     }
     
     /**
      * @return Retrieves the raw mouse motion flag.
      */
-    public boolean rawInputEnabled()
+    public boolean rawInputEnabled(Window window)
     {
         if (!GLFW.supportRawMouseInput)
         {
             Mouse.LOGGER.warning("Raw Mouse Motion is not support on", Platform.get());
             return false;
         }
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_RAW_MOUSE_MOTION) == GLFW_TRUE);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_RAW_MOUSE_MOTION) == GLFW_TRUE);
     }
     
     /**
      * Sets the sticky mouse buttons flag. If sticky mouse buttons are enabled,
-     * a mouse button press will ensure that {@link GLFWEventMouseButtonClicked}
+     * a mouse button press will ensure that {@link GLFWEventMouseButtonPressed}
      * is posted even if the mouse button had been released before the call.
      * This is useful when you are only interested in whether mouse buttons
      * have been pressed but not when or in which order.
      *
      * @param sticky {@code true} to enable sticky mode, otherwise {@code false}.
      */
-    public void sticky(boolean sticky)
+    public void sticky(Window window, boolean sticky)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_STICKY_MOUSE_BUTTONS, sticky ? GLFW_TRUE : GLFW_FALSE));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_STICKY_MOUSE_BUTTONS, sticky ? GLFW_TRUE : GLFW_FALSE));
     }
     
     /**
      * @return Retrieves the sticky mouse buttons flag.
      */
-    public boolean stickyEnabled()
+    public boolean stickyEnabled(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_STICKY_MOUSE_BUTTONS) == GLFW_TRUE);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_STICKY_MOUSE_BUTTONS) == GLFW_TRUE);
     }
     
     // -------------------- Callback Related Things -------------------- //
@@ -169,6 +174,16 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         Map<Button, Input> map = new HashMap<>();
         for (Button button : Button.values()) map.put(button, new Input(button));
         return map;
+    }
+    
+    protected void stateCallback(Window window, int ref, int action, int mods)
+    {
+        Input input = this.inputMap.get(Button.get(ref));
+        
+        input._window = window;
+        input._action = action;
+        
+        this._mods = mods;
     }
     
     /**
@@ -188,7 +203,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         if (this.entered != this._entered)
         {
             this.entered = this._entered;
-            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(this, this.entered));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(this._enteredW, this.entered));
             if (this.entered)
             {
                 entered = true;
@@ -201,7 +216,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         {
             this._pos.sub(this.pos, this.rel);
             this.pos.set(this._pos);
-            GLFW.EVENT_BUS.post(new GLFWEventMouseMoved(this, this.pos, this.rel));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseMoved(this._posW, this.pos, this.rel));
         }
         
         this.scroll.set(0);
@@ -209,7 +224,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         {
             this.scroll.set(this._scroll);
             this._scroll.set(0);
-            GLFW.EVENT_BUS.post(new GLFWEventMouseScrolled(this, this.scroll));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseScrolled(this._scrollW, this.scroll));
         }
     }
     
@@ -225,24 +240,24 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     {
         if (input.down)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(this, input.button, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(input._window, input.input, input.mods, this.pos));
             
             input.click.set(this.pos);
         }
         if (input.up)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(this, input.button, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(input._window, input.input, input.mods, this.pos));
             
             boolean inClickRange  = Math.abs(this.pos.x - input.click.x) < 2 && Math.abs(this.pos.y - input.click.y) < 2;
             boolean inDClickRange = Math.abs(this.pos.x - input.dClick.x) < 2 && Math.abs(this.pos.y - input.dClick.y) < 2;
             
-            if (inDClickRange && time - input.pressTime < 500_000_000)
+            if (inDClickRange && time - input.pressTime < InputDevice.doublePressedDelay)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonClicked(this, input.button, input.mods, this.pos, true));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input.input, input.mods, this.pos, true));
             }
             else if (inClickRange)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonClicked(this, input.button, input.mods, this.pos, false));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input.input, input.mods, this.pos, false));
                 input.dClick.set(this.pos);
                 input.pressTime = time;
             }
@@ -250,39 +265,28 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         input.dragged = false;
         if (input.held)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(this, input.button, input.mods, this.pos));
+            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(input._window, input.input, input.mods, this.pos));
             
             if (this.rel.x != 0 || this.rel.y != 0)
             {
                 input.dragged = true;
                 
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(this, input.button, input.mods, this.pos, this.rel, input.click));
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(input._window, input.input, input.mods, this.pos, this.rel, input.click));
             }
         }
-        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeat(this, input.button, input.mods, this.pos));
+        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeat(input._window, input.input, input.mods, this.pos));
     }
     
-    protected void stateCallback(int button, int action, int mods)
+    class Input extends InputDevice<Mouse.Button, Mouse.Input>.Input
     {
-        InputDevice.Input input = this.inputMap.get(Button.get(button));
-        input._action = action;
-        input._mods   = mods;
-    }
-    
-    public static class Input extends InputDevice.Input
-    {
-        private final Button button;
-        
-        protected long pressTime;
-        
         protected boolean dragged;
         
         final Vector2d click  = new Vector2d();
         final Vector2d dClick = new Vector2d();
         
-        public Input(Button button)
+        public Input(Button input)
         {
-            this.button = button;
+            super(input);
         }
         
         /**

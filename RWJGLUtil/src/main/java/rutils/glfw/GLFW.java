@@ -29,11 +29,14 @@ public final class GLFW
     
     public static final GLFWEventBus EVENT_BUS = new GLFWEventBus(true);
     
-    private static final LinkedHashMap<Long, Monitor> MONITORS       = new LinkedHashMap<>();
-    static               Monitor                      primaryMonitor = null;
+    private static final Map<Long, Monitor> MONITORS       = new LinkedHashMap<>();
+    static               Monitor            primaryMonitor = null;
     
-    private static final LinkedHashMap<Long, Window> WINDOWS    = new LinkedHashMap<>();
-    static               Window                      mainWindow = null;
+    private static final Map<Long, Window> WINDOWS    = new LinkedHashMap<>();
+    static               Window            mainWindow = null;
+    
+    static Mouse    mouse;
+    static Keyboard keyboard;
     
     static boolean supportRawMouseInput;
     
@@ -69,6 +72,9 @@ public final class GLFW
         
         GLFW.mainWindow = new WindowMain();
         
+        GLFW.mouse    = new Mouse();
+        GLFW.keyboard = new Keyboard();
+        
         GLFW.supportRawMouseInput = glfwRawMouseMotionSupported();
     }
     
@@ -97,6 +103,9 @@ public final class GLFW
         GLFW.EVENT_BUS.shutdown();
         
         GLFW.WINDOWS.values().forEach(Window::destroy);
+        
+        GLFW.mouse.running    = false;
+        GLFW.keyboard.running = false;
         
         Callback[] callbacks = new Callback[] {
                 glfwSetErrorCallback(null),
@@ -289,7 +298,8 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        window.mouse._entered = entered;
+        GLFW.mouse._entered  = entered;
+        GLFW.mouse._enteredW = window;
     }
     
     private static void mousePosCallback(long handle, double x, double y)
@@ -298,7 +308,8 @@ public final class GLFW
         
         if (!Double.isFinite(x) || !Double.isFinite(y)) return;
         
-        window.mouse._pos.set(x, y);
+        GLFW.mouse._pos.set(x, y);
+        GLFW.mouse._posW = window;
     }
     
     private static void scrollCallback(long handle, double dx, double dy)
@@ -307,14 +318,21 @@ public final class GLFW
         
         if (!Double.isFinite(dx) || !Double.isFinite(dy)) return;
         
-        window.mouse._scroll.add(dx, dy);
+        GLFW.mouse._scroll.add(dx, dy);
+        GLFW.mouse._scrollW = window;
     }
     
     private static void mouseButtonCallback(long handle, int button, int action, int mods)
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        window.mouse.stateCallback(button, action, mods); // TODO
+        // GLFW.mouse.stateCallback(window, button, action, mods); // TODO
+        Mouse.Input input = GLFW.mouse.inputMap.get(Mouse.Button.get(button));
+        
+        input._window = window;
+        input._action = action;
+        
+        GLFW.mouse._mods = mods;
     }
     
     private static void keyCallback(long handle, int key, int scancode, int action, int mods)

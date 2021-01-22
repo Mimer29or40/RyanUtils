@@ -1,21 +1,23 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.NotNull;
 import rutils.Logger;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Keyboard
+public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
 {
     private static final Logger LOGGER = new Logger();
     
-    private final Window window;
+    // private final Window window;
     
-    Keyboard(Window window)
-    {
-        this.window = window;
-    }
+    // Keyboard(Window window)
+    // {
+    //     this.window = window;
+    // }
     
     /**
      * Sets the lock mods flag. Set {@code true} to enable lock key modifier
@@ -26,17 +28,17 @@ public class Keyboard
      *
      * @param lockMods {@code true} to enable lockMods mode, otherwise {@code false}.
      */
-    public void lockMods(boolean lockMods)
+    public void lockMods(Window window, boolean lockMods)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_LOCK_KEY_MODS, lockMods ? GLFW_TRUE : GLFW_FALSE));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_LOCK_KEY_MODS, lockMods ? GLFW_TRUE : GLFW_FALSE));
     }
     
     /**
      * @return Retrieves the lock mods flag.
      */
-    public boolean lockModsEnabled()
+    public boolean lockModsEnabled(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_LOCK_KEY_MODS) == GLFW_TRUE);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_LOCK_KEY_MODS) == GLFW_TRUE);
     }
     
     /**
@@ -48,17 +50,46 @@ public class Keyboard
      *
      * @param sticky {@code true} to enable sticky mode, otherwise {@code false}.
      */
-    public void sticky(boolean sticky)
+    public void sticky(Window window, boolean sticky)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(this.window.handle, GLFW_STICKY_KEYS, sticky ? GLFW_TRUE : GLFW_FALSE));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_STICKY_KEYS, sticky ? GLFW_TRUE : GLFW_FALSE));
     }
     
     /**
      * @return Retrieves the sticky keys flag.
      */
-    public boolean stickyEnabled()
+    public boolean stickyEnabled(Window window)
     {
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(this.window.handle, GLFW_STICKY_KEYS) == GLFW_TRUE);
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_STICKY_KEYS) == GLFW_TRUE);
+    }
+    
+    @Override
+    protected @NotNull Map<Key, Input> generateMap()
+    {
+        Map<Keyboard.Key, Keyboard.Input> map = new HashMap<>();
+        for (Keyboard.Key key : Key.values()) map.put(key, new Keyboard.Input(key));
+        return map;
+    }
+    
+    /**
+     * Post events to the event bus
+     *
+     * @param input The input object to generate the events for.
+     * @param time  The system time in nanoseconds.
+     * @param delta The time in nanoseconds since the last time this method was called.
+     */
+    @Override
+    protected void postInputEvents(Input input, long time, long delta)
+    {
+    
+    }
+    
+    class Input extends InputDevice<Keyboard.Key, Keyboard.Input>.Input
+    {
+        public Input(Keyboard.Key input)
+        {
+            super(input);
+        }
     }
     
     public enum Key
@@ -180,6 +211,9 @@ public class Keyboard
         NP_EQUALS(GLFW_KEY_KP_EQUAL, '=', '='),
         NP_ENTER(GLFW_KEY_KP_ENTER, '\n', '\n'),
         
+        KEY_WORLD_1(GLFW_KEY_WORLD_1, -1, -1),
+        KEY_WORLD_2(GLFW_KEY_WORLD_2, -1, -1),
+        
         ;
         
         private static final HashMap<Integer, Key> KEY_MAP = new HashMap<>();
@@ -192,7 +226,7 @@ public class Keyboard
         Key(int ref, int baseChar, int shiftChar)
         {
             this.ref       = ref;
-            this.scancode  = glfwGetKeyScancode(ref);
+            this.scancode  = ref >= 0 ? glfwGetKeyScancode(ref) : -1;
             this.baseChar  = (char) baseChar;
             this.shiftChar = (char) shiftChar;
         }

@@ -26,8 +26,8 @@ public class Window
     protected final String name;
     protected final long   handle;
     
-    public final Mouse    mouse;
-    public final Keyboard keyboard;
+    // public final Mouse    mouse;
+    // public final Keyboard keyboard;
     
     protected final Thread thread;
     
@@ -155,8 +155,8 @@ public class Window
             return handle;
         });
         
-        this.mouse    = new Mouse(this);
-        this.keyboard = new Keyboard(this);
+        // this.mouse    = new Mouse(this);
+        // this.keyboard = new Keyboard(this);
         
         this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
         this.thread.start();
@@ -966,13 +966,8 @@ public class Window
             
             org.lwjgl.opengl.GL.createCapabilities();
             
-            long t = System.nanoTime(), dt;
-            
             while (!this.close && this.open)
             {
-                dt = System.nanoTime() - t;
-                t = System.nanoTime();
-                
                 boolean updateMonitor = false;
                 
                 this.taskDelegator.runTasks();
@@ -1076,7 +1071,8 @@ public class Window
                     }
                 }
                 
-                this.mouse.postEvents(t, dt);
+                // this.mouse.postEvents(t, dt);
+                // this.keyboard.postEvents(t, dt);
                 
                 // TODO - Separate Rendering to on demand.
                 glViewport(0, 0, this.fbSize.x, this.fbSize.y);

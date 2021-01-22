@@ -1,20 +1,20 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Mouse;
+import rutils.glfw.Window;
 
 @SuppressWarnings("unused")
 public class GLFWEventMouse extends GLFWEvent
 {
-    private final Mouse mouse;
+    private final Window window;
     
-    public GLFWEventMouse(Mouse mouse)
+    public GLFWEventMouse(Window window)
     {
-        this.mouse = mouse;
+        this.window = window;
     }
     
     @Property(printName = false)
-    public Mouse mouse()
+    public Window window()
     {
-        return this.mouse;
+        return this.window;
     }
 }

@@ -8,36 +8,16 @@ import java.util.function.Predicate;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input>
+public abstract class InputDevice<E extends Enum<E>, I extends InputDevice<E, I>.Input>
 {
     private static final Logger LOGGER = new Logger();
     
-    protected static long holdDelay   = 500_000_000L;
-    protected static long repeatDelay = 30_000_000L;
-    protected static long doubleDelay = 100_000_000L;
+    protected static long repeatDelay        = 500_000_000L;
+    protected static long repeatFrequency    = 30_000_000L;
+    protected static long doublePressedDelay = 200_000_000L;
     
     /**
-     * @return The delay in seconds before an Input is "held".
-     */
-    public static double holdDelay()
-    {
-        return InputDevice.holdDelay / 1_000_000_000D;
-    }
-    
-    /**
-     * Sets the delay in seconds before an Input is "held".
-     *
-     * @param holdDelay The new delay in seconds.
-     */
-    public static void holdDelay(double holdDelay)
-    {
-        InputDevice.LOGGER.finest("Setting InputDevice Hold Delay:", holdDelay);
-        
-        InputDevice.holdDelay = (long) (holdDelay * 1_000_000_000L);
-    }
-    
-    /**
-     * @return The delay in seconds before an Input is "repeated".
+     * @return The delay, in seconds, before an Input is "held" before it starts to be "repeated".
      */
     public static double repeatDelay()
     {
@@ -45,45 +25,93 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
     }
     
     /**
-     * Sets the delay in seconds before an Input is "repeated".
+     * Sets the delay, in seconds, before an Input is "held" before it starts to be "repeated".
      *
-     * @param repeatDelay The new delay in seconds.
+     * @param repeatDelay The delay, in seconds, before an Input is "held" before it starts to be "repeated".
      */
     public static void repeatDelay(double repeatDelay)
     {
-        InputDevice.LOGGER.finest("Setting InputDevice Repeat Delay:", holdDelay);
+        InputDevice.LOGGER.finest("Setting InputDevice Hold Delay:", repeatDelay);
         
         InputDevice.repeatDelay = (long) (repeatDelay * 1_000_000_000L);
     }
     
     /**
-     * @return The delay in seconds before an Input is pressed/clicked twice to be a double pressed/clicked.
+     * @return The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
      */
-    public static double doubleDelay()
+    public static double repeatFrequency()
     {
-        return InputDevice.doubleDelay / 1_000_000_000D;
+        return InputDevice.repeatFrequency / 1_000_000_000D;
     }
     
     /**
-     * Sets the delay in seconds before an Input is pressed/clicked twice to be a double pressed/clicked.
+     * Sets the frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
      *
-     * @param doubleDelay The new delay in seconds.
+     * @param repeatFrequency The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
      */
-    public static void doubleDelay(double doubleDelay)
+    public static void repeatFrequency(double repeatFrequency)
     {
-        InputDevice.LOGGER.finest("Setting InputDevice Double Delay:", holdDelay);
+        InputDevice.LOGGER.finest("Setting InputDevice Repeat Delay:", repeatDelay);
         
-        InputDevice.doubleDelay = (long) (doubleDelay * 1_000_000_000L);
+        InputDevice.repeatFrequency = (long) (repeatFrequency * 1_000_000_000L);
+    }
+    
+    /**
+     * @return The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     */
+    public static double doublePressedDelay()
+    {
+        return InputDevice.doublePressedDelay / 1_000_000_000D;
+    }
+    
+    /**
+     * Sets the delay, in seconds, before an Input is pressed twice to be a double pressed.
+     *
+     * @param doublePressedDelay The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     */
+    public static void doublePressedDelay(double doublePressedDelay)
+    {
+        InputDevice.LOGGER.finest("Setting InputDevice Double Delay:", repeatDelay);
+        
+        InputDevice.doublePressedDelay = (long) (doublePressedDelay * 1_000_000_000L);
     }
     
     protected final Map<E, I> inputMap;
     
+    protected       boolean running;
+    protected final Thread  thread;
+    
+    protected int _mods; // TODO - Use keyboard to determine mods globally
+    
     public InputDevice()
     {
         this.inputMap = generateMap();
+        
+        this.running = true;
+        this.thread  = new Thread(this::runInThread, toString());
+        this.thread.start();
     }
     
     protected abstract @NotNull Map<E, I> generateMap();
+    
+    protected void runInThread()
+    {
+        long t, dt, last = System.nanoTime();
+        
+        while (this.running)
+        {
+            t  = System.nanoTime();
+            dt = t - last;
+            
+            if (dt >= 1_000_000)
+            {
+                last = t;
+                postEvents(t, dt);
+            }
+            
+            Thread.yield();
+        }
+    }
     
     /**
      * This method is called by the window it is attached to. This is where
@@ -107,8 +135,7 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
                 {
                     input.down     = true;
                     input.held     = true;
-                    input.repeat   = true;
-                    input.downTime = time;
+                    input.downTime = time + InputDevice.repeatDelay;
                 }
                 else if (input._action == GLFW_RELEASE)
                 {
@@ -117,13 +144,14 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
                     input.downTime = Long.MAX_VALUE;
                 }
                 input.action = input._action;
-                input.mods   = input._mods;
+                input.mods   = this._mods;
             }
-            if (input.action == GLFW_REPEAT && input.held && time - input.downTime > InputDevice.holdDelay)
+            if (input.held) input.mods = this._mods;
+            if (input.action == GLFW_REPEAT || time - input.downTime > InputDevice.repeatFrequency)
             {
-                input.downTime += InputDevice.repeatDelay;
+                input.downTime += InputDevice.repeatFrequency;
                 input.repeat = true;
-                input.mods   = input._mods;
+                input.mods   = this._mods;
             }
             
             postInputEvents(input, time, delta);
@@ -139,15 +167,25 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
      */
     protected abstract void postInputEvents(I input, long time, long delta);
     
-    public static class Input
+    public class Input
     {
+        protected final E input;
+        
+        protected Window _window;
+        
         protected boolean down, up, held, repeat;
         
         protected int _action, action;
         
-        protected int _mods, mods;
+        protected int mods;
         
-        protected long downTime;
+        protected long pressTime = Long.MAX_VALUE;
+        protected long downTime  = Long.MAX_VALUE;
+        
+        public Input(E input)
+        {
+            this.input = input;
+        }
         
         /**
          * @return If the Input is in the down state with optional modifiers. This will only be true for one frame.

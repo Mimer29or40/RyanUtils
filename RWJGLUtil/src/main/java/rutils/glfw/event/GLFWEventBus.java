@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GLFWEventBus
@@ -28,11 +29,55 @@ public class GLFWEventBus
     private final    int     busID    = GLFWEventBus.maxID.getAndIncrement();
     private volatile boolean shutdown = false;
     
+    private final Queue<GLFWEvent> eventQueue = new ConcurrentLinkedQueue<>();
+    
+    private final Thread thread;
+    
     public GLFWEventBus(boolean trackPhases)
     {
         this.trackPhases = trackPhases;
         
         for (GLFWEventPriority priority : GLFWEventPriority.values()) this.classListenersMaps.put(priority, new HashMap<>());
+        
+        this.thread = new Thread(() -> {
+            while (!this.shutdown)
+            {
+                while (!this.eventQueue.isEmpty())
+                {
+                    GLFWEvent event = this.eventQueue.poll();
+    
+                    GLFWEventBus.LOGGER.finest("Posting", event);
+                    
+                    Set<IGLFWEventListener> listeners = getListeners(event.getClass());
+    
+                    int index = 0;
+                    try
+                    {
+                        for (IGLFWEventListener listener : listeners)
+                        {
+                            if (!this.trackPhases && Objects.equals(listener.getClass(), GLFWEventPriority.class)) continue;
+                            listener.invoke(event);
+                            index++;
+                        }
+                    }
+                    catch (Throwable throwable)
+                    {
+                        StringBuilder builder = new StringBuilder();
+                        builder.append("Exception caught during firing event: ").append(throwable.getMessage()).append('\n');
+                        builder.append("\tIndex: ").append(index).append('\n');
+                        builder.append("\tListeners:\n");
+                        index = 0;
+                        for (IGLFWEventListener listener : listeners) builder.append("\t\t").append(index++).append(": ").append(listener).append('\n');
+                        final StringWriter sw = new StringWriter();
+                        throwable.printStackTrace(new PrintWriter(sw));
+                        builder.append(sw.getBuffer());
+                        GLFWEventBus.LOGGER.severe(builder.toString());
+                        throw throwable;
+                    }
+                }
+                Thread.yield();
+            }
+        }, "EventBus");
     }
     
     public GLFWEventBus()
@@ -43,12 +88,18 @@ public class GLFWEventBus
     public void start()
     {
         this.shutdown = false;
+        this.thread.start();
     }
     
     public void shutdown()
     {
         // GLFWEventBus.LOGGER.warning("GLFWEventBus %s shutting down - future events will not be posted.\n%s", this.busID, new Exception("stacktrace"));
         this.shutdown = true;
+        try
+        {
+            this.thread.join();
+        }
+        catch (InterruptedException ignored) { }
     }
     
     public void register(final Object target)
@@ -86,39 +137,12 @@ public class GLFWEventBus
     {
         if (this.shutdown) return;
         
-        GLFWEventBus.LOGGER.finest("Posting", event);
-        
-        Set<IGLFWEventListener> listeners = getListeners(event.getClass());
-        
-        int index = 0;
-        try
-        {
-            for (IGLFWEventListener listener : listeners)
-            {
-                if (!this.trackPhases && Objects.equals(listener.getClass(), GLFWEventPriority.class)) continue;
-                listener.invoke(event);
-                index++;
-            }
-        }
-        catch (Throwable throwable)
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Exception caught during firing event: ").append(throwable.getMessage()).append('\n');
-            builder.append("\tIndex: ").append(index).append('\n');
-            builder.append("\tListeners:\n");
-            index = 0;
-            for (IGLFWEventListener listener : listeners) builder.append("\t\t").append(index++).append(": ").append(listener).append('\n');
-            final StringWriter sw = new StringWriter();
-            throwable.printStackTrace(new PrintWriter(sw));
-            builder.append(sw.getBuffer());
-            GLFWEventBus.LOGGER.severe(builder.toString());
-            throw throwable;
-        }
+        this.eventQueue.offer(event);
     }
     
     private void registerClass(final Class<?> clazz)
     {
-        for (Method m : ClassUtil.getMethods(clazz, method -> Modifier.isStatic(method.getModifiers())))
+        for (Method m : ClassUtil.getMethods(clazz, m -> m.getDeclaringClass() != Object.class && Modifier.isStatic(m.getModifiers())))
         {
             if (m.isAnnotationPresent(SubscribeGLFWEvent.class))
             {
@@ -129,23 +153,13 @@ public class GLFWEventBus
     
     private void registerObject(final Object obj)
     {
-        // final HashSet<Class<?>> classes = new HashSet<>();
-        // ClassUtil.getTypes(obj.getClass(), classes);
-        // for (Method m : obj.getClass().getMethods())
-        // {
-        //     if (!Modifier.isStatic(m.getModifiers()))
-        //     {
-        //         for (Class<?> c : classes)
-        //         {
-        //             Optional<Method> declaredMethod = ClassUtil.getDeclaredMethod(c, m);
-        //             if (declaredMethod.isPresent() && declaredMethod.get().isAnnotationPresent(SubscribeGLFWEvent.class))
-        //             {
-        //                 registerListener(obj, m);
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
+        for (Method m : ClassUtil.getMethods(obj.getClass(), m -> m.getDeclaringClass() != Object.class && !Modifier.isStatic(m.getModifiers()) && m.canAccess(obj)))
+        {
+            if (m.isAnnotationPresent(SubscribeGLFWEvent.class))
+            {
+                registerListener(obj, m);
+            }
+        }
     }
     
     private void registerListener(final Object target, final Method method)

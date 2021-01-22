@@ -1,14 +1,14 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Mouse;
+import rutils.glfw.Window;
 
 public class GLFWEventMouseEntered extends GLFWEventMouse
 {
     private final boolean entered;
     
-    public GLFWEventMouseEntered(Mouse mouse, boolean entered)
+    public GLFWEventMouseEntered(Window window, boolean entered)
     {
-        super(mouse);
+        super(window);
         
         this.entered = entered;
     }
