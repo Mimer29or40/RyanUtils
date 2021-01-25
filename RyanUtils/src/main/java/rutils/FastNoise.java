@@ -28,6 +28,9 @@ package rutils;
 // off every 'zix'.)
 //
 
+import rutils.group.Pair;
+import rutils.group.Triple;
+
 @SuppressWarnings("ALL")
 public class FastNoise
 {
@@ -2314,12 +2317,12 @@ public class FastNoise
         }
     }
     
-    public void GradientPerturb(Tuple.F v3)
+    public void GradientPerturb(Triple.F v3)
     {
         SingleGradientPerturb(m_seed, m_gradientPerturbAmp, m_frequency, v3);
     }
     
-    public void GradientPerturbFractal(Tuple.F v3)
+    public void GradientPerturbFractal(Triple.F v3)
     {
         int   seed = m_seed;
         float amp  = m_gradientPerturbAmp * m_fractalBounding;
@@ -2335,7 +2338,7 @@ public class FastNoise
         }
     }
     
-    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, Tuple.F v3)
+    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, Triple.F v3)
     {
         float xf = v3.a * frequency;
         float yf = v3.b * frequency;

@@ -1,17 +1,23 @@
 package rutils;
 
+import rutils.group.IPair;
+import rutils.group.Pair;
+
+import java.util.regex.Pattern;
+
 public class NumUtil
 {
-    private NumUtil() { }
-    
     /**
-     * Maps the value x from between x0 and x1 to a value between y0 and y1
+     * Maps the value {@code x} linearly from between {@code x0} and {@code x1}
+     * to a value between {@code y0} and {@code y1}.
+     * <p>
+     * Results are not clamped between endpoints.
      *
      * @param x  The value to map.
-     * @param x0 The initial bound
-     * @param x1 The initial bound
-     * @param y0 The mapped bound
-     * @param y1 The mapped bound
+     * @param x0 The initial lower bound.
+     * @param x1 The initial upper bound.
+     * @param y0 The mapped lower bound.
+     * @param y1 The mapped upper bound.
      * @return The mapped value.
      */
     public static double map(double x, double x0, double x1, double y0, double y1)
@@ -19,18 +25,22 @@ public class NumUtil
         return (x - x0) * (y1 - y0) / (x1 - x0) + y0;
     }
     
+    private static final Pattern FORMAT_NUMBERS_SPLIT = Pattern.compile("\\.");
+    
     /**
-     * This takes an array of decimals and determines the max length before and after the decimal point to align the decimal points when printed in a column.
+     * This takes an array of decimals and determines the max length before and
+     * after the decimal point to align the decimal points when printed in a
+     * column.
      *
      * @param values The double values.
      * @return The pair of number.
      */
-    public static Pair.I getFormatNumbers(double... values)
+    public static IPair.I getFormatNumbers(double... values)
     {
         int numI = 1, numD = 0;
         for (double val : values)
         {
-            String[] num = String.valueOf(val).split("\\.");
+            String[] num = NumUtil.FORMAT_NUMBERS_SPLIT.split(Double.toString(val));
             numI = Math.max(numI, num[0].length());
             if (val != (int) val) numD = Math.max(numD, num[1].length());
         }
@@ -47,8 +57,9 @@ public class NumUtil
      */
     public static String format(double x, int numI, int numD)
     {
-        String I  = String.valueOf((int) x);
-        String D  = numD > 0 ? String.valueOf((int) Math.round(Math.abs(x - (int) x) * Math.pow(10, numD))) : "";
+        String I = String.valueOf((int) x);
+        String D = (numD > 0 ? String.valueOf((int) Math.round(Math.abs(getDecimal(x)) * Math.pow(10, numD))) : "");
+        while (D.endsWith("0") && D.length() > 1) D = D.substring(0, D.length() - 1);
         String fI = numI > I.length() ? "%" + (numI - I.length()) + "s" : "%s";
         String fD = numD > D.length() ? "%" + (numD - D.length()) + "s" : "%s";
         return String.format(fI + "%s%s%s" + fD, "", I, numD > 0 ? "." : "", D, "");
@@ -61,9 +72,9 @@ public class NumUtil
      * @param numbers The pair of number for before and after the decimal point.
      * @return The formatter number string.
      */
-    public static String format(double x, Pair.I numbers)
+    public static String format(double x, IPair<Integer, Integer> numbers)
     {
-        return format(x, numbers.a, numbers.b);
+        return format(x, numbers.getA(), numbers.getB());
     }
     
     /**
@@ -92,11 +103,11 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between two limits.
+     * Clamps a value between two bounds.
      *
      * @param x   The value to clamp.
-     * @param min The min range.
-     * @param max The max range.
+     * @param min The lower bound.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static int clamp(int x, int min, int max)
@@ -105,10 +116,10 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between zero and a limit.
+     * Clamps a value between zero and an upper bound.
      *
      * @param x   The value to clamp.
-     * @param max The max range.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static int clamp(int x, int max)
@@ -117,11 +128,11 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between two limits.
+     * Clamps a value between two bounds.
      *
      * @param x   The value to clamp.
-     * @param min The min range.
-     * @param max The max range.
+     * @param min The lower bound.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static long clamp(long x, long min, long max)
@@ -130,10 +141,10 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between zero and a limit.
+     * Clamps a value between zero and an upper bound.
      *
      * @param x   The value to clamp.
-     * @param max The max range.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static long clamp(long x, long max)
@@ -142,11 +153,11 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between two limits.
+     * Clamps a value between two bounds.
      *
      * @param x   The value to clamp.
-     * @param min The min range.
-     * @param max The max range.
+     * @param min The lower bound.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static float clamp(float x, float min, float max)
@@ -155,10 +166,10 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between zero and a limit.
+     * Clamps a value between zero and an upper bound.
      *
      * @param x   The value to clamp.
-     * @param max The max range.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static float clamp(float x, float max)
@@ -167,11 +178,11 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between two limits.
+     * Clamps a value between two bounds.
      *
      * @param x   The value to clamp.
-     * @param min The min range.
-     * @param max The max range.
+     * @param min The lower bound.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static double clamp(double x, double min, double max)
@@ -180,10 +191,10 @@ public class NumUtil
     }
     
     /**
-     * Clamps a value between zero and a limit.
+     * Clamps a value between zero and an upper bound.
      *
      * @param x   The value to clamp.
-     * @param max The max range.
+     * @param max The upper bound.
      * @return The clamped value.
      */
     public static double clamp(double x, double max)
@@ -206,7 +217,7 @@ public class NumUtil
      * @param value The number.
      * @return If the number is even.
      */
-    public static boolean isEven(int value)
+    public static boolean isEven(long value)
     {
         return (value & 1) == 0;
     }
@@ -215,7 +226,7 @@ public class NumUtil
      * @param value The number.
      * @return If the number is odd.
      */
-    public static boolean isOdd(int value)
+    public static boolean isOdd(long value)
     {
         return (value & 1) == 1;
     }
@@ -239,8 +250,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The minimum value in the array.
+     * Computes the minimum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The minimum value of the data set.
      */
     public static int min(int... array)
     {
@@ -250,8 +263,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The minimum value in the array.
+     * Computes the minimum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The minimum value of the data set.
      */
     public static long min(long... array)
     {
@@ -261,8 +276,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The minimum value in the array.
+     * Computes the minimum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The minimum value of the data set.
      */
     public static float min(float... array)
     {
@@ -272,8 +289,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The minimum value in the array.
+     * Computes the minimum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The minimum value of the data set.
      */
     public static double min(double... array)
     {
@@ -283,8 +302,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The maximum value in the array.
+     * Computes the maximum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The maximum value of the data set.
      */
     public static int max(int... array)
     {
@@ -294,8 +315,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The maximum value in the array.
+     * Computes the maximum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The maximum value of the data set.
      */
     public static long max(long... array)
     {
@@ -305,8 +328,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The maximum value in the array.
+     * Computes the maximum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The maximum value of the data set.
      */
     public static float max(float... array)
     {
@@ -316,8 +341,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The maximum value in the array.
+     * Computes the maximum value of the given data set.
+     *
+     * @param array The data set.
+     * @return The maximum value of the data set.
      */
     public static double max(double... array)
     {
@@ -327,8 +354,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The sum of the entire the array.
+     * Computes the summation of the given data set.
+     *
+     * @param array The data set.
+     * @return The sum of the data set.
      */
     public static int sum(int... array)
     {
@@ -338,8 +367,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The sum of the entire the array.
+     * Computes the summation of the given data set.
+     *
+     * @param array The data set.
+     * @return The sum of the data set.
      */
     public static long sum(long... array)
     {
@@ -349,8 +380,10 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The sum of the entire array.
+     * Computes the summation of the given data set.
+     *
+     * @param array The data set.
+     * @return The sum of the data set.
      */
     public static float sum(float... array)
     {
@@ -360,14 +393,124 @@ public class NumUtil
     }
     
     /**
-     * @param array The array.
-     * @return The sum of the entire array.
+     * Computes the summation of the given data set.
+     *
+     * @param array The data set.
+     * @return The sum of the data set.
      */
     public static double sum(double... array)
     {
         double sum = 0;
         for (double x : array) sum += x;
         return sum;
+    }
+    
+    /**
+     * Computes the mean value of the given data set.
+     *
+     * @param array The data set.
+     * @return The mean value of the data set.
+     */
+    public static float mean(int... array)
+    {
+        float mean = 0;
+        for (int x : array) mean += x;
+        return mean / array.length;
+    }
+    
+    /**
+     * Computes the mean value of the given data set.
+     *
+     * @param array The data set.
+     * @return The mean value of the data set.
+     */
+    public static double mean(long... array)
+    {
+        double mean = 0;
+        for (long x : array) mean += x;
+        return mean / array.length;
+    }
+    
+    /**
+     * Computes the mean value of the given data set.
+     *
+     * @param array The data set.
+     * @return The mean value of the data set.
+     */
+    public static float mean(float... array)
+    {
+        float mean = 0;
+        for (float x : array) mean += x;
+        return mean / array.length;
+    }
+    
+    /**
+     * Computes the mean value of the given data set.
+     *
+     * @param array The data set.
+     * @return The mean value of the data set.
+     */
+    public static double mean(double... array)
+    {
+        double mean = 0;
+        for (double x : array) mean += x;
+        return mean / array.length;
+    }
+    
+    /**
+     * Computes the standard deviation of the given data set.
+     *
+     * @param array The data set.
+     * @return The standard deviation of the data set.
+     */
+    public static float stdDev(int... array)
+    {
+        float mean = mean(array);
+        float stdDev = 0;
+        for (int x : array) stdDev += (x - mean) * (x - mean);
+        return (float) Math.sqrt(stdDev / array.length);
+    }
+    
+    /**
+     * Computes the standard deviation of the given data set.
+     *
+     * @param array The data set.
+     * @return The standard deviation of the data set.
+     */
+    public static double stdDev(long... array)
+    {
+        double mean = mean(array);
+        double stdDev = 0;
+        for (long x : array) stdDev += (x - mean) * (x - mean);
+        return Math.sqrt(stdDev / array.length);
+    }
+    
+    /**
+     * Computes the standard deviation of the given data set.
+     *
+     * @param array The data set.
+     * @return The standard deviation of the data set.
+     */
+    public static float stdDev(float... array)
+    {
+        float mean = mean(array);
+        float stdDev = 0;
+        for (float x : array) stdDev += (x - mean) * (x - mean);
+        return (float) Math.sqrt(stdDev / array.length);
+    }
+    
+    /**
+     * Computes the standard deviation of the given data set.
+     *
+     * @param array The data set.
+     * @return The standard deviation of the data set.
+     */
+    public static double stdDev(double... array)
+    {
+        double mean = mean(array);
+        double stdDev = 0;
+        for (double x : array) stdDev += (x - mean) * (x - mean);
+        return Math.sqrt(stdDev / array.length);
     }
     
     /**
@@ -382,7 +525,7 @@ public class NumUtil
     {
         if (x <= 0) return a;
         if (x >= 1) return b;
-        return a + (int) (x * (b - a));
+        return a + (int) ((b - a) * x);
     }
     
     /**
@@ -397,7 +540,7 @@ public class NumUtil
     {
         if (x <= 0) return a;
         if (x >= 1) return b;
-        return a + (long) (x * (b - a));
+        return a + (long) ((b - a) * x);
     }
     
     /**
@@ -408,11 +551,11 @@ public class NumUtil
      * @param x The amount to interpolate. [0-1]
      * @return The interpolated value.
      */
-    public static float lerp(float a, float b, float x)
+    public static float lerp(float a, float b, double x)
     {
         if (x <= 0) return a;
         if (x >= 1) return b;
-        return a + x * (b - a);
+        return a + (float) ((b - a) * x);
     }
     
     /**
@@ -427,7 +570,12 @@ public class NumUtil
     {
         if (x <= 0) return a;
         if (x >= 1) return b;
-        return a + x * (b - a);
+        return a + (b - a) * x;
+    }
+    
+    private static double smoothstep(double x)
+    {
+        return x * x * (3 - 2 * x);
     }
     
     /**
@@ -440,7 +588,9 @@ public class NumUtil
      */
     public static int smoothstep(int a, int b, double x)
     {
-        return a + (int) (x * x * (3 - 2 * x)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (int) ((b - a) * smoothstep(x));
     }
     
     /**
@@ -453,7 +603,9 @@ public class NumUtil
      */
     public static long smoothstep(long a, long b, double x)
     {
-        return a + (long) (x * x * (3 - 2 * x)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (long) ((b - a) * smoothstep(x));
     }
     
     /**
@@ -464,9 +616,11 @@ public class NumUtil
      * @param x The amount to interpolate. [0-1]
      * @return The interpolated value.
      */
-    public static float smoothstep(float a, float b, float x)
+    public static float smoothstep(float a, float b, double x)
     {
-        return a + (x * x * (3 - 2 * x)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (float) ((b - a) * smoothstep(x));
     }
     
     /**
@@ -479,7 +633,14 @@ public class NumUtil
      */
     public static double smoothstep(double a, double b, double x)
     {
-        return a + (x * x * (3 - 2 * x)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (b - a) * smoothstep(x);
+    }
+    
+    private static double smootherstep(double x)
+    {
+        return x * x * x * (x * (x * 6 - 15) + 10);
     }
     
     /**
@@ -492,7 +653,9 @@ public class NumUtil
      */
     public static int smootherstep(int a, int b, double x)
     {
-        return a + (int) (x * x * x * (x * (x * 6 - 15) + 10)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (int) ((b - a) * smootherstep(x));
     }
     
     /**
@@ -505,7 +668,9 @@ public class NumUtil
      */
     public static long smootherstep(long a, long b, double x)
     {
-        return a + (long) (x * x * x * (x * (x * 6 - 15) + 10)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (long) ((b - a) * smootherstep(x));
     }
     
     /**
@@ -516,9 +681,11 @@ public class NumUtil
      * @param x The amount to interpolate. [0-1]
      * @return The interpolated value.
      */
-    public static float smootherstep(float a, float b, float x)
+    public static float smootherstep(float a, float b, double x)
     {
-        return a + (x * x * x * (x * (x * 6 - 15) + 10)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (float) ((b - a) * smootherstep(x));
     }
     
     /**
@@ -531,7 +698,9 @@ public class NumUtil
      */
     public static double smootherstep(double a, double b, double x)
     {
-        return a + (x * x * x * (x * (x * 6 - 15) + 10)) * (b - a);
+        if (x <= 0) return a;
+        if (x >= 1) return b;
+        return a + (b - a) * smootherstep(x);
     }
     
     /**
@@ -554,6 +723,9 @@ public class NumUtil
      */
     public static int fastCeil(double x)
     {
-        return fastFloor(x) + 1;
+        int xi = (int) x;
+        return x > xi ? xi + 1 : xi;
     }
+    
+    private NumUtil() { }
 }

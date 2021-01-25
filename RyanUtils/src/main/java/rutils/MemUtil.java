@@ -4,229 +4,1790 @@ import java.nio.*;
 
 public class MemUtil
 {
-    private MemUtil() { }
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(byte[] src, int srcPos, ByteBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(byte[] src, ByteBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(byte[] src, ByteBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (byte b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(int[] src, int srcPos, ByteBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, (byte) (src[srcPos + i] & 0xFF));
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(int[] src, ByteBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(int[] src, ByteBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int b : src) dest.put((byte) (b & 0xFF));
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(short[] src, int srcPos, ShortBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(short[] src, ShortBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(short[] src, ShortBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (short b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(int[] src, int srcPos, IntBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(int[] src, IntBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(int[] src, IntBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(long[] src, int srcPos, LongBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(long[] src, LongBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(long[] src, LongBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (long b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(float[] src, int srcPos, FloatBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(float[] src, FloatBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(float[] src, FloatBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (float b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source array to a destination buffer.
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source array.
-     * @param dest The destination buffer.
+     * @param src     the source array.
+     * @param srcPos  starting position in the source array.
+     * @param dest    the destination buffer.
+     * @param destPos starting position in the destination buffer.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(double[] src, int srcPos, DoubleBuffer dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.length) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.limit()) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest.put(destPos + i, src[srcPos + i]);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(double[] src, DoubleBuffer dest, int length)
+    {
+        memCopy(src, 0, dest, dest.position(), length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(double[] src, DoubleBuffer dest)
     {
-        int size1 = src.length;
-        int size2 = dest.remaining();
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (double b : src) dest.put(b);
+        memCopy(src, 0, dest, dest.position(), src.length);
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ByteBuffer src, int srcPos, byte[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ByteBuffer src, byte[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(ByteBuffer src, byte[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ByteBuffer src, int srcPos, int[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i) & 0xFF;
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ByteBuffer src, int[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(ByteBuffer src, int[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get() & 0xFF;
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ShortBuffer src, int srcPos, short[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(ShortBuffer src, short[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(ShortBuffer src, short[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(IntBuffer src, int srcPos, int[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(IntBuffer src, int[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(IntBuffer src, int[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(LongBuffer src, int srcPos, long[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(LongBuffer src, long[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(LongBuffer src, long[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(FloatBuffer src, int srcPos, float[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(FloatBuffer src, float[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(FloatBuffer src, float[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
     
     /**
-     * Copies a source buffer to a destination array.
+     * Copies a buffer from the specified source buffer, beginning at the
+     * specified position, to the specified position of the destination array.
+     * A subsequence of array components are copied from the source
+     * buffer referenced by {@code src} to the destination array
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source buffer are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination array.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.limit}, the length of the source buffer.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.length}, the length of the destination array.
+     * </ul>
      *
-     * @param src  The source buffer.
-     * @param dest The destination array.
+     * @param src     the source buffer.
+     * @param srcPos  starting position in the source buffer.
+     * @param dest    the destination array.
+     * @param destPos starting position in the destination array.
+     * @param length  the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(DoubleBuffer src, int srcPos, double[] dest, int destPos, int length)
+    {
+        if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
+        if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
+        if (length < 0) throw new IndexOutOfBoundsException("length cannot be negative");
+        
+        if (src == null) throw new NullPointerException("src cannot be null");
+        if (dest == null) throw new NullPointerException("dest cannot be null");
+        
+        if (srcPos + length > src.limit()) throw new IndexOutOfBoundsException("index exceeded src size");
+        if (destPos + length > dest.length) throw new IndexOutOfBoundsException("index exceeded dest size");
+        
+        for (int i = 0; i < length; i++) dest[destPos + i] = src.get(srcPos + i);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src    the source array.
+     * @param dest   the destination buffer.
+     * @param length the number of array elements to be copied.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
+     */
+    public static void memCopy(DoubleBuffer src, double[] dest, int length)
+    {
+        memCopy(src, src.position(), dest, 0, length);
+    }
+    
+    /**
+     * Copies an array from the specified source array, beginning at the
+     * specified position, to the specified position of the destination buffer.
+     * A subsequence of array components are copied from the source
+     * array referenced by {@code src} to the destination buffer
+     * referenced by {@code dest}. The number of components copied is
+     * equal to the {@code length} argument. The components at
+     * positions {@code srcPos} through
+     * {@code srcPos+length-1} in the source array are copied into
+     * positions {@code destPos} through
+     * {@code destPos+length-1}, respectively, of the destination
+     * buffer.
+     * <p>
+     * Otherwise, if any of the following is true, an
+     * {@code IndexOutOfBoundsException} is
+     * thrown and the destination is not modified:
+     * <ul>
+     * <li>The {@code srcPos} argument is negative.
+     * <li>The {@code destPos} argument is negative.
+     * <li>The {@code length} argument is negative.
+     * <li>{@code srcPos+length} is greater than
+     *     {@code src.length}, the length of the source array.
+     * <li>{@code destPos+length} is greater than
+     *     {@code dest.limit}, the length of the destination array.
+     * </ul>
+     *
+     * @param src  the source array.
+     * @param dest the destination buffer.
+     * @throws IndexOutOfBoundsException if copying would cause
+     *                                   access of data outside array bounds.
+     * @throws NullPointerException      if either {@code src} or
+     *                                   {@code dest} is {@code null}.
      */
     public static void memCopy(DoubleBuffer src, double[] dest)
     {
-        int size1 = src.remaining();
-        int size2 = dest.length;
-        
-        if (size1 != size2) throw new RuntimeException("Array/Buffer size mismatch: " + size1 + " != " + size2);
-        
-        for (int i = 0; i < size1; i++) dest[i] = src.get();
+        memCopy(src, src.position(), dest, 0, src.limit());
     }
+    
+    private MemUtil() { }
 }

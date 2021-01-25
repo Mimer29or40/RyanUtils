@@ -1,5 +1,9 @@
 package rutils;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import rutils.group.Pair;
+
 import java.util.ArrayDeque;
 import java.util.concurrent.SynchronousQueue;
 import java.util.function.Supplier;
@@ -11,7 +15,6 @@ import java.util.function.Supplier;
  * <p>
  * // TODO - Clean this up.
  */
-@SuppressWarnings({"unused", "unchecked"})
 public class TaskDelegator
 {
     private static final Logger LOGGER = new Logger();
@@ -38,7 +41,7 @@ public class TaskDelegator
      * @param task          The task to complete.
      * @param passException If the TaskDelegator should pass the exception to the calling thread. If false the exception if effectively ignored.
      */
-    public void runTask(Runnable task, boolean passException)
+    public void runTask(@NotNull Runnable task, boolean passException)
     {
         if (Thread.currentThread() == this.thread)
         {
@@ -54,7 +57,7 @@ public class TaskDelegator
      *
      * @param task The task to complete.
      */
-    public void runTask(Runnable task)
+    public void runTask(@NotNull Runnable task)
     {
         runTask(task, false);
     }
@@ -64,7 +67,7 @@ public class TaskDelegator
      *
      * @param task The task to complete.
      */
-    public void waitRunTask(Runnable task)
+    public void waitRunTask(@NotNull Runnable task)
     {
         if (Thread.currentThread() == this.thread)
         {
@@ -92,7 +95,8 @@ public class TaskDelegator
      * @param <T>  The type of the supplier.
      * @return The supplied object or null if the thread was interrupted
      */
-    public <T> T waitReturnTask(Supplier<T> task)
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable T waitReturnTask(@NotNull Supplier<T> task)
     {
         if (Thread.currentThread() == this.thread) return task.get();
         

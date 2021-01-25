@@ -12,7 +12,6 @@ import static org.lwjgl.opengl.GL30.*;
 /**
  * A wrapper class for OpenGL's vertex arrays. This class adds helper functions that make it easy to send data to the buffers.
  */
-@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class GLVertexArray
 {
     private static final Logger LOGGER = new Logger();

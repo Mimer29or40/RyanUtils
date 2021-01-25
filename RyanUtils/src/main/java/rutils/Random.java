@@ -1,5 +1,7 @@
 package rutils;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 
 /**
@@ -8,11 +10,8 @@ import java.util.Collection;
  * <p>
  * It also adds random functions for arrays, collections, JOML Vectors, and {@code Color}'s
  */
-@SuppressWarnings({"StatementWithEmptyBody", "unused"})
 public class Random extends java.util.Random
 {
-    public static final Random INSTANCE = new Random();
-    
     public Random()
     {
         super();
@@ -35,6 +34,7 @@ public class Random extends java.util.Random
     /**
      * @return A random uniformly distributed {@code long} [{@code 0} - {@code bound}].
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     public long nextLong(long bound)
     {
         if (bound <= 0) throw new IllegalArgumentException("bound must be positive");
@@ -268,20 +268,21 @@ public class Random extends java.util.Random
     
     /**
      * @param array The array
-     * @return A random {@code T} from the array
+     * @return A random {@code T} from the array, or {@code null} if the object at the selected index is null.
      */
     @SafeVarargs
-    public final <T> T nextFrom(T... array)
+    public final <T> @Nullable T nextFrom(T... array)
     {
         return array[nextInt(array.length)];
     }
     
     /**
      * @param collection The collection
-     * @return A random {@code T} from the collection
+     * @return A random {@code T} from the collection, or {@code null} if the collection is null.
      */
-    public <T> T nextFrom(Collection<T> collection)
+    public <T> @Nullable T nextFrom(@Nullable Collection<T> collection)
     {
+        if (collection == null) return null;
         int index = nextInt(collection.size());
         for (T value : collection)
         {

@@ -9,13 +9,12 @@ import java.util.Objects;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL45.glBindBufferBase;
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class GLBuffer
 {
     private static final Logger LOGGER = new Logger();
     
-    private final int                 id;
-    private final GL type;
+    private final int id;
+    private final GL  type;
     
     private GL usage = GL.STATIC_DRAW;
     
@@ -25,7 +24,7 @@ public class GLBuffer
     {
         this.id   = glGenBuffers();
         this.type = type;
-    
+        
         GLBuffer.LOGGER.fine("Generating GLBuffer{id=%s, type=%s}", this.id, this.type);
     }
     
@@ -237,7 +236,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from int array", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -269,7 +268,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from long array", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -301,7 +300,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from float array", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -333,7 +332,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from double array", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -365,7 +364,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from ByteBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -397,7 +396,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from ShortBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -429,7 +428,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from IntBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -461,7 +460,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from LongBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -493,7 +492,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from FloatBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);
@@ -525,7 +524,7 @@ public class GLBuffer
         else
         {
             this.dataSize = dataLength;
-    
+            
             GLBuffer.LOGGER.finer("%s: Filling from DoubleBuffer", this);
             
             glBufferSubData(this.type.ref(), 0, data);

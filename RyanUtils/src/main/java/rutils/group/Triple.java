@@ -1,65 +1,40 @@
-package rutils;
+package rutils.group;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A Generic tuple of three objects. The objects can be modified or completely replaced.
+ * A Generic group of three objects. The objects are not Read-Only.
  */
-public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, C>>, Serializable
+public class Triple<A, B, C> extends Group implements ITriple<A, B, C>, Comparable<ITriple<A, B, C>>, Serializable
 {
     public A a;
     public B b;
     public C c;
     
     /**
-     * Creates a new pair with three objects.
+     * Creates a new triple with three objects.
      *
      * @param a The first object.
      * @param b The second object.
      * @param c The third object.
      */
-    public Tuple(A a, B b, C c)
+    public Triple(@Nullable A a, @Nullable B b, @Nullable C c)
     {
         this.a = a;
         this.b = b;
         this.c = c;
     }
     
-    /**
-     * @return The first object in the pair.
-     */
-    @Override
-    public A getA()
-    {
-        return this.a;
-    }
-    
-    /**
-     * @return The second object in the pair.
-     */
-    @Override
-    public B getB()
-    {
-        return this.b;
-    }
-    
-    /**
-     * @return The third object in the pair.
-     */
-    @Override
-    public C getC()
-    {
-        return this.c;
-    }
-    
     @Override
     public boolean equals(Object o)
     {
         if (this == o) return true;
-        if (!(o instanceof Tuple)) return false;
-        Tuple<?, ?, ?> tuple = (Tuple<?, ?, ?>) o;
-        return Objects.equals(this.a, tuple.a) && Objects.equals(this.b, tuple.b) && Objects.equals(this.c, tuple.c);
+        if (!(o instanceof ITriple)) return false;
+        ITriple<?, ?, ?> triple = (ITriple<?, ?, ?>) o;
+        return Objects.equals(this.a, triple.getA()) && Objects.equals(this.b, triple.getB()) && Objects.equals(this.c, triple.getC());
     }
     
     @Override
@@ -75,7 +50,52 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     @Override
-    public int compareTo(ITuple<A, B, C> o)
+    protected int size()
+    {
+        return 3;
+    }
+    
+    @Override
+    protected Object get(int index)
+    {
+        return switch (index)
+                {
+                    case 0 -> this.a;
+                    case 1 -> this.b;
+                    case 2 -> this.c;
+                    default -> throw new IndexOutOfBoundsException();
+                };
+    }
+    
+    /**
+     * @return The first object in the triple.
+     */
+    @Override
+    public @Nullable A getA()
+    {
+        return this.a;
+    }
+    
+    /**
+     * @return The second object in the triple.
+     */
+    @Override
+    public @Nullable B getB()
+    {
+        return this.b;
+    }
+    
+    /**
+     * @return The third object in the triple.
+     */
+    @Override
+    public @Nullable C getC()
+    {
+        return this.c;
+    }
+    
+    @Override
+    public int compareTo(ITriple<A, B, C> o)
     {
         int comparison;
         
@@ -128,12 +148,12 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     /**
-     * A simple {@code int} tuple.
+     * A simple {@code int} triple.
      */
-    public static class I extends Tuple<Integer, Integer, Integer>
+    public static class I extends Triple<Integer, Integer, Integer> implements ITriple.I
     {
         /**
-         * Creates a new pair with three ints.
+         * Creates a new triple with three ints.
          *
          * @param a The first int.
          * @param b The second int.
@@ -143,10 +163,17 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         {
             super(a, b, c);
         }
+    
+        @Override
+        public String toString()
+        {
+            return "Triple." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + ", " + this.c + '}';
+        }
         
         /**
          * @return The first int value.
          */
+        @Override
         public int a()
         {
             return this.a;
@@ -155,6 +182,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The second int value.
          */
+        @Override
         public int b()
         {
             return this.b;
@@ -163,6 +191,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The third int value.
          */
+        @Override
         public int c()
         {
             return this.c;
@@ -170,12 +199,12 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     /**
-     * A simple {@code long} tuple.
+     * A simple {@code long} triple.
      */
-    public static class L extends Tuple<Long, Long, Long>
+    public static class L extends Triple<Long, Long, Long> implements ITriple.L
     {
         /**
-         * Creates a new pair with three longs.
+         * Creates a new triple with three longs.
          *
          * @param a The first long.
          * @param b The second long.
@@ -185,10 +214,17 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         {
             super(a, b, c);
         }
+    
+        @Override
+        public String toString()
+        {
+            return "Triple." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + ", " + this.c + '}';
+        }
         
         /**
          * @return The first long value.
          */
+        @Override
         public long a()
         {
             return this.a;
@@ -197,6 +233,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The second long value.
          */
+        @Override
         public long b()
         {
             return this.b;
@@ -205,6 +242,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The third long value.
          */
+        @Override
         public long c()
         {
             return this.c;
@@ -212,12 +250,12 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     /**
-     * A simple {@code double} float.
+     * A simple {@code float} triple.
      */
-    public static class F extends Tuple<Float, Float, Float>
+    public static class F extends Triple<Float, Float, Float> implements ITriple.F
     {
         /**
-         * Creates a new pair with three floats.
+         * Creates a new triple with three floats.
          *
          * @param a The first float.
          * @param b The second float.
@@ -227,10 +265,17 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         {
             super(a, b, c);
         }
+    
+        @Override
+        public String toString()
+        {
+            return "Triple." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + ", " + this.c + '}';
+        }
         
         /**
          * @return The first float value.
          */
+        @Override
         public float a()
         {
             return this.a;
@@ -239,6 +284,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The second float value.
          */
+        @Override
         public float b()
         {
             return this.b;
@@ -247,6 +293,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The third float value.
          */
+        @Override
         public float c()
         {
             return this.c;
@@ -254,12 +301,12 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     /**
-     * A simple {@code double} tuple.
+     * A simple {@code double} triple.
      */
-    public static class D extends Tuple<Double, Double, Double>
+    public static class D extends Triple<Double, Double, Double> implements ITriple.D
     {
         /**
-         * Creates a new pair with three doubles.
+         * Creates a new triple with three doubles.
          *
          * @param a The first double.
          * @param b The second double.
@@ -269,10 +316,17 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         {
             super(a, b, c);
         }
+    
+        @Override
+        public String toString()
+        {
+            return "Triple." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + ", " + this.c + '}';
+        }
         
         /**
          * @return The first double value.
          */
+        @Override
         public double a()
         {
             return this.a;
@@ -281,6 +335,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The second double value.
          */
+        @Override
         public double b()
         {
             return this.b;
@@ -289,6 +344,7 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The third double value.
          */
+        @Override
         public double c()
         {
             return this.c;
@@ -296,26 +352,33 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
     }
     
     /**
-     * A simple {@code String} tuple.
+     * A simple {@code String} triple.
      */
-    public static class S extends Tuple<String, String, String>
+    public static class S extends Triple<String, String, String> implements ITriple.S
     {
         /**
-         * Creates a new tuple with three Strings.
+         * Creates a new triple with three Strings.
          *
          * @param a The first String.
          * @param b The second String.
          * @param c The third String.
          */
-        public S(String a, String b, String c)
+        public S(@Nullable String a, @Nullable String b, @Nullable String c)
         {
             super(a, b, c);
+        }
+    
+        @Override
+        public String toString()
+        {
+            return "Triple." + getClass().getSimpleName() + '{' + '\'' + this.a + '\'' + ", " + '\'' + this.b + '\'' + ", " + '\'' + this.c + '\'' + '}';
         }
         
         /**
          * @return The first String value.
          */
-        public String a()
+        @Override
+        public @Nullable String a()
         {
             return this.a;
         }
@@ -323,7 +386,8 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The second String value.
          */
-        public String b()
+        @Override
+        public @Nullable String b()
         {
             return this.b;
         }
@@ -331,7 +395,8 @@ public class Tuple<A, B, C> implements ITuple<A, B, C>, Comparable<ITuple<A, B, 
         /**
          * @return The third String value.
          */
-        public String c()
+        @Override
+        public @Nullable String c()
         {
             return this.c;
         }

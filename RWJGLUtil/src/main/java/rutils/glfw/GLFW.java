@@ -7,7 +7,7 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
-import rutils.Pair;
+import rutils.group.Pair;
 import rutils.TaskDelegator;
 import rutils.glfw.event.GLFWEventBus;
 import rutils.glfw.event.GLFWEventMonitorConnected;

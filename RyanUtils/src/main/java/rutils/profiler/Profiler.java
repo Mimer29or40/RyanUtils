@@ -1,7 +1,7 @@
 package rutils.profiler;
 
 import rutils.Logger;
-import rutils.Pair;
+import rutils.group.Pair;
 
 import java.util.*;
 import java.util.function.Function;

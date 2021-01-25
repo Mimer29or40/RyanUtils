@@ -1,13 +1,14 @@
-package rutils;
+package rutils.group;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.Objects;
 
 /**
- * A Generic pair of two objects. The objects can be modified or completely replaced.
+ * A Generic group of two objects. The objects are not Read-Only.
  */
-public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Serializable
+public class Pair<A, B> extends Group implements IPair<A, B>, Comparable<IPair<A, B>>, Serializable
 {
     public A a;
     public B b;
@@ -18,37 +19,19 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
      * @param a The first object.
      * @param b The second object.
      */
-    public Pair(A a, B b)
+    public Pair(@Nullable A a, @Nullable B b)
     {
         this.a = a;
         this.b = b;
-    }
-    
-    /**
-     * @return The first object in the pair.
-     */
-    @Override
-    public A getA()
-    {
-        return this.a;
-    }
-    
-    /**
-     * @return The second object in the pair.
-     */
-    @Override
-    public B getB()
-    {
-        return this.b;
     }
     
     @Override
     public boolean equals(Object o)
     {
         if (this == o) return true;
-        if (!(o instanceof Map.Entry<?, ?>)) return false;
-        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
-        return Objects.equals(getKey(), entry.getKey()) && Objects.equals(getValue(), entry.getValue());
+        if (!(o instanceof IPair)) return false;
+        IPair<?, ?> other = (IPair<?, ?>) o;
+        return Objects.equals(this.a, other.getA()) && Objects.equals(this.a, other.getB());
     }
     
     @Override
@@ -63,54 +46,74 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         return getClass().getSimpleName() + '{' + this.a + ", " + this.b + '}';
     }
     
-    /**
-     * Sets the {@code Map.Entry} value.
-     * This sets the b element of the pair.
-     *
-     * @param value the b value to set, not null
-     * @return the old value for the b element
-     */
     @Override
-    public B setValue(B value)
+    protected int size()
     {
-        final B result = this.b;
-        this.b = value;
-        return result;
+        return 2;
     }
     
     @Override
-    public int compareTo(Map.Entry<A, B> o)
+    protected Object get(int index)
+    {
+        return switch (index)
+                {
+                    case 0 -> this.a;
+                    case 1 -> this.b;
+                    default -> throw new IndexOutOfBoundsException();
+                };
+    }
+    
+    /**
+     * @return The first object in the pair.
+     */
+    @Override
+    public @Nullable A getA()
+    {
+        return this.a;
+    }
+    
+    /**
+     * @return The second object in the pair.
+     */
+    @Override
+    public @Nullable B getB()
+    {
+        return this.b;
+    }
+    
+    @Override
+    public int compareTo(IPair<A, B> o)
     {
         int comparison;
         
-        if (getA() != o.getKey())
+        if (getA() != o.getA())
         {
             if (getA() == null)
             {
                 return -1;
             }
-            if (o.getKey() == null)
+            if (o.getA() == null)
             {
                 return 1;
             }
             @SuppressWarnings("unchecked") // assume this can be done; if not throw CCE as per Javadoc
             final Comparable<Object> comparable = (Comparable<Object>) getA();
-            if ((comparison = comparable.compareTo(o.getKey())) != 0) return comparison;
+            if ((comparison = comparable.compareTo(o.getA())) != 0) return comparison;
         }
         
-        if (getB() != o.getValue())
+        if (getB() != o.getB())
         {
             if (getB() == null)
             {
                 return -1;
             }
-            if (o.getValue() == null)
+            if (o.getB() == null)
             {
                 return 1;
             }
             @SuppressWarnings("unchecked") // assume this can be done; if not throw CCE as per Javadoc
             final Comparable<Object> comparable = (Comparable<Object>) getB();
-            if ((comparison = comparable.compareTo(o.getValue())) != 0) return comparison;
+            if ((comparison = comparable.compareTo(o.getB())) != 0) return comparison;
         }
         
         return 0;
@@ -119,7 +122,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     /**
      * A simple {@code int} pair.
      */
-    public static class I extends Pair<Integer, Integer>
+    public static class I extends Pair<Integer, Integer> implements IPair.I
     {
         /**
          * Creates a new pair with two ints.
@@ -132,9 +135,16 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
             super(a, b);
         }
         
+        @Override
+        public String toString()
+        {
+            return "Pair." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + '}';
+        }
+        
         /**
          * @return The first int value.
          */
+        @Override
         public int a()
         {
             return this.a;
@@ -143,6 +153,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         /**
          * @return The second int value.
          */
+        @Override
         public int b()
         {
             return this.b;
@@ -152,7 +163,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     /**
      * A simple {@code long} pair.
      */
-    public static class L extends Pair<Long, Long>
+    public static class L extends Pair<Long, Long> implements IPair.L
     {
         /**
          * Creates a new pair with two long.
@@ -165,9 +176,16 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
             super(a, b);
         }
         
+        @Override
+        public String toString()
+        {
+            return "Pair." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + '}';
+        }
+        
         /**
          * @return The first long value.
          */
+        @Override
         public long a()
         {
             return this.a;
@@ -176,6 +194,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         /**
          * @return The second long value.
          */
+        @Override
         public long b()
         {
             return this.b;
@@ -185,7 +204,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     /**
      * A simple {@code float} pair.
      */
-    public static class F extends Pair<Float, Float>
+    public static class F extends Pair<Float, Float> implements IPair.F
     {
         /**
          * Creates a new pair with two floats.
@@ -198,9 +217,16 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
             super(a, b);
         }
         
+        @Override
+        public String toString()
+        {
+            return "Pair." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + '}';
+        }
+        
         /**
          * @return The first float value.
          */
+        @Override
         public float a()
         {
             return this.a;
@@ -209,6 +235,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         /**
          * @return The second float value.
          */
+        @Override
         public float b()
         {
             return this.b;
@@ -218,7 +245,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     /**
      * A simple {@code double} pair.
      */
-    public static class D extends Pair<Double, Double>
+    public static class D extends Pair<Double, Double> implements IPair.D
     {
         /**
          * Creates a new pair with two doubles.
@@ -231,9 +258,16 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
             super(a, b);
         }
         
+        @Override
+        public String toString()
+        {
+            return "Pair." + getClass().getSimpleName() + '{' + this.a + ", " + this.b + '}';
+        }
+        
         /**
          * @return The first double value.
          */
+        @Override
         public double a()
         {
             return this.a;
@@ -242,6 +276,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         /**
          * @return The second double value.
          */
+        @Override
         public double b()
         {
             return this.b;
@@ -251,7 +286,7 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
     /**
      * A simple {@code String} pair.
      */
-    public static class S extends Pair<String, String>
+    public static class S extends Pair<String, String> implements IPair.S
     {
         /**
          * Creates a new pair with two Strings.
@@ -259,15 +294,22 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
          * @param a The first String.
          * @param b The second String.
          */
-        public S(String a, String b)
+        public S(@Nullable String a, @Nullable String b)
         {
             super(a, b);
+        }
+        
+        @Override
+        public String toString()
+        {
+            return "Pair." + getClass().getSimpleName() + '{' + '\'' + this.a + '\'' + ", " + '\'' + this.b + '\'' + '}';
         }
         
         /**
          * @return The first String value.
          */
-        public String a()
+        @Override
+        public @Nullable String a()
         {
             return this.a;
         }
@@ -275,7 +317,8 @@ public class Pair<A, B> implements IPair<A, B>, Comparable<Map.Entry<A, B>>, Ser
         /**
          * @return The second String value.
          */
-        public String b()
+        @Override
+        public @Nullable String b()
         {
             return this.b;
         }

@@ -3,7 +3,7 @@ package rutils.glfw;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
 import org.lwjgl.system.Platform;
-import rutils.IPair;
+import rutils.group.IPair;
 import rutils.Logger;
 import rutils.glfw.event.*;
 

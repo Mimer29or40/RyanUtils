@@ -1,15 +1,17 @@
 package rutils;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static rutils.StrUtil.getCurrentTimeString;
+import static rutils.StringUtil.getCurrentTimeString;
 
 /**
  * A simple logging implementation for use in Engine classes. Only one logger should be used per file as the file's class path is in the message.
@@ -20,8 +22,7 @@ public class Logger
 {
     private static final Logger LOGGER = new Logger();
     
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"); // Taken from java.lang.Formatter
-    private static final Pattern SPLIT_PATTERN  = Pattern.compile("(\\n|\\n\\r|\\r\\n)");
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("(\\n|\\n\\r|\\r\\n)");
     
     private static final ArrayList<OutputStream> OUTPUT_STREAMS = new ArrayList<>();
     
@@ -208,14 +209,14 @@ public class Logger
     
     private void logImpl(Level level, String message)
     {
-        try
+        StringBuilder prefix = new StringBuilder();
+        prefix.append('[').append(getCurrentTimeString()).append("] [").append(Thread.currentThread().getName()).append('/').append(level).append(']');
+        if (!this.name.equals("")) prefix.append(" [").append(this.name).append(']');
+        prefix.append(": ");
+        
+        for (OutputStream outputStream : Logger.OUTPUT_STREAMS)
         {
-            StringBuilder prefix = new StringBuilder();
-            prefix.append('[').append(getCurrentTimeString()).append("] [").append(Thread.currentThread().getName()).append('/').append(level).append(']');
-            if (!this.name.equals("")) prefix.append(" [").append(this.name).append(']');
-            prefix.append(": ");
-            
-            for (OutputStream outputStream : Logger.OUTPUT_STREAMS)
+            try
             {
                 if (outputStream instanceof BufferedOutputStream)
                 {
@@ -226,12 +227,46 @@ public class Logger
                     logFileImpl(outputStream, prefix, level, message);
                 }
             }
+            catch (IOException e)
+            {
+                Logger.LOGGER.warning("Could not log to output stream\n%s", e);
+            }
         }
-        catch (IOException ignored) { }
+    }
+    
+    /**
+     * Logs the object at the level specified.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param level  The level to log at.
+     * @param object The object to log.
+     */
+    public void log(Level level, Object object)
+    {
+        if (level.intValue() < Logger.level.intValue()) return;
+        if (applyFilters(this.name)) return;
+        logImpl(level, StringUtil.toString(object));
     }
     
     /**
      * Logs the objects separated by spaces at the level specified.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
      *
      * @param level   The level to log at.
      * @param objects The objects to log.
@@ -242,187 +277,43 @@ public class Logger
         if (applyFilters(this.name)) return;
         int n = objects.length;
         if (n == 0) return;
-        StringBuilder builder = new StringBuilder(StringUtil.toString(objects[0]));
-        for (int i = 1; i < n; i++) builder.append(' ').append(StringUtil.toString(objects[i]));
-        logImpl(level, builder.toString());
-    }
-    
-    /**
-     * Logs the objects separated by spaces at the level specified. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param level   The level to log at.
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void log(Level level, String format, Object... objects)
-    {
-        if (level.intValue() < Logger.level.intValue()) return;
-        if (applyFilters(this.name)) return;
-        if (format != null && Logger.FORMAT_PATTERN.matcher(format).find())
+        StringBuilder message = new StringBuilder();
+        if (objects[0] instanceof String)
         {
-            Object[] transformed = new Object[objects.length];
-            for (int i = 0; i < objects.length; i++) transformed[i] = transformObject(objects[i]);
-            logImpl(level, String.format(format, transformed));
+            String format = (String) objects[0];
+            if (StringUtil.isFormatterString(format))
+            {
+                Object[] transformed = new Object[n - 1];
+                for (int i = 1; i < n; i++) transformed[i - 1] = transformObject(objects[i]);
+                message.append(String.format(format, transformed));
+            }
+            else
+            {
+                message.append(StringUtil.toString(format));
+                for (int i = 1; i < n; i++) message.append(' ').append(StringUtil.toString(objects[i]));
+            }
         }
         else
         {
-            StringBuilder builder = new StringBuilder(format != null ? format : "null");
-            for (Object object : objects) builder.append(' ').append(StringUtil.toString(object));
-            logImpl(level, builder.toString());
+            message.append(StringUtil.toString(objects[0]));
+            for (int i = 1; i < n; i++) message.append(' ').append(StringUtil.toString(objects[i]));
         }
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#SEVERE}.
-     *
-     * @param objects The objects to log.
-     */
-    public void severe(Object... objects)
-    {
-        log(Level.SEVERE, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#SEVERE}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void severe(String format, Object... objects)
-    {
-        log(Level.SEVERE, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#WARNING}.
-     *
-     * @param objects The objects to log.
-     */
-    public void warning(Object... objects)
-    {
-        log(Level.WARNING, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#WARNING}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void warning(String format, Object... objects)
-    {
-        log(Level.WARNING, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#INFO}.
-     *
-     * @param objects The objects to log.
-     */
-    public void info(Object... objects)
-    {
-        log(Level.INFO, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#INFO}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void info(String format, Object... objects)
-    {
-        log(Level.INFO, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#CONFIG}.
-     *
-     * @param objects The objects to log.
-     */
-    public void config(Object... objects)
-    {
-        log(Level.CONFIG, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#CONFIG}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void config(String format, Object... objects)
-    {
-        log(Level.CONFIG, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINE}.
-     *
-     * @param objects The objects to log.
-     */
-    public void fine(Object... objects)
-    {
-        log(Level.FINE, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINE}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void fine(String format, Object... objects)
-    {
-        log(Level.FINE, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINER}.
-     *
-     * @param objects The objects to log.
-     */
-    public void finer(Object... objects)
-    {
-        log(Level.FINER, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINER}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void finer(String format, Object... objects)
-    {
-        log(Level.FINER, format, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINEST}.
-     *
-     * @param objects The objects to log.
-     */
-    public void finest(Object... objects)
-    {
-        log(Level.FINEST, objects);
-    }
-    
-    /**
-     * Logs the objects separated by spaces at {@link Level#FINEST}. If the format string has format characters in it, then it will be used to format the objects.
-     *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
-     */
-    public void finest(String format, Object... objects)
-    {
-        log(Level.FINEST, format, objects);
+        logImpl(level, message.toString());
     }
     
     /**
      * Logs the object at {@link Level#ALL}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
      *
-     * @param object The objects to log.
+     * @param object The object to log.
      */
     public void all(Object object)
     {
@@ -431,6 +322,15 @@ public class Logger
     
     /**
      * Logs the objects separated by spaces at {@link Level#ALL}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
      *
      * @param objects The objects to log.
      */
@@ -440,19 +340,275 @@ public class Logger
     }
     
     /**
-     * Logs the objects separated by spaces at {@link Level#ALL}. If the format string has format characters in it, then it will be used to format the objects.
+     * Logs the object at {@link Level#SEVERE}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
      *
-     * @param format  The optional format string.
-     * @param objects The objects to log.
+     * @param object The object to log.
      */
-    public void all(String format, Object... objects)
+    public void severe(Object object)
     {
-        log(Level.ALL, format, objects);
+        log(Level.SEVERE, object);
     }
     
-    private Object transformObject(Object obj)
+    /**
+     * Logs the objects separated by spaces at {@link Level#SEVERE}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void severe(Object... objects)
     {
-        if (obj instanceof Throwable || obj.getClass().isArray()) return StringUtil.toString(obj);
+        log(Level.SEVERE, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#WARNING}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void warning(Object object)
+    {
+        log(Level.WARNING, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#WARNING}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void warning(Object... objects)
+    {
+        log(Level.WARNING, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#INFO}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void info(Object object)
+    {
+        log(Level.INFO, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#INFO}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void info(Object... objects)
+    {
+        log(Level.INFO, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#CONFIG}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void config(Object object)
+    {
+        log(Level.CONFIG, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#CONFIG}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void config(Object... objects)
+    {
+        log(Level.CONFIG, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#FINE}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void fine(Object object)
+    {
+        log(Level.FINE, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#FINE}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void fine(Object... objects)
+    {
+        log(Level.FINE, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#FINER}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void finer(Object object)
+    {
+        log(Level.FINER, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#FINER}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void finer(Object... objects)
+    {
+        log(Level.FINER, objects);
+    }
+    
+    /**
+     * Logs the object at {@link Level#FINEST}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to log.
+     */
+    public void finest(Object object)
+    {
+        log(Level.FINEST, object);
+    }
+    
+    /**
+     * Logs the objects separated by spaces at {@link Level#FINEST}.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to log.
+     */
+    public void finest(Object... objects)
+    {
+        log(Level.FINEST, objects);
+    }
+    
+    private static Object transformObject(Object obj)
+    {
+        if (obj instanceof Throwable) return StringUtil.toString(obj);
+        if (obj != null && obj.getClass().isArray()) return StringUtil.toString(obj);
         return obj;
     }
     

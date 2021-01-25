@@ -1088,7 +1088,6 @@ public class Window
         }
     }
     
-    @SuppressWarnings({"unused", "UnusedReturnValue"})
     public static final class Builder
     {
         private String name = null;
