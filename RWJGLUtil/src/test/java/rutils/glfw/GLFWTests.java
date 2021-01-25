@@ -2,8 +2,6 @@ package rutils.glfw;
 
 import rutils.Logger;
 import rutils.glfw.GLFW;
-import rutils.glfw.Keyboard.Key;
-import rutils.glfw.Window;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;

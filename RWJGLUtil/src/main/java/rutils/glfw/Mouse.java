@@ -69,6 +69,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     /**
      * @return Retrieves if the mouse is visible and behaving normally in its window.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean isShown(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_NORMAL);
@@ -89,6 +90,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     /**
      * @return Retrieves if the mouse is hidden over its window.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean isHidden(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_HIDDEN);
@@ -112,6 +114,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     /**
      * @return Retrieves if the mouse is captured by its window.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean isCaptured(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
@@ -129,7 +132,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     /**
      * Sets the raw mouse motion flag. Set {@code true} to enable raw (unscaled
-     * and unaccelerated) mouse motion when the cursor is disabled, or
+     * and un-accelerated) mouse motion when the cursor is disabled, or
      * {@code false} to disable it. If raw motion is not supported, attempting
      * to set this will log a warning.
      *
@@ -148,6 +151,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     /**
      * @return Retrieves the raw mouse motion flag.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean rawInputEnabled(Window window)
     {
         if (!GLFW.SUPPORT_RAW_MOUSE_MOTION)
@@ -175,6 +179,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     /**
      * @return Retrieves the sticky mouse buttons flag.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean stickyEnabled(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_STICKY_MOUSE_BUTTONS) == GLFW_TRUE);

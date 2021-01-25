@@ -43,6 +43,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
     /**
      * @return Retrieves the sticky keys flag.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean stickyEnabled(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_STICKY_KEYS) == GLFW_TRUE);

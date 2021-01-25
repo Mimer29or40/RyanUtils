@@ -7,6 +7,7 @@ import static org.lwjgl.opengl.GL46.*;
 /**
  * All GL constants so I can treat them differently than int in methods.
  */
+@SuppressWarnings("SpellCheckingInspection")
 public enum GL
 {
     NULL(-1),

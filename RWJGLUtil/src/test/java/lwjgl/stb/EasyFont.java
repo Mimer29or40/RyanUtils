@@ -29,6 +29,7 @@ public final class EasyFont extends FontDemo
         text = "This is a String";
     }
     
+    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args)
     {
         String filePath = IOUtil.getPath("demo/FiraSans.ttf").toString();

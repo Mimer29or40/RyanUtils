@@ -1,5 +1,6 @@
 package rutils;
 
+import org.jetbrains.annotations.NotNull;
 import rutils.group.IPair;
 import rutils.group.Pair;
 
@@ -35,7 +36,7 @@ public class NumUtil
      * @param values The double values.
      * @return The pair of number.
      */
-    public static IPair.I getFormatNumbers(double... values)
+    public static @NotNull IPair.I getFormatNumbers(double... values)
     {
         int numI = 1, numD = 0;
         for (double val : values)
@@ -55,7 +56,7 @@ public class NumUtil
      * @param numD The amount of characters after the decimal point.
      * @return The formatter number string.
      */
-    public static String format(double x, int numI, int numD)
+    public static @NotNull String format(double x, int numI, int numD)
     {
         String I = String.valueOf((int) x);
         String D = (numD > 0 ? String.valueOf((int) Math.round(Math.abs(getDecimal(x)) * Math.pow(10, numD))) : "");
@@ -72,9 +73,9 @@ public class NumUtil
      * @param numbers The pair of number for before and after the decimal point.
      * @return The formatter number string.
      */
-    public static String format(double x, IPair<Integer, Integer> numbers)
+    public static @NotNull String format(double x, @NotNull IPair<Integer, Integer> numbers)
     {
-        return format(x, numbers.getA(), numbers.getB());
+        return format(x, numbers.getA() != null ? numbers.getA() : 1, numbers.getB() != null ? numbers.getB() : 0);
     }
     
     /**
