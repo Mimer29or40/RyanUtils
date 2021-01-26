@@ -3,6 +3,10 @@ package rutils;
 import rutils.profiler.Profiler;
 import rutils.profiler.Section;
 
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 public class ProfilerTest
 {
     private static final Logger LOGGER = new Logger();

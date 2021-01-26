@@ -43,6 +43,8 @@ public class TaskDelegator
      */
     public void runTask(@NotNull Runnable task, boolean passException)
     {
+        TaskDelegator.LOGGER.finest("Passing task to TaskDelegator, passException=%s", passException);
+        
         if (Thread.currentThread() == this.thread)
         {
             task.run();
@@ -69,6 +71,8 @@ public class TaskDelegator
      */
     public void waitRunTask(@NotNull Runnable task)
     {
+        TaskDelegator.LOGGER.finest("Passing task to TaskDelegator and waiting for completion");
+    
         if (Thread.currentThread() == this.thread)
         {
             task.run();
@@ -98,6 +102,8 @@ public class TaskDelegator
     @SuppressWarnings("unchecked")
     public <T> @Nullable T waitReturnTask(@NotNull Supplier<T> task)
     {
+        TaskDelegator.LOGGER.finest("Passing task to TaskDelegator and waiting for return");
+    
         if (Thread.currentThread() == this.thread) return task.get();
         
         this.waitReturnTasks.offer((Supplier<Object>) task);
@@ -120,6 +126,8 @@ public class TaskDelegator
      */
     public void runTasks()
     {
+        TaskDelegator.LOGGER.finest("Processing tasks");
+    
         assert this.thread == Thread.currentThread();
         
         while (!this.runTasks.isEmpty())
