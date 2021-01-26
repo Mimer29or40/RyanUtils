@@ -18,7 +18,7 @@ class GroupTest
         sb.b = false;
         assertEquals("New String", sb.getA());
         assertEquals(false, sb.getB());
-        assertEquals("[Test, true]", StringUtil.toString(((IGroup) sb).toArray()));
+        assertEquals("[New String, false]", StringUtil.toString(((IGroup) sb).toArray()));
         
         
         PairD dd = new PairD(0.0, 42.0);
@@ -69,7 +69,7 @@ class GroupTest
         assertEquals("New String", sbd.getA());
         assertEquals(false, sbd.getB());
         assertEquals(0.8675307, sbd.getC());
-        assertEquals("[Test, true, 1.0]", StringUtil.toString(((IGroup) sbd).toArray()));
+        assertEquals("[New String, false, 0.8675307]", StringUtil.toString(((IGroup) sbd).toArray()));
         
         
         TripleD ddd = new TripleD(0.0, 42.0, 0.234);
@@ -130,7 +130,7 @@ class GroupTest
         assertEquals(false, sbdi.getB());
         assertEquals(0.8675307, sbdi.getC());
         assertEquals(42069, sbdi.getD());
-        assertEquals("[Test, true, 1.0, 69]", StringUtil.toString(((IGroup) sbdi).toArray()));
+        assertEquals("[New String, false, 0.8675307, 42069]", StringUtil.toString(((IGroup) sbdi).toArray()));
         
         
         Quad<Double, Double, Double, Double> dddd = new Quad<>(1.0, 42.0, 0.234, -234.0);

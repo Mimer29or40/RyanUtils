@@ -19,15 +19,15 @@ public class TaskDelegator
 {
     private static final Logger LOGGER = new Logger();
     
-    private final ArrayDeque<Pair<Runnable, Boolean>> runTasks = new ArrayDeque<>();
+    protected final ArrayDeque<Pair<Runnable, Boolean>> runTasks = new ArrayDeque<>();
     
-    private final ArrayDeque<Runnable>                       waitRunTasks   = new ArrayDeque<>();
-    private final SynchronousQueue<Pair<Integer, Exception>> waitRunResults = new SynchronousQueue<>();
+    protected final ArrayDeque<Runnable>                       waitRunTasks   = new ArrayDeque<>();
+    protected final SynchronousQueue<Pair<Integer, Exception>> waitRunResults = new SynchronousQueue<>();
     
-    private final ArrayDeque<Supplier<Object>>              waitReturnTasks   = new ArrayDeque<>();
-    private final SynchronousQueue<Pair<Object, Exception>> waitReturnResults = new SynchronousQueue<>();
+    protected final ArrayDeque<Supplier<Object>>              waitReturnTasks   = new ArrayDeque<>();
+    protected final SynchronousQueue<Pair<Object, Exception>> waitReturnResults = new SynchronousQueue<>();
     
-    private Thread thread = null;
+    protected Thread thread = null;
     
     public void setThread()
     {
@@ -120,7 +120,7 @@ public class TaskDelegator
      */
     public void runTasks()
     {
-        this.thread = Thread.currentThread();
+        assert this.thread == Thread.currentThread();
         
         while (!this.runTasks.isEmpty())
         {
@@ -137,6 +137,7 @@ public class TaskDelegator
                 }
                 else
                 {
+                    TaskDelegator.LOGGER.severe("An exception occurred while trying to run task.");
                     TaskDelegator.LOGGER.severe(e);
                 }
             }
