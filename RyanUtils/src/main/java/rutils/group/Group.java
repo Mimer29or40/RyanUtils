@@ -11,8 +11,22 @@ import java.util.NoSuchElementException;
  */
 abstract class Group implements IGroup
 {
+    /**
+     * @return The number of elements in this group.
+     */
     protected abstract int size();
     
+    /**
+     * Gets the object at the specified index.
+     * <p>
+     * If the {@code index < 0 || index >= }{@link Group#size()}, then it will
+     * throw an {@link IndexOutOfBoundsException}.
+     *
+     * @param index The index.
+     * @return The object at the index.
+     * @throws IndexOutOfBoundsException if this {@code index < 0 || index >= }{@link Group#size()}.
+     */
+    @Nullable
     protected abstract Object get(int index);
     
     /**
@@ -20,6 +34,7 @@ abstract class Group implements IGroup
      *
      * @return The array of objects in this group.
      */
+    @NotNull
     @Override
     public Object[] toArray()
     {
@@ -55,6 +70,7 @@ abstract class Group implements IGroup
          *
          * @return {@code true} if the iteration has more elements
          */
+        @Override
         public boolean hasNext()
         {
             return this.cursor != Group.this.size();
@@ -67,6 +83,7 @@ abstract class Group implements IGroup
          * @throws NoSuchElementException if the iteration has no more elements
          */
         @Nullable
+        @Override
         public Object next()
         {
             try

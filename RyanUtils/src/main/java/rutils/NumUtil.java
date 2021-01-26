@@ -2,7 +2,8 @@ package rutils;
 
 import org.jetbrains.annotations.NotNull;
 import rutils.group.IPair;
-import rutils.group.Pair;
+import rutils.group.IPairI;
+import rutils.group.PairI;
 
 import java.util.regex.Pattern;
 
@@ -36,7 +37,7 @@ public class NumUtil
      * @param values The double values.
      * @return The pair of number.
      */
-    public static @NotNull IPair.I getFormatNumbers(double... values)
+    public static @NotNull IPairI getFormatNumbers(double... values)
     {
         int numI = 1, numD = 0;
         for (double val : values)
@@ -45,7 +46,7 @@ public class NumUtil
             numI = Math.max(numI, num[0].length());
             if (val != (int) val) numD = Math.max(numD, num[1].length());
         }
-        return new Pair.I(numI, numD);
+        return new PairI(numI, numD);
     }
     
     /**

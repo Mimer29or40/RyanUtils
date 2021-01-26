@@ -1,7 +1,7 @@
 package rutils;
 
 import org.junit.jupiter.api.Test;
-import rutils.group.IPair;
+import rutils.group.IPairI;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,7 +44,7 @@ class NumUtilTest
     void getFormatNumbers()
     {
         double[] numbers;
-        IPair.I  format;
+        IPairI   format;
         
         numbers = new double[] {0.0, 1.0, 0.5};
         format  = NumUtil.getFormatNumbers(numbers);
@@ -77,7 +77,7 @@ class NumUtilTest
     {
         double[] numbers;
         String[] results;
-        IPair.I  format;
+        IPairI   format;
         String   result;
         
         numbers = new double[] {0.0, 1.0, 0.5, 0.1234, 0.1, 1.21, 0.321, 10, 100, 1000};

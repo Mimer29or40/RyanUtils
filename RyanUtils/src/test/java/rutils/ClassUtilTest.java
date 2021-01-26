@@ -115,6 +115,7 @@ class ClassUtilTest
         void doIThing();
     }
     
+    @SuppressWarnings("unused")
     static abstract class Thing implements IThing
     {
         static int staticThing;
@@ -136,6 +137,7 @@ class ClassUtilTest
         void doISubThing();
     }
     
+    @SuppressWarnings("unused")
     static class SubThing extends Thing implements ISubThing
     {
         static int staticSubThing;

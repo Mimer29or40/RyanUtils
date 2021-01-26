@@ -28,8 +28,8 @@ package rutils;
 // off every 'zix'.)
 //
 
-import rutils.group.Pair;
-import rutils.group.Triple;
+import rutils.group.PairF;
+import rutils.group.TripleF;
 
 @SuppressWarnings("ALL")
 public class FastNoise
@@ -2317,12 +2317,12 @@ public class FastNoise
         }
     }
     
-    public void GradientPerturb(Triple.F v3)
+    public void GradientPerturb(TripleF v3)
     {
         SingleGradientPerturb(m_seed, m_gradientPerturbAmp, m_frequency, v3);
     }
     
-    public void GradientPerturbFractal(Triple.F v3)
+    public void GradientPerturbFractal(TripleF v3)
     {
         int   seed = m_seed;
         float amp  = m_gradientPerturbAmp * m_fractalBounding;
@@ -2338,7 +2338,7 @@ public class FastNoise
         }
     }
     
-    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, Triple.F v3)
+    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, TripleF v3)
     {
         float xf = v3.a * frequency;
         float yf = v3.b * frequency;
@@ -2409,12 +2409,12 @@ public class FastNoise
         v3.c += Lerp(lz0y, Lerp(lz0x, lz1x, ys), zs) * perturbAmp;
     }
     
-    public void GradientPerturb(Pair.F v2)
+    public void GradientPerturb(PairF v2)
     {
         SingleGradientPerturb(m_seed, m_gradientPerturbAmp, m_frequency, v2);
     }
     
-    public void GradientPerturbFractal(Pair.F v2)
+    public void GradientPerturbFractal(PairF v2)
     {
         int   seed = m_seed;
         float amp  = m_gradientPerturbAmp * m_fractalBounding;
@@ -2430,7 +2430,7 @@ public class FastNoise
         }
     }
     
-    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, Pair.F v2)
+    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, PairF v2)
     {
         float xf = v2.a * frequency;
         float yf = v2.b * frequency;

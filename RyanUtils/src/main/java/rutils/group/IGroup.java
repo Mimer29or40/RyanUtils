@@ -1,5 +1,7 @@
 package rutils.group;
 
+import org.jetbrains.annotations.NotNull;
+
 interface IGroup extends Iterable<Object>
 {
     /**
@@ -7,5 +9,6 @@ interface IGroup extends Iterable<Object>
      *
      * @return The array of objects in this group.
      */
+    @NotNull
     Object[] toArray();
 }

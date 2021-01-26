@@ -198,7 +198,7 @@ public class Logger
         outputStream.flush();
     }
     
-    private void logFileImpl(OutputStream outputStream, StringBuilder prefix, Level level, String message) throws IOException
+    private void logFileImpl(OutputStream outputStream, StringBuilder prefix, String message) throws IOException
     {
         StringBuilder fullMessage = new StringBuilder();
         for (String line : SPLIT_PATTERN.split(message)) fullMessage.append(prefix).append(line).append(System.lineSeparator());
@@ -224,7 +224,7 @@ public class Logger
                 }
                 else if (outputStream instanceof FileOutputStream)
                 {
-                    logFileImpl(outputStream, prefix, level, message);
+                    logFileImpl(outputStream, prefix, message);
                 }
             }
             catch (IOException e)
