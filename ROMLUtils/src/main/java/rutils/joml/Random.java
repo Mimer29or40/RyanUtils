@@ -4,8 +4,6 @@ import org.joml.*;
 
 public class Random extends rutils.Random
 {
-    public static final rutils.Random INSTANCE = new rutils.Random();
-    
     public Random()
     {
         super();
