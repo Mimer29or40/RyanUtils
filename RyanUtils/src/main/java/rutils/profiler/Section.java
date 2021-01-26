@@ -48,4 +48,15 @@ public class Section implements AutoCloseable
     {
         this.profiler.endSection();
     }
+    
+    static final class NullSection extends Section
+    {
+        NullSection(Profiler profiler)
+        {
+            super(profiler, "null");
+        }
+    
+        @Override
+        public void close() { }
+    }
 }

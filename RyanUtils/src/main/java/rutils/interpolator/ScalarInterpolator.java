@@ -88,11 +88,10 @@ public class ScalarInterpolator extends Interpolator<Double>
     /**
      * This method is called if the current value does not match the target value
      *
-     * @param t  The total time since the engine has started in seconds.
      * @param dt The time since last frame in seconds.
      */
     @Override
-    protected void updateCurrent(double t, double dt)
+    protected void updateCurrent(double dt)
     {
         double distanceToTarget    = difference();
         double maxStoppingDistance = this.velocity * this.velocity / (2.0 * this.maxAcceleration);

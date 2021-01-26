@@ -62,42 +62,34 @@ public abstract class Interpolator<D>
      * Sets if the interpolator should interpolated from the current value to the target
      *
      * @param enabled The new enabled state
-     * @return This instance for call chaining
      */
-    public Interpolator<D> enabled(boolean enabled)
+    public void enabled(boolean enabled)
     {
         this.enabled = enabled;
-        return this;
     }
     
     /**
      * Toggles the enabled state
-     *
-     * @return This instance for call chaining
      */
-    public Interpolator<D> toggleEnabled()
+    public void toggleEnabled()
     {
-        return enabled(!this.enabled);
+        enabled(!this.enabled);
     }
     
     /**
      * Enables interpolating
-     *
-     * @return This instance for call chaining
      */
-    public Interpolator<D> enable()
+    public void enable()
     {
-        return enabled(true);
+        enabled(true);
     }
     
     /**
      * Disables interpolating
-     *
-     * @return This instance for call chaining
      */
-    public Interpolator<D> disable()
+    public void disable()
     {
-        return enabled(false);
+        enabled(false);
     }
     
     /**
@@ -171,18 +163,16 @@ public abstract class Interpolator<D>
     /**
      * This method is called if the current value does not match the target value
      *
-     * @param t  The total time since the engine has started in seconds.
      * @param dt The time since last frame in seconds.
      */
-    protected abstract void updateCurrent(double t, double dt);
+    protected abstract void updateCurrent(double dt);
     
     /**
      * Method called once per frame to update the values depending on how much time has passed.
      *
-     * @param t  The total time since the engine has started in seconds.
      * @param dt The time since last frame in seconds.
      */
-    public void update(double t, double dt)
+    public void update(double dt)
     {
         this.updated = false;
         
@@ -215,7 +205,7 @@ public abstract class Interpolator<D>
                 if (this.maxValue != null && compare(this.maxValue, this.target) < 0) this.target = assign(this.target, this.maxValue);
             }
             
-            updateCurrent(t, dt);
+            updateCurrent(dt);
             
             this.updated = true;
         }

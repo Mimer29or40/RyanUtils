@@ -39,6 +39,8 @@ public class Profiler
     private final ArrayList<Long>                  frameTimeList    = new ArrayList<>();
     private final HashMap<String, ArrayList<Long>> sectionsTimeList = new HashMap<>();
     
+    protected final Section nullSection = new Section.NullSection(this);
+    
     private Profiler(String name)
     {
         this.name = name;
@@ -200,7 +202,7 @@ public class Profiler
      * @param name The section name.
      * @return The new section.
      */
-    public @Nullable Section startSection(@NotNull String name)
+    public @NotNull Section startSection(@NotNull String name)
     {
         if (this.enabled)
         {
@@ -220,7 +222,7 @@ public class Profiler
                 return new Section(this, section);
             }
         }
-        return null;
+        return this.nullSection;
     }
     
     /**

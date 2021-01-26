@@ -61,7 +61,7 @@ public class ProfilerTest
         profiler.startFrame();
         try (Section section = profiler.startSection("Section 1"))
         {
-            assertNull(section);
+            assertEquals("null", section.name());
             Thread.sleep(1);
         }
         profiler.endFrame();
@@ -70,7 +70,7 @@ public class ProfilerTest
         profiler.startFrame();
         try (Section section = profiler.startSection("Section 1"))
         {
-            assertNotNull(section);
+            assertEquals("Section 1", section.name());
             Thread.sleep(1);
         }
         profiler.endFrame();
@@ -103,23 +103,23 @@ public class ProfilerTest
         
         try (Section s1 = profiler.startSection("Section 1"))
         {
-            LOGGER.info(s1);
+            LOGGER.info(s1.name());
             Thread.sleep(1000);
         }
         
         try (Section s2 = profiler.startSection("Section 2"))
         {
-            LOGGER.info(s2);
+            LOGGER.info(s2.name());
             
             try (Section s3 = profiler.startSection("Section 3"))
             {
-                LOGGER.info(s3);
+                LOGGER.info(s3.name());
                 Thread.sleep(1000);
             }
             
             try (Section s4 = profiler.startSection("Section 4"))
             {
-                LOGGER.info(s4);
+                LOGGER.info(s4.name());
                 Thread.sleep(1000);
             }
         }
