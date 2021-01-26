@@ -10,15 +10,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StringUtilTest
 {
+    private static final Logger LOGGER = new Logger();
+    
     @Test
     void testToString()
     {
         String result;
         result = StringUtil.toString(new Exception("Test Exception Message"));
-        System.out.println(result);
+        LOGGER.info(result);
         
         result = StringUtil.toString(new Error("Test Error Message"));
-        System.out.println(result);
+        LOGGER.info(result);
         
         result = StringUtil.toString(null);
         assertEquals(result, "null");
@@ -63,19 +65,19 @@ class StringUtilTest
     @Test
     void getCurrentDateTimeString()
     {
-        System.out.println(StringUtil.getCurrentDateTimeString());
+        LOGGER.info(StringUtil.getCurrentDateTimeString());
     }
     
     @Test
     void getCurrentTimeString()
     {
-        System.out.println(StringUtil.getCurrentTimeString());
+        LOGGER.info(StringUtil.getCurrentTimeString());
     }
     
     @Test
     void getCurrentDateString()
     {
-        System.out.println(StringUtil.getCurrentDateString());
+        LOGGER.info(StringUtil.getCurrentDateString());
     }
     
     @Test

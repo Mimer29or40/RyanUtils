@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ClassUtilTest
 {
+    private static final Logger LOGGER = new Logger();
+    
     @Test
     void getCallingClassName()
     {
@@ -120,14 +122,14 @@ class ClassUtilTest
     {
         static int staticThing;
         
-        static void doStaticThing() {System.out.println("doStaticThing");}
+        static void doStaticThing() {LOGGER.info("doStaticThing");}
         
         int thing;
         
         @Override
-        public void doIThing() {System.out.println("doIThing");}
+        public void doIThing() {LOGGER.info("doIThing");}
         
-        void doThing() {System.out.println("doThing");}
+        void doThing() {LOGGER.info("doThing");}
         
         abstract void doAbstractThing();
     }
@@ -142,19 +144,19 @@ class ClassUtilTest
     {
         static int staticSubThing;
         
-        static void doStaticSubThing() {System.out.println("doStaticSubThing");}
+        static void doStaticSubThing() {LOGGER.info("doStaticSubThing");}
         
         int subThing;
         
         @Override
-        void doThing() {System.out.println("@Override doThing");}
+        void doThing() {LOGGER.info("@Override doThing");}
         
         @Override
-        void doAbstractThing() {System.out.println("doAbstractThing");}
+        void doAbstractThing() {LOGGER.info("doAbstractThing");}
         
         @Override
-        public void doISubThing() {System.out.println("doISubThing");}
+        public void doISubThing() {LOGGER.info("doISubThing");}
         
-        public void doSubThing() {System.out.println("doSubThing");}
+        public void doSubThing() {LOGGER.info("doSubThing");}
     }
 }

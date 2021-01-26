@@ -1,6 +1,5 @@
 package rutils;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,10 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TaskDelegatorTest
 {
-    @BeforeAll
-    static void setUp()
-    {
-    }
+    private static final Logger LOGGER = new Logger();
     
     @Test
     void setThread()
@@ -30,10 +26,10 @@ class TaskDelegatorTest
         
         TaskDelegator taskDelegator1 = new TaskDelegator();
         
-        taskDelegator1.runTask(() -> System.out.println("Running Task 1 from main Thread"));
+        taskDelegator1.runTask(() -> LOGGER.info("Running Task 1 from main Thread"));
         
         other = new Thread(() -> {
-            taskDelegator1.runTask(() -> System.out.println("Running Task 2 from other Thread"));
+            taskDelegator1.runTask(() -> LOGGER.info("Running Task 2 from other Thread"));
             taskDelegator1.setThread();
             taskDelegator1.runTasks();
         });
@@ -62,7 +58,7 @@ class TaskDelegatorTest
     {
         TaskDelegator taskDelegator = new TaskDelegator();
         
-        Thread other = new Thread(() -> taskDelegator.waitRunTask(() -> System.out.println("Waiting for Task to be completed.")));
+        Thread other = new Thread(() -> taskDelegator.waitRunTask(() -> LOGGER.info("Waiting for Task to be completed.")));
         other.start();
         
         taskDelegator.setThread();
@@ -82,7 +78,7 @@ class TaskDelegatorTest
         
         Thread other = new Thread(() -> {
             Boolean value = taskDelegator.waitReturnTask(() -> true);
-            System.out.println("Returned Value: " + value);
+            LOGGER.info("Returned Value: " + value);
         });
         other.start();
         

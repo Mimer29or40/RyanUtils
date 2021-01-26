@@ -3,7 +3,7 @@ package rutils;
 import rutils.profiler.Profiler;
 import rutils.profiler.Section;
 
-public class ProfilerTests
+public class ProfilerTest
 {
     private static final Logger LOGGER = new Logger();
     
