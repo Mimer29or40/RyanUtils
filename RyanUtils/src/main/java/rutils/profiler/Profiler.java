@@ -1,5 +1,7 @@
 package rutils.profiler;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
 import rutils.group.Pair;
 
@@ -80,45 +82,38 @@ public class Profiler
      * Sets the profiler to enabled/disabled.
      *
      * @param enabled The new enabled state.
-     * @return This instance for call chaining.
      */
-    public Profiler enabled(boolean enabled)
+    public void enabled(boolean enabled)
     {
         Profiler.LOGGER.finest("Setting enabled flag for %s to %s", this, enabled);
         
         this.newEnabled = enabled;
         
-        return this;
+        if (!this.started) this.enabled = enabled;
     }
     
     /**
      * Toggles the enabled state.
-     *
-     * @return This instance for call chaining.
      */
-    public Profiler toggleEnabled()
+    public void toggleEnabled()
     {
-        return enabled(!this.enabled);
+        enabled(!this.enabled);
     }
     
     /**
      * Enables the profiler.
-     *
-     * @return This instance for call chaining.
      */
-    public Profiler enable()
+    public void enable()
     {
-        return enabled(true);
+        enabled(true);
     }
     
     /**
      * Disables the profiler.
-     *
-     * @return This instance for call chaining.
      */
-    public Profiler disable()
+    public void disable()
     {
-        return enabled(false);
+        enabled(false);
     }
     
     /**
@@ -133,15 +128,12 @@ public class Profiler
      * Sets the time in second before the profiler will log a warning message.
      *
      * @param warningThreshold The time in seconds.
-     * @return This instance for call chaining.
      */
-    public Profiler warningThreshold(double warningThreshold)
+    public void warningThreshold(double warningThreshold)
     {
         Profiler.LOGGER.finest("Setting warning threshold for %s to %s", this, warningThreshold);
         
         this.warningThreshold = (long) (warningThreshold * 1_000_000_000D);
-        
-        return this;
     }
     
     /**
@@ -157,10 +149,8 @@ public class Profiler
     
     /**
      * Starts the profiler frame. The profiler must be enabled and the frame must be stopped.
-     *
-     * @return This instance for call chaining.
      */
-    public Profiler startFrame()
+    public void startFrame()
     {
         if (this.enabled = this.newEnabled)
         {
@@ -179,7 +169,6 @@ public class Profiler
                 this.started = true;
             }
         }
-        return this;
     }
     
     /**
@@ -211,7 +200,7 @@ public class Profiler
      * @param name The section name.
      * @return The new section.
      */
-    public Section startSection(String name)
+    public @Nullable Section startSection(@NotNull String name)
     {
         if (this.enabled)
         {
@@ -258,7 +247,7 @@ public class Profiler
                 long sectionTime = System.nanoTime() - data.b;
                 this.sectionsTimeList.computeIfAbsent(data.a, s -> new ArrayList<>()).add(sectionTime);
                 
-                if (sectionTime > this.warningThreshold) Profiler.LOGGER.warning("'%s' took approx %s us", data.a, sectionTime / 1_000);
+                if (sectionTime > this.warningThreshold) Profiler.LOGGER.warning("'%s' took approx %.3f us", data.a, sectionTime / 1_000D);
             }
         }
     }
@@ -266,7 +255,7 @@ public class Profiler
     /**
      * @return The current section or null if one hasn't been created.
      */
-    public String currentSection()
+    public @Nullable String currentSection()
     {
         return !this.sections.isEmpty() ? this.sections.peek().a : null;
     }
@@ -279,7 +268,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the entire data set.
      * @return The multiline string or null if disabled.
      */
-    public String getAvgDataString(String parent)
+    public @Nullable String getAvgDataString(@Nullable String parent)
     {
         if (this.enabled)
         {
@@ -300,7 +289,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the entire data set.
      * @return The multiline string or null if disabled.
      */
-    public String getMinDataString(String parent)
+    public @Nullable String getMinDataString(@Nullable String parent)
     {
         if (this.enabled)
         {
@@ -321,7 +310,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the entire data set.
      * @return The multiline string or null if disabled.
      */
-    public String getMaxDataString(String parent)
+    public @Nullable String getMaxDataString(@Nullable String parent)
     {
         if (this.enabled)
         {
@@ -367,7 +356,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the top level.
      * @return The ArrayList of data points.
      */
-    public List<SectionData> getAverageData(String parent)
+    public @NotNull List<SectionData> getAverageData(@Nullable String parent)
     {
         if (!this.enabled) return new ArrayList<>();
         
@@ -419,7 +408,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the top level.
      * @return The ArrayList of data points.
      */
-    public List<SectionData> getMinData(String parent)
+    public @NotNull List<SectionData> getMinData(@Nullable String parent)
     {
         if (!this.enabled) return new ArrayList<>();
         
@@ -450,7 +439,7 @@ public class Profiler
      * @param parent The parent section to collect or null for the top level.
      * @return The ArrayList of data points.
      */
-    public List<SectionData> getMaxData(String parent)
+    public @NotNull List<SectionData> getMaxData(@Nullable String parent)
     {
         if (!this.enabled) return new ArrayList<>();
         
