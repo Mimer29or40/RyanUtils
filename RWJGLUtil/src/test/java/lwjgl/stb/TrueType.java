@@ -69,26 +69,27 @@ public final class TrueType extends FontDemo
             lineGap = pLineGap.get(0);
         }
         
-        // text = "This is a test Strin";
+        // text = "This is a test String";
     }
     
+    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args)
     {
         String filePath = IOUtil.getPath("demo/FiraSans.ttf").toString();
-        // if (args.length == 0)
-        // {
-        //     System.out.println("Use 'ant demo -Dclass=org.lwjgl.demo.stb.TrueType -Dargs=<path>' to load a different text file (must be UTF8-encoded).\n");
-        //     filePath = "doc/README.md";
-        // }
-        // else
-        // {
-        //     filePath = args[0];
-        // }
+         if (args.length == 0)
+         {
+             System.out.println("Use 'ant demo -Dclass=org.lwjgl.demo.stb.TrueType -Dargs=<path>' to load a different text file (must be UTF8-encoded).\n");
+             filePath = "doc/README.md";
+         }
+         else
+         {
+             filePath = args[0];
+         }
         
         new TrueType(filePath).run("STB TrueType Demo");
     }
     
-    private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H, boolean save)
+    private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H)
     {
         GLTexture texture = new GLTexture(BITMAP_W, BITMAP_H, GL.RED);
         STBTTBakedChar.Buffer cdata = STBTTBakedChar.malloc(512);
@@ -97,7 +98,7 @@ public final class TrueType extends FontDemo
         stbtt_BakeFontBitmap(ttf, getFontHeight() * getContentScaleY(), bitmap, BITMAP_W, BITMAP_H, 32, cdata);
     
         texture.bind().filterMode(GL.LINEAR, GL.LINEAR).applyTextureSettings().upload(bitmap);
-        if (save) texture.saveImage("out/original.png").copy().bind().saveImage("out/copied.png");
+        texture.saveImage("out/original.png").copy().bind().saveImage("out/copied.png");
         texture.bind();
         
         glClearColor(43f / 255f, 43f / 255f, 43f / 255f, 0f); // BG color
@@ -116,7 +117,7 @@ public final class TrueType extends FontDemo
         int BITMAP_W = NumUtil.round(2048 * getContentScaleX());
         int BITMAP_H = NumUtil.round(2048 * getContentScaleY());
         
-        STBTTBakedChar.Buffer cdata = init(BITMAP_W, BITMAP_H, false);
+        STBTTBakedChar.Buffer cdata = init(BITMAP_W, BITMAP_H);
         
         while (!glfwWindowShouldClose(getWindow()))
         {

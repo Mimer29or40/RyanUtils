@@ -18,7 +18,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
     
     // -------------------- Callback Objects -------------------- //
     
-    protected Queue<IPair<Window, String>> _charChanges = new ConcurrentLinkedQueue<>();
+    protected final Queue<IPair<Window, String>> _charChanges = new ConcurrentLinkedQueue<>();
     
     @Override
     public String toString()

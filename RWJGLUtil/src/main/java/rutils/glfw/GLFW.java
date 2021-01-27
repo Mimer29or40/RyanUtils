@@ -7,11 +7,11 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
-import rutils.group.Pair;
 import rutils.TaskDelegator;
 import rutils.glfw.event.GLFWEventBus;
 import rutils.glfw.event.GLFWEventMonitorConnected;
 import rutils.glfw.event.GLFWEventMonitorDisconnected;
+import rutils.group.Pair;
 
 import java.nio.IntBuffer;
 import java.util.*;
@@ -133,6 +133,12 @@ public final class GLFW
     public static Collection<Monitor> monitors()
     {
         return Collections.unmodifiableCollection(GLFW.MONITORS.values());
+    }
+    
+    public static Monitor getMonitor(int index)
+    {
+        for (Monitor monitor : GLFW.MONITORS.values()) if (index-- <= 0) return monitor;
+        return GLFW.PRIMARY_MONITOR;
     }
     
     public static Monitor primaryMonitor()

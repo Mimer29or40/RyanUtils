@@ -24,8 +24,8 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     // -------------------- Callback Objects -------------------- //
     
-    protected Queue<IPair<Window, Boolean>> _enteredChanges = new ConcurrentLinkedQueue<>();
-    protected Window                        _enteredW       = null;
+    protected final Queue<IPair<Window, Boolean>> _enteredChanges = new ConcurrentLinkedQueue<>();
+    protected       Window                        _enteredW       = null;
     
     protected final Vector2d pos   = new Vector2d();
     protected final Vector2d _pos  = new Vector2d();
@@ -212,6 +212,7 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         IPair<Window, Boolean> enteredChange;
         while ((enteredChange = this._enteredChanges.poll()) != null)
         {
+            //noinspection ConstantConditions
             GLFW.EVENT_BUS.post(new GLFWEventMouseEntered(enteredChange.getA(), enteredChange.getB()));
             if (enteredChange.getB())
             {

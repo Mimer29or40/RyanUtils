@@ -15,7 +15,7 @@ import static org.lwjgl.opengl.GL43.*;
 
 public class RenderToTexture extends OpenGLDemo
 {
-    static String vertexShader =
+    static final String vertexShader =
             "#version 120\n" +
             "\n" +
             "attribute vec3 vertexPosition;\n" +
@@ -76,7 +76,7 @@ public class RenderToTexture extends OpenGLDemo
             "    gl_Position = projectionMatrix * modelViewMatrix * vec4(vertexPosition, 1);\n" +
             "}\n";
     
-    static String fragmentShader =
+    static final String fragmentShader =
             "#version 120\n" +
             "\n" +
             "uniform sampler2D texUnit;\n" +
@@ -89,7 +89,8 @@ public class RenderToTexture extends OpenGLDemo
             "    gl_FragColor = vec4(v_color, 1) * texture2D(texUnit, v_texCoord2d);\n" +
             "}\n";
     
-    static String[] circles = new String[] {
+    @SuppressWarnings("SpellCheckingInspection")
+    static final String[] circles = new String[] {
             "................",
             "................",
             "......xxxx......",

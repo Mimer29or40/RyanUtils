@@ -1,6 +1,7 @@
 package rutils.glfw;
 
 import rutils.Logger;
+import rutils.glfw.event.GLFWEvent;
 import rutils.glfw.event.GLFWEventKeyboardKey;
 import rutils.glfw.event.GLFWEventKeyboardKeyDown;
 import rutils.glfw.event.SubscribeGLFWEvent;
@@ -14,11 +15,11 @@ public class Test
     static Window window;
     static Window window1;
     
-    // @SubscribeGLFWEvent
-    // public static void allEvents(GLFWEvent event)
-    // {
-    //     // LOGGER.info(event);
-    // }
+     @SubscribeGLFWEvent
+     public static void allEvents(GLFWEvent event)
+     {
+         // LOGGER.info(event);
+     }
     
     @SubscribeGLFWEvent
     public static void keyEvents(GLFWEventKeyboardKey event)
@@ -37,7 +38,7 @@ public class Test
     public static void main(String[] args)
     {
         Logger.setLevel(Level.ALL);
-        // Logger.setLevel(Level.FINER);
+        Logger.setLevel(Level.FINER);
         
         try
         {

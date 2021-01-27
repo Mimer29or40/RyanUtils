@@ -278,8 +278,6 @@ public class GLTexture
         return other;
     }
     
-    // TODO - Copying textures with glBlitNamedFramebuffer(this.id, other.id, 0, 0, this.width, this.height, 0, 0, other.width, other.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    
     /**
      * Uploads the data in the byte buffer to the GPU
      * <p>

@@ -78,6 +78,7 @@ public class Window
     {
         this.name = builder.name;
         
+        //noinspection ConstantConditions
         this.handle = GLFW.TASK_DELEGATOR.waitReturnTask(() -> {
             if (builder.setPos) builder.visible(false);
             builder.applyHints();
@@ -272,6 +273,7 @@ public class Window
     /**
      * @return Retrieves if the window is resizable <i>by the user</i>.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean resizable()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_RESIZABLE) == GLFW_TRUE);
@@ -290,6 +292,7 @@ public class Window
     /**
      * @return Retrieves if the window is visible. Window visibility can be controlled with {@link #show} and {@link #hide}.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean visible()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_VISIBLE) == GLFW_TRUE);
@@ -321,6 +324,7 @@ public class Window
     /**
      * @return Retrieves if the window has decorations such as a border, a close widget, etc.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean decorated()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_DECORATED) == GLFW_TRUE);
@@ -340,6 +344,7 @@ public class Window
     /**
      * @return Retrieves if the window is floating, also called topmost or always-on-top.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean floating()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_FLOATING) == GLFW_TRUE);
@@ -359,6 +364,7 @@ public class Window
     /**
      * @return Retrieves if the cursor is currently directly over the content area of the window, with no other windows between.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean hovered()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_HOVERED) == GLFW_TRUE);
@@ -367,6 +373,7 @@ public class Window
     /**
      * @return Retrieves if input focuses on calling show window.
      */
+    @SuppressWarnings("ConstantConditions")
     public boolean focusOnShow()
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, GLFW_FOCUS_ON_SHOW) == GLFW_TRUE);
@@ -388,6 +395,7 @@ public class Window
      * @param attribute The attribute to quarry
      * @return The value of the attribute.
      */
+    @SuppressWarnings("ConstantConditions")
     public int getAttribute(int attribute)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetWindowAttrib(this.handle, attribute));
@@ -562,6 +570,7 @@ public class Window
         return this.open;
     }
     
+    @SuppressWarnings("ConstantConditions")
     public boolean isCurrent()
     {
         return this.taskDelegator.waitReturnTask(() -> this.handle == glfwGetCurrentContext());

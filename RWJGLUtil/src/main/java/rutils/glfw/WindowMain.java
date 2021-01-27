@@ -6,10 +6,7 @@ class WindowMain extends Window
 {
     private static final Logger LOGGER = new Logger();
     
-    private static final Builder BUILDER = new Builder().name("Main")
-                                                        .visible(false)
-                                                        .focused(false)
-                                                        .focusOnShow(false);
+    private static final Builder BUILDER = new Builder().name("Main").visible(false).focused(false).focusOnShow(false);
     
     WindowMain()
     {

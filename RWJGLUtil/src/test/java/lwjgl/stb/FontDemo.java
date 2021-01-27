@@ -35,8 +35,8 @@ import static org.lwjgl.system.MemoryUtil.memUTF8;
  */
 abstract class FontDemo
 {
-    protected String text;
-    protected int    lineCount;
+    protected       String text;
+    protected final int    lineCount;
     
     private long window;
     private int  ww = 800;

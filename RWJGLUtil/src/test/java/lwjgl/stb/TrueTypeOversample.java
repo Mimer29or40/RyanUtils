@@ -20,6 +20,7 @@ import rutils.gl.GLTexture;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Objects;
 
 import static lwjgl.glfw.GLFWUtil.glfwInvoke;
 import static lwjgl.util.IOUtil.ioResourceToByteBuffer;
@@ -31,12 +32,12 @@ import static org.lwjgl.stb.STBTruetype.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /**
- * STB Truetype oversampling demo.
+ * STB TrueType oversampling demo.
  *
  * <p>This is a Java port of <a href="https://github.com/nothings/stb/blob/master/tests/oversample/main.c">https://github
  * .com/nothings/stb/blob/master/tests/oversample/main.c</a>.</p>
  */
-public final class TruetypeOversample
+public final class TrueTypeOversample
 {
     
     private static final int BITMAP_W = 512;
@@ -64,6 +65,9 @@ public final class TruetypeOversample
     
     // ----
     
+    @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
+    private String title = "STB TrueType Oversample Demo";
+    
     private int ww = 1024;
     private int wh = 768;
     
@@ -72,7 +76,7 @@ public final class TruetypeOversample
     
     private GLTexture font_tex;
     
-    private STBTTPackedchar.Buffer chardata;
+    private STBTTPackedchar.Buffer charData;
     
     private int font = 3;
     
@@ -88,17 +92,17 @@ public final class TruetypeOversample
     
     private boolean show_tex;
     
-    private TruetypeOversample() { }
+    private TrueTypeOversample() { }
     
     public static void main(String[] args)
     {
-        new TruetypeOversample().run("STB Truetype Oversample Demo");
+        new TrueTypeOversample().run();
     }
     
     private void load_fonts()
     {
         font_tex = new GLTexture(BITMAP_W, BITMAP_H, GL.ALPHA);
-        chardata = STBTTPackedchar.malloc(6 * 128);
+        charData = STBTTPackedchar.malloc(6 * 128);
         
         try (STBTTPackContext pc = STBTTPackContext.malloc())
         {
@@ -112,31 +116,27 @@ public final class TruetypeOversample
             for (int i = 0; i < 2; i++)
             {
                 p = (i * 3) * 128 + 32;
-                chardata.limit(p + 95);
-                chardata.position(p);
+                charData.limit(p + 95);
+                charData.position(p);
                 stbtt_PackSetOversampling(pc, 1, 1);
-                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, chardata);
+                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, charData);
                 
                 p = (i * 3 + 1) * 128 + 32;
-                chardata.limit(p + 95);
-                chardata.position(p);
+                charData.limit(p + 95);
+                charData.position(p);
                 stbtt_PackSetOversampling(pc, 2, 2);
-                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, chardata);
+                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, charData);
                 
                 p = (i * 3 + 2) * 128 + 32;
-                chardata.limit(p + 95);
-                chardata.position(p);
+                charData.limit(p + 95);
+                charData.position(p);
                 stbtt_PackSetOversampling(pc, 3, 1);
-                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, chardata);
+                stbtt_PackFontRange(pc, ttf, 0, scale[i], 32, charData);
             }
-            chardata.clear();
+            charData.clear();
             stbtt_PackEnd(pc);
             
             font_tex.bind().upload(bitmap).applyTextureSettings();
-            // glBindTexture(GL_TEXTURE_2D, font_tex);
-            // glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, BITMAP_W, BITMAP_H, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
-            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         }
         catch (IOException e)
         {
@@ -186,7 +186,7 @@ public final class TruetypeOversample
         xb.put(0, x);
         yb.put(0, y);
         
-        chardata.position(font * 128);
+        charData.position(font * 128);
         
         glEnable(GL_TEXTURE_2D);
         font_tex.bind();
@@ -195,7 +195,7 @@ public final class TruetypeOversample
         glBegin(GL_QUADS);
         for (int i = 0; i < text.length(); i++)
         {
-            stbtt_GetPackedQuad(chardata, BITMAP_W, BITMAP_H, text.charAt(i), xb, yb, q, font == 0 && integer_align);
+            stbtt_GetPackedQuad(charData, BITMAP_W, BITMAP_H, text.charAt(i), xb, yb, q, font == 0 && integer_align);
             drawBoxTC(q.x0(), q.y0(), q.x1(), q.y1(), q.s0(), q.t0(), q.s1(), q.t1());
         }
         glEnd();
@@ -203,7 +203,7 @@ public final class TruetypeOversample
     
     private void draw_world()
     {
-        int sfont = sf[font];
+        int font = sf[this.font];
         
         float x = 20;
         
@@ -213,29 +213,29 @@ public final class TruetypeOversample
         if (black_on_white) { glColor3f(0.0f, 0.0f, 0.0f); }
         else { glColor3f(1.0f, 1.0f, 1.0f); }
         
-        print(80, 30, sfont, "Controls:");
-        print(100, 60, sfont, "S: toggle font size");
-        print(100, 85, sfont, "O: toggle oversampling");
-        print(100, 110, sfont, "T: toggle translation");
-        print(100, 135, sfont, "R: toggle rotation");
-        print(100, 160, sfont, "P: toggle pixel-snap (only non-oversampled)");
-        if (supportsSRGB) print(100, 185, sfont, "G: toggle srgb gamma-correction");
-        if (black_on_white) { print(100, 210, sfont, "B: toggle to white-on-black"); }
-        else { print(100, 210, sfont, "B: toggle to black-on-white"); }
-        print(100, 235, sfont, "V: view font texture");
+        print(80, 30, font, "Controls:");
+        print(100, 60, font, "S: toggle font size");
+        print(100, 85, font, "O: toggle oversampling");
+        print(100, 110, font, "T: toggle translation");
+        print(100, 135, font, "R: toggle rotation");
+        print(100, 160, font, "P: toggle pixel-snap (only non-oversampled)");
+        if (supportsSRGB) print(100, 185, font, "G: toggle srgb gamma-correction");
+        if (black_on_white) { print(100, 210, font, "B: toggle to white-on-black"); }
+        else { print(100, 210, font, "B: toggle to black-on-white"); }
+        print(100, 235, font, "V: view font texture");
         
-        print(80, 300, sfont, "Current font:");
+        print(80, 300, font, "Current font:");
         
         if (!show_tex)
         {
-            if (font < 3) { print(100, 350, sfont, "Font height: 24 pixels"); }
-            else { print(100, 350, sfont, "Font height: 14 pixels"); }
+            if (this.font < 3) { print(100, 350, font, "Font height: 24 pixels"); }
+            else { print(100, 350, font, "Font height: 14 pixels"); }
         }
         
-        if (font % 3 == 1) { print(100, 325, sfont, "2x2 oversampled text at 1:1"); }
-        else if (font % 3 == 2) { print(100, 325, sfont, "3x1 oversampled text at 1:1"); }
-        else if (integer_align) { print(100, 325, sfont, "1:1 text, one texel = one pixel, snapped to integer coordinates"); }
-        else { print(100, 325, sfont, "1:1 text, one texel = one pixel"); }
+        if (this.font % 3 == 1) { print(100, 325, font, "2x2 oversampled text at 1:1"); }
+        else if (this.font % 3 == 2) { print(100, 325, font, "3x1 oversampled text at 1:1"); }
+        else if (integer_align) { print(100, 325, font, "1:1 text, one texel = one pixel, snapped to integer coordinates"); }
+        else { print(100, 325, font, "1:1 text, one texel = one pixel"); }
         
         if (show_tex)
         {
@@ -256,10 +256,10 @@ public final class TruetypeOversample
                 glRotatef(rotate_t * 2, 0, 0, 1);
                 glTranslatef(-100, -150, 0);
             }
-            print(x, 100, font, "This is a test");
-            print(x, 130, font, "Now is the time for all good men to come to the aid of their country.");
-            print(x, 160, font, "The quick brown fox jumps over the lazy dog.");
-            print(x, 190, font, "0123456789");
+            print(x, 100, this.font, "This is a test");
+            print(x, 130, this.font, "Now is the time for all good men to come to the aid of their country.");
+            print(x, 160, this.font, "The quick brown fox jumps over the lazy dog.");
+            print(x, 190, this.font, "0123456789");
         }
     }
     
@@ -270,7 +270,7 @@ public final class TruetypeOversample
         glfwSwapBuffers(window);
     }
     
-    private void loopmode(float dt)
+    private void loopMode(float dt)
     {
         if (dt > 0.25f) dt = 0.25f;
         if (dt < 0.01f) dt = 0.01f;
@@ -293,7 +293,7 @@ public final class TruetypeOversample
         this.fbh = height;
     }
     
-    private void createWindow(String title)
+    private void createWindow()
     {
         GLFWErrorCallback.createPrint().set();
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
@@ -337,7 +337,7 @@ public final class TruetypeOversample
         });
         
         // Center window
-        GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        GLFWVidMode vidMode = Objects.requireNonNull(glfwGetVideoMode(glfwGetPrimaryMonitor()));
         
         glfwSetWindowPos(window, (vidMode.width() - ww) / 2, (vidMode.height() - wh) / 2);
         
@@ -356,11 +356,11 @@ public final class TruetypeOversample
         supportsSRGB = caps.OpenGL30 || caps.GL_ARB_framebuffer_sRGB || caps.GL_EXT_framebuffer_sRGB;
     }
     
-    private void run(String title)
+    private void run()
     {
         try
         {
-            createWindow(title);
+            createWindow();
             load_fonts();
             
             long time = System.nanoTime();
@@ -372,7 +372,7 @@ public final class TruetypeOversample
                 float dt = (float) ((t - time) / 1000000000.0);
                 time = t;
                 
-                loopmode(dt);
+                loopMode(dt);
             }
         }
         finally
@@ -390,13 +390,13 @@ public final class TruetypeOversample
     
     private void destroy()
     {
-        chardata.free();
+        charData.free();
         
         if (debugProc != null) debugProc.free();
         
         glfwFreeCallbacks(window);
         glfwTerminate();
-        glfwSetErrorCallback(null).free();
+        Objects.requireNonNull(glfwSetErrorCallback(null)).free();
         
         memFree(yb);
         memFree(xb);

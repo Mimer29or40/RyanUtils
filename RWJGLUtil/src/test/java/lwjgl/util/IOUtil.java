@@ -16,6 +16,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import static org.lwjgl.BufferUtils.createByteBuffer;
 
@@ -49,12 +50,13 @@ public final class IOUtil
             try (SeekableByteChannel fc = Files.newByteChannel(path))
             {
                 buffer = BufferUtils.createByteBuffer((int) fc.size() + 1);
-                while (fc.read(buffer) != -1) { }
+                //noinspection StatementWithEmptyBody
+                while (fc.read(buffer) != -1) ;
             }
         }
         else
         {
-            try (InputStream source = IOUtil.class.getClassLoader().getResourceAsStream(resource); ReadableByteChannel rbc = Channels.newChannel(source))
+            try (InputStream source = IOUtil.class.getClassLoader().getResourceAsStream(resource); ReadableByteChannel rbc = Channels.newChannel(Objects.requireNonNull(source)))
             {
                 buffer = createByteBuffer(bufferSize);
                 
