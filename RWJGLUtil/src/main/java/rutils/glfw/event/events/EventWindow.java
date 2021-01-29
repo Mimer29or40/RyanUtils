@@ -2,11 +2,11 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
 
-public class EventInput extends Event
+public class EventWindow extends Event
 {
     private final Window window;
     
-    public EventInput(Window window)
+    public EventWindow(Window window)
     {
         this.window = window;
     }

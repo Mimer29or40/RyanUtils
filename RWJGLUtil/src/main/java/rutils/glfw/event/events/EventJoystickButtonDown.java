@@ -1,12 +1,11 @@
 package rutils.glfw.event.events;
 
-public interface EventJoystickButtonDown extends EventJoystickButton
+import rutils.glfw.Joystick;
+
+public class EventJoystickButtonDown extends EventJoystickButton
 {
-    static EventJoystickButtonDown create()
+    public EventJoystickButtonDown(Joystick joystick, int button)
     {
-        return new EventJoystickButtonDown()
-        {
-        
-        };
+        super(joystick, button);
     }
 }

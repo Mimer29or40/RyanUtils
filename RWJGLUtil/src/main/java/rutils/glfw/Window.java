@@ -980,39 +980,39 @@ public class Window
                 if (this.close != this._close)
                 {
                     this.close = this._close;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowClosed(this));
+                    GLFW.EVENT_BUS.post(new EventWindowClosed(this));
                 }
                 
                 if (this.vsync != this._vsync && isCurrent())
                 {
                     this.vsync = this._vsync;
                     glfwSwapInterval(this.vsync ? 1 : 0);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowVsyncChanged(this, this.vsync));
+                    GLFW.EVENT_BUS.post(new EventWindowVsyncChanged(this, this.vsync));
                 }
                 
                 if (this.focused != this._focused)
                 {
                     this.focused = this._focused;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowFocused(this, this.focused));
+                    GLFW.EVENT_BUS.post(new EventWindowFocused(this, this.focused));
                 }
                 
                 if (this.iconified != this._iconified)
                 {
                     this.iconified = this._iconified;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowIconified(this, this.iconified));
+                    GLFW.EVENT_BUS.post(new EventWindowIconified(this, this.iconified));
                 }
                 
                 if (this.maximized != this._maximized)
                 {
                     this.maximized = this._maximized;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowMaximized(this, this.maximized));
+                    GLFW.EVENT_BUS.post(new EventWindowMaximized(this, this.maximized));
                 }
                 
                 if (this.pos.x != this._pos.x || this.pos.y != this._pos.y)
                 {
                     this._pos.sub(this.pos, this.deltaI);
                     this.pos.set(this._pos);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowMoved(this, this.pos, this.deltaI));
+                    GLFW.EVENT_BUS.post(new EventWindowMoved(this, this.pos, this.deltaI));
                     
                     updateMonitor = true;
                 }
@@ -1021,7 +1021,7 @@ public class Window
                 {
                     this._size.sub(this.size, this.deltaI);
                     this.size.set(this._size);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowResized(this, this.size, this.deltaI));
+                    GLFW.EVENT_BUS.post(new EventWindowResized(this, this.size, this.deltaI));
                     
                     updateMonitor = true;
                 }
@@ -1030,14 +1030,14 @@ public class Window
                 {
                     this._scale.sub(this.scale, this.deltaD);
                     this.scale.set(this._scale);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowContentScaleChanged(this, this.scale, this.deltaD));
+                    GLFW.EVENT_BUS.post(new EventWindowContentScaleChanged(this, this.scale, this.deltaD));
                 }
                 
                 if (this.fbSize.x != this._fbSize.x || this.fbSize.y != this._fbSize.y)
                 {
                     this._fbSize.sub(this.fbSize, this.deltaI);
                     this.fbSize.set(this._fbSize);
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowFramebufferResized(this, this.fbSize, this.deltaI));
+                    GLFW.EVENT_BUS.post(new EventWindowFramebufferResized(this, this.fbSize, this.deltaI));
                     
                     this.viewMatrix.setOrtho(0, this.fbSize.x, this.fbSize.y, 0, -1F, 1F);
                 }
@@ -1045,7 +1045,7 @@ public class Window
                 if (this._refresh)
                 {
                     this._refresh = false;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowRefreshed(this));
+                    GLFW.EVENT_BUS.post(new EventWindowRefreshed(this));
                 }
                 
                 if (this._dropped != null)
@@ -1053,7 +1053,7 @@ public class Window
                     Path[] paths = new Path[this._dropped.length];
                     for (int i = 0; i < this._dropped.length; i++) paths[i] = Paths.get(this._dropped[i]);
                     this._dropped = null;
-                    GLFW.EVENT_BUS.post(new GLFWEventWindowDropped(this, paths));
+                    GLFW.EVENT_BUS.post(new EventWindowDropped(this, paths));
                 }
                 
                 if (updateMonitor)
@@ -1072,7 +1072,7 @@ public class Window
                     
                     if (this.monitor != prevMonitor)
                     {
-                        GLFW.EVENT_BUS.post(new GLFWEventWindowMonitorChanged(this, prevMonitor, this.monitor));
+                        GLFW.EVENT_BUS.post(new EventWindowMonitorChanged(this, prevMonitor, this.monitor));
                     }
                 }
                 

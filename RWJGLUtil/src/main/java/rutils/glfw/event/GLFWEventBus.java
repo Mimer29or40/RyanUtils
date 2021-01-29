@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.ClassUtil;
 import rutils.Logger;
-import rutils.glfw.event.events.GLFWEvent;
+import rutils.glfw.event.events.Event;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,7 +30,7 @@ public class GLFWEventBus
     private final    int     busID    = GLFWEventBus.maxID.getAndIncrement();
     private volatile boolean shutdown = false;
     
-    private final Queue<GLFWEvent> eventQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<Event> eventQueue = new ConcurrentLinkedQueue<>();
     
     private final Thread thread;
     
@@ -45,7 +45,7 @@ public class GLFWEventBus
             {
                 while (!this.eventQueue.isEmpty())
                 {
-                    GLFWEvent event = this.eventQueue.poll();
+                    Event event = this.eventQueue.poll();
     
                     GLFWEventBus.LOGGER.finest("Posting", event);
                     
@@ -131,7 +131,7 @@ public class GLFWEventBus
         }
     }
     
-    public void post(GLFWEvent event)
+    public void post(Event event)
     {
         if (this.shutdown) return;
         
@@ -173,10 +173,10 @@ public class GLFWEventBus
         
         Class<?> eventType = parameterTypes[0];
         
-        if (!GLFWEvent.class.isAssignableFrom(eventType))
+        if (!Event.class.isAssignableFrom(eventType))
         {
             throw new IllegalArgumentException("Method " + method + " has @SubscribeGLFWEvent annotation, " +
-                                               "but takes an argument that is not an GLFWEvent subtype : " + eventType);
+                                               "but takes an argument that is not an Event subtype : " + eventType);
         }
         
         addToListeners(target, eventType, wrapMethod(target, method), method.getAnnotation(SubscribeGLFWEvent.class).priority());

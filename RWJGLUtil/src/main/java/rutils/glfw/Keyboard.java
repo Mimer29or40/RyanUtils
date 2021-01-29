@@ -42,7 +42,7 @@ public class Keyboard extends InputDevice
     
     /**
      * Sets the sticky keys flag. If sticky mouse buttons are enabled, a mouse
-     * button press will ensure that {@link GLFWEventKeyboardKeyPressed} is posted
+     * button press will ensure that {@link EventKeyboardKeyPressed} is posted
      * even if the mouse button had been released before the call. This is
      * useful when you are only interested in whether mouse buttons have been
      * pressed but not when or in which order.
@@ -76,7 +76,7 @@ public class Keyboard extends InputDevice
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), charChange.getB()));
+            GLFW.EVENT_BUS.post(new EventKeyboardTyped(charChange.getA(), charChange.getB()));
         }
     
         synchronized (this.keyMap)
@@ -92,24 +92,24 @@ public class Keyboard extends InputDevice
                         keyObj.held       = true;
                         keyObj.holdTime   = time + InputDevice.holdFrequency;
                         keyObj.repeatTime = time + InputDevice.repeatDelay;
-                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(keyObj._window, key));
+                        GLFW.EVENT_BUS.post(new EventKeyboardKeyDown(keyObj._window, key));
                     }
                     else if (keyObj._state == GLFW_RELEASE)
                     {
                         keyObj.held       = false;
                         keyObj.holdTime   = Long.MAX_VALUE;
                         keyObj.repeatTime = Long.MAX_VALUE;
-                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(keyObj._window, key));
+                        GLFW.EVENT_BUS.post(new EventKeyboardKeyUp(keyObj._window, key));
                     
                         if (time - keyObj.pressTime < InputDevice.doublePressedDelay)
                         {
                             keyObj.pressTime = 0;
-                            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(keyObj._window, key, true));
+                            GLFW.EVENT_BUS.post(new EventKeyboardKeyPressed(keyObj._window, key, true));
                         }
                         else
                         {
                             keyObj.pressTime = time;
-                            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(keyObj._window, key, false));
+                            GLFW.EVENT_BUS.post(new EventKeyboardKeyPressed(keyObj._window, key, false));
                         }
                     }
                     keyObj.state = keyObj._state;
@@ -117,12 +117,12 @@ public class Keyboard extends InputDevice
                 if (keyObj.held && time - keyObj.holdTime >= InputDevice.holdFrequency)
                 {
                     keyObj.holdTime += InputDevice.holdFrequency;
-                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(keyObj._window, key));
+                    GLFW.EVENT_BUS.post(new EventKeyboardKeyHeld(keyObj._window, key));
                 }
                 if (time - keyObj.repeatTime > InputDevice.repeatFrequency)
                 {
                     keyObj.repeatTime += InputDevice.repeatFrequency;
-                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(keyObj._window, key));
+                    GLFW.EVENT_BUS.post(new EventKeyboardKeyRepeated(keyObj._window, key));
                 }
             }
         }

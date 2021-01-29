@@ -9,10 +9,10 @@ import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
 import rutils.glfw.event.*;
-import rutils.glfw.event.events.GLFWEventJoystickConnected;
-import rutils.glfw.event.events.GLFWEventJoystickDisconnected;
-import rutils.glfw.event.events.GLFWEventMonitorConnected;
-import rutils.glfw.event.events.GLFWEventMonitorDisconnected;
+import rutils.glfw.event.events.EventMonitorConnected;
+import rutils.glfw.event.events.EventJoystickConnected;
+import rutils.glfw.event.events.EventJoystickDisconnected;
+import rutils.glfw.event.events.EventMonitorDisconnected;
 import rutils.group.Pair;
 
 import java.nio.ByteBuffer;
@@ -276,11 +276,11 @@ public final class GLFW
             case GLFW_CONNECTED -> {
                 Monitor monitor = new Monitor(handle, GLFW.MONITORS.size());
                 GLFW.MONITORS.put(handle, monitor);
-                GLFW.EVENT_BUS.post(new GLFWEventMonitorConnected(monitor));
+                GLFW.EVENT_BUS.post(new EventMonitorConnected(monitor));
             }
             case GLFW_DISCONNECTED -> {
                 Monitor monitor = GLFW.MONITORS.remove(handle);
-                GLFW.EVENT_BUS.post(new GLFWEventMonitorDisconnected(monitor));
+                GLFW.EVENT_BUS.post(new EventMonitorDisconnected(monitor));
             }
         }
         
@@ -298,11 +298,11 @@ public final class GLFW
                     // Joystick joystick = gamepad ? new Gamepad(jid, true) : new Joystick(jid, false);
                     Joystick joystick = new Joystick(jid, gamepad);
                     GLFW.JOYSTICKS.put(jid, joystick);
-                    GLFW.EVENT_BUS.post(new GLFWEventJoystickConnected(joystick));
+                    GLFW.EVENT_BUS.post(new EventJoystickConnected(joystick));
                 }
                 case GLFW_DISCONNECTED -> {
                     Joystick joystick = GLFW.JOYSTICKS.remove(jid);
-                    GLFW.EVENT_BUS.post(new GLFWEventJoystickDisconnected(joystick));
+                    GLFW.EVENT_BUS.post(new EventJoystickDisconnected(joystick));
                 }
             }
         }

@@ -1,11 +1,11 @@
 package rutils.glfw.event;
 
-import rutils.glfw.event.events.GLFWEvent;
+import rutils.glfw.event.events.Event;
 
 /**
- * GLFWEvent listeners are wrapped with implementations of this interface
+ * Event listeners are wrapped with implementations of this interface
  */
 public interface IGLFWEventListener
 {
-    void invoke(GLFWEvent event);
+    void invoke(Event event);
 }

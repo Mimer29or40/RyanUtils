@@ -1,6 +1,6 @@
 package rutils.glfw.event;
 
-import rutils.glfw.event.events.GLFWEvent;
+import rutils.glfw.event.events.Event;
 
 public enum GLFWEventPriority implements IGLFWEventListener
 {
@@ -19,7 +19,7 @@ public enum GLFWEventPriority implements IGLFWEventListener
     
     
     @Override
-    public void invoke(GLFWEvent event)
+    public void invoke(Event event)
     {
         event.setPhase(this);
     }
