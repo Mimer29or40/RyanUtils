@@ -22,19 +22,22 @@ public class Keyboard extends InputDevice
     
     // -------------------- Internal Objects -------------------- //
     
-    Map<Key, Input> keyMap;
+    final Map<Key, KeyInput> keyMap;
+    
+    Keyboard()
+    {
+        super("Keyboard");
+    
+        synchronized (this.keyMap = new LinkedHashMap<>())
+        {
+            for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new KeyInput(GLFW_RELEASE));
+        }
+    }
     
     @Override
     public String toString()
     {
         return "Mouse{" + '}';
-    }
-    
-    @Override
-    protected void fillInputMaps()
-    {
-        this.keyMap = new LinkedHashMap<>();
-        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new Input(GLFW_RELEASE));
     }
     
     /**
@@ -75,56 +78,59 @@ public class Keyboard extends InputDevice
         {
             GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), charChange.getB()));
         }
-        
-        for (Key key : this.keyMap.keySet())
+    
+        synchronized (this.keyMap)
         {
-            Input input = this.keyMap.get(key);
+            for (Key key : this.keyMap.keySet())
+            {
+                KeyInput keyObj = this.keyMap.get(key);
             
-            if (input._state != input.state)
-            {
-                if (input._state == GLFW_PRESS)
+                if (keyObj._state != keyObj.state)
                 {
-                    input.held       = true;
-                    input.holdTime   = time + InputDevice.holdFrequency;
-                    input.repeatTime = time + InputDevice.repeatDelay;
-                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, key));
-                }
-                else if (input._state == GLFW_RELEASE)
-                {
-                    input.held       = false;
-                    input.holdTime   = Long.MAX_VALUE;
-                    input.repeatTime = Long.MAX_VALUE;
-                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, key));
+                    if (keyObj._state == GLFW_PRESS)
+                    {
+                        keyObj.held       = true;
+                        keyObj.holdTime   = time + InputDevice.holdFrequency;
+                        keyObj.repeatTime = time + InputDevice.repeatDelay;
+                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(keyObj._window, key));
+                    }
+                    else if (keyObj._state == GLFW_RELEASE)
+                    {
+                        keyObj.held       = false;
+                        keyObj.holdTime   = Long.MAX_VALUE;
+                        keyObj.repeatTime = Long.MAX_VALUE;
+                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(keyObj._window, key));
                     
-                    if (time - input.pressTime < InputDevice.doublePressedDelay)
-                    {
-                        input.pressTime = 0;
-                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, key, true));
+                        if (time - keyObj.pressTime < InputDevice.doublePressedDelay)
+                        {
+                            keyObj.pressTime = 0;
+                            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(keyObj._window, key, true));
+                        }
+                        else
+                        {
+                            keyObj.pressTime = time;
+                            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(keyObj._window, key, false));
+                        }
                     }
-                    else
-                    {
-                        input.pressTime = time;
-                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, key, false));
-                    }
+                    keyObj.state = keyObj._state;
                 }
-                input.state = input._state;
-            }
-            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
-            {
-                input.holdTime += InputDevice.holdFrequency;
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, key));
-            }
-            if (time - input.repeatTime > InputDevice.repeatFrequency)
-            {
-                input.repeatTime += InputDevice.repeatFrequency;
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, key));
+                if (keyObj.held && time - keyObj.holdTime >= InputDevice.holdFrequency)
+                {
+                    keyObj.holdTime += InputDevice.holdFrequency;
+                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(keyObj._window, key));
+                }
+                if (time - keyObj.repeatTime > InputDevice.repeatFrequency)
+                {
+                    keyObj.repeatTime += InputDevice.repeatFrequency;
+                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(keyObj._window, key));
+                }
             }
         }
     }
     
-    static final class Input extends InputDevice.Input
+    static final class KeyInput extends Input
     {
-        private Input(int initial)
+        private KeyInput(int initial)
         {
             super(initial);
         }
@@ -270,7 +276,7 @@ public class Keyboard extends InputDevice
         }
         
         /**
-         * @return Gets the Button that corresponds to the GLFW constant.
+         * @return Gets the ButtonInput that corresponds to the GLFW constant.
          */
         public static Key get(int ref)
         {

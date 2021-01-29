@@ -1,10 +1,7 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.event.GLFWEvent;
-import rutils.glfw.event.GLFWEventInput;
-import rutils.glfw.event.GLFWEventKeyboardKey;
-import rutils.glfw.event.SubscribeGLFWEvent;
+import rutils.glfw.event.*;
 
 import java.util.logging.Level;
 
@@ -23,6 +20,12 @@ public class Test
     
     @SubscribeGLFWEvent
     public static void allInputEvents(GLFWEventInput event)
+    {
+        // LOGGER.info(event);
+    }
+    
+    @SubscribeGLFWEvent
+    public static void joystickHatEvents(GLFWEventJoystickHat event)
     {
         LOGGER.info(event);
     }

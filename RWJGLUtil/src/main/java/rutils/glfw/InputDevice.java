@@ -13,7 +13,7 @@ public abstract class InputDevice
     protected static long doublePressedDelay = 200_000_000L;
     
     /**
-     * @return The frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     * @return The frequency, in seconds, that a "Held" event will be generated while an ButtonInput is down.
      */
     public static double holdFrequency()
     {
@@ -21,9 +21,9 @@ public abstract class InputDevice
     }
     
     /**
-     * Sets the frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     * Sets the frequency, in seconds, that a "Held" event will be generated while an ButtonInput is down.
      *
-     * @param holdFrequency The frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     * @param holdFrequency The frequency, in seconds, that a "Held" event will be generated while an ButtonInput is down.
      */
     public static void holdFrequency(double holdFrequency)
     {
@@ -33,7 +33,7 @@ public abstract class InputDevice
     }
     
     /**
-     * @return The delay, in seconds, before an Button is "held" before it starts to be "repeated".
+     * @return The delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
      */
     public static double repeatDelay()
     {
@@ -41,9 +41,9 @@ public abstract class InputDevice
     }
     
     /**
-     * Sets the delay, in seconds, before an Button is "held" before it starts to be "repeated".
+     * Sets the delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
      *
-     * @param repeatDelay The delay, in seconds, before an Button is "held" before it starts to be "repeated".
+     * @param repeatDelay The delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
      */
     public static void repeatDelay(double repeatDelay)
     {
@@ -53,7 +53,7 @@ public abstract class InputDevice
     }
     
     /**
-     * @return The frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
+     * @return The frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
      */
     public static double repeatFrequency()
     {
@@ -61,9 +61,9 @@ public abstract class InputDevice
     }
     
     /**
-     * Sets the frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
+     * Sets the frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
      *
-     * @param repeatFrequency The frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
+     * @param repeatFrequency The frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
      */
     public static void repeatFrequency(double repeatFrequency)
     {
@@ -73,7 +73,7 @@ public abstract class InputDevice
     }
     
     /**
-     * @return The delay, in seconds, before an Button is pressed twice to be a double pressed.
+     * @return The delay, in seconds, before an ButtonInput is pressed twice to be a double pressed.
      */
     public static double doublePressedDelay()
     {
@@ -81,9 +81,9 @@ public abstract class InputDevice
     }
     
     /**
-     * Sets the delay, in seconds, before an Button is pressed twice to be a double pressed.
+     * Sets the delay, in seconds, before an ButtonInput is pressed twice to be a double pressed.
      *
-     * @param doublePressedDelay The delay, in seconds, before an Button is pressed twice to be a double pressed.
+     * @param doublePressedDelay The delay, in seconds, before an ButtonInput is pressed twice to be a double pressed.
      */
     public static void doublePressedDelay(double doublePressedDelay)
     {
@@ -95,21 +95,12 @@ public abstract class InputDevice
     protected       boolean running;
     protected final Thread  thread;
     
-    public InputDevice()
+    InputDevice(String threadName)
     {
-        fillInputMaps();
-        
         this.running = true;
-        this.thread  = new Thread(this::runInThread, threadName());
+        this.thread  = new Thread(this::runInThread, threadName);
         this.thread.start();
     }
-    
-    protected @NotNull String threadName()
-    {
-        return getClass().getSimpleName();
-    }
-    
-    protected abstract void fillInputMaps();
     
     protected void runInThread()
     {

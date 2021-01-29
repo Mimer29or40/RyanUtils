@@ -190,7 +190,6 @@ public class GLFWEventBus
         
         Map<Class<?>, List<IGLFWEventListener>> classListenersMap = this.classListenersMaps.get(priority);
         
-        // this.eventListeners.remove(eventType);
         this.eventListeners.clear();
         
         List<IGLFWEventListener> classListeners = classListenersMap.computeIfAbsent(eventType, c -> Collections.synchronizedList(new ArrayList<>()));
