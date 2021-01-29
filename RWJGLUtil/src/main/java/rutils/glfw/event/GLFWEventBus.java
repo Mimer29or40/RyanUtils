@@ -2,6 +2,7 @@ package rutils.glfw.event;
 
 import rutils.ClassUtil;
 import rutils.Logger;
+import rutils.glfw.event.events.GLFWEvent;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

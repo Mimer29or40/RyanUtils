@@ -1,5 +1,7 @@
 package rutils.glfw.event;
 
+import rutils.glfw.event.events.GLFWEvent;
+
 public enum GLFWEventPriority implements IGLFWEventListener
 {
     /**

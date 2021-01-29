@@ -1,5 +1,7 @@
 package rutils.glfw.event;
 
+import rutils.glfw.event.events.GLFWEvent;
+
 /**
  * GLFWEvent listeners are wrapped with implementations of this interface
  */

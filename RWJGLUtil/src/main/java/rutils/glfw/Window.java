@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.system.MemoryStack;
 import rutils.Logger;
 import rutils.TaskDelegator;
-import rutils.glfw.event.*;
+import rutils.glfw.event.events.*;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;

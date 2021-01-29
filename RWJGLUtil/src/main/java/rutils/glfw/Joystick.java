@@ -1,7 +1,7 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.event.*;
+import rutils.glfw.event.events.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -15,13 +15,13 @@ public class Joystick extends InputDevice
 {
     private static final Logger LOGGER = new Logger();
     
-    private final int jid;
+    protected final int jid;
     
     private final String name;
     
     private final boolean gamepad;
     
-    final Map<Integer, Axis>        axisMap;
+    final Map<Integer, AxisInput>   axisMap;
     final Map<Integer, ButtonInput> buttonMap;
     final Map<Integer, HatInput>    hatMap;
     
@@ -31,14 +31,14 @@ public class Joystick extends InputDevice
         
         this.jid = jid;
         
-        this.name = glfwGetJoystickName(this.jid);
-        
         this.gamepad = gamepad;
+        
+        this.name = glfwGetJoystickName(this.jid);
         
         synchronized (this.axisMap = new LinkedHashMap<>())
         {
             FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(this.jid), "Joystick is not connected.");
-            for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new Axis(axes.get(i)));
+            for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
         }
         
         synchronized (this.buttonMap = new LinkedHashMap<>())
@@ -60,14 +60,14 @@ public class Joystick extends InputDevice
         return "Joystick{" + this.jid + ", name='" + this.name + '\'' + '}';
     }
     
-    public String name()
-    {
-        return this.name;
-    }
-    
     public boolean isGamepad()
     {
         return this.gamepad;
+    }
+    
+    public String name()
+    {
+        return this.name;
     }
     
     /**
@@ -86,7 +86,7 @@ public class Joystick extends InputDevice
             {
                 for (int axis : this.axisMap.keySet())
                 {
-                    Axis axisObj = this.axisMap.get(axis);
+                    AxisInput axisObj = this.axisMap.get(axis);
                     if (Float.compare(axisObj.value, axisObj._value) != 0)
                     {
                         float difference = axisObj._value - axisObj.value;
@@ -154,7 +154,7 @@ public class Joystick extends InputDevice
                 for (int hat : this.hatMap.keySet())
                 {
                     HatInput hatObj = this.hatMap.get(hat);
-            
+                    
                     if (hatObj.state != hatObj._state)
                     {
                         hatObj.state = hatObj._state;
@@ -165,11 +165,11 @@ public class Joystick extends InputDevice
         }
     }
     
-    static final class Axis
+    static final class AxisInput
     {
         protected float _value, value;
         
-        Axis(float initial)
+        AxisInput(float initial)
         {
             this._value = initial;
         }

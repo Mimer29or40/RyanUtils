@@ -9,6 +9,10 @@ import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
 import rutils.glfw.event.*;
+import rutils.glfw.event.events.GLFWEventJoystickConnected;
+import rutils.glfw.event.events.GLFWEventJoystickDisconnected;
+import rutils.glfw.event.events.GLFWEventMonitorConnected;
+import rutils.glfw.event.events.GLFWEventMonitorDisconnected;
 import rutils.group.Pair;
 
 import java.nio.ByteBuffer;
