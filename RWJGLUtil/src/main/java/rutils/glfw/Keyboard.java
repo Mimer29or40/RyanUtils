@@ -1,18 +1,18 @@
 package rutils.glfw;
 
-import org.jetbrains.annotations.NotNull;
-import rutils.group.IPair;
 import rutils.Logger;
 import rutils.glfw.event.*;
+import rutils.group.IPair;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
+public class Keyboard extends InputDevice
 {
     private static final Logger LOGGER = new Logger();
     
@@ -20,10 +20,21 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
     
     protected final Queue<IPair<Window, String>> _charChanges = new ConcurrentLinkedQueue<>();
     
+    // -------------------- Internal Objects -------------------- //
+    
+    Map<Key, Input> keyMap;
+    
     @Override
     public String toString()
     {
         return "Mouse{" + '}';
+    }
+    
+    @Override
+    protected void fillInputMaps()
+    {
+        this.keyMap = new LinkedHashMap<>();
+        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new Input(GLFW_RELEASE));
     }
     
     /**
@@ -49,14 +60,6 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_STICKY_KEYS) == GLFW_TRUE);
     }
     
-    @Override
-    protected @NotNull Map<Key, Input> generateMap()
-    {
-        Map<Keyboard.Key, Input> map = new HashMap<>();
-        for (Keyboard.Key key : Key.values()) map.put(key, new Input(key));
-        return map;
-    }
-    
     /**
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
@@ -67,56 +70,63 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
     @Override
     protected void postEvents(long time, long delta)
     {
-        super.postEvents(time, delta);
-        
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
             GLFW.EVENT_BUS.post(new GLFWEventKeyboardTyped(charChange.getA(), charChange.getB()));
         }
-    }
-    
-    /**
-     * Post events to the event bus
-     *
-     * @param input The input object to generate the events for.
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
-     */
-    @Override
-    protected void postInputEvents(Input input, long time, long delta)
-    {
-        if (input.down)
+        
+        for (Key key : this.keyMap.keySet())
         {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, input));
-        }
-        if (input.up)
-        {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, input));
+            Input input = this.keyMap.get(key);
             
-            if (time - input.pressTime < InputDevice.doublePressedDelay)
+            if (input._state != input.state)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input, true));
-                input.pressTime = 0;
+                if (input._state == GLFW_PRESS)
+                {
+                    input.held       = true;
+                    input.holdTime   = time + InputDevice.holdFrequency;
+                    input.repeatTime = time + InputDevice.repeatDelay;
+                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyDown(input._window, key));
+                }
+                else if (input._state == GLFW_RELEASE)
+                {
+                    input.held       = false;
+                    input.holdTime   = Long.MAX_VALUE;
+                    input.repeatTime = Long.MAX_VALUE;
+                    GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyUp(input._window, key));
+                    
+                    if (time - input.pressTime < InputDevice.doublePressedDelay)
+                    {
+                        input.pressTime = 0;
+                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, key, true));
+                    }
+                    else
+                    {
+                        input.pressTime = time;
+                        GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, key, false));
+                    }
+                }
+                input.state = input._state;
             }
-            else
+            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
             {
-                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyPressed(input._window, input, false));
-                input.pressTime = time;
+                input.holdTime += InputDevice.holdFrequency;
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, key));
+            }
+            if (time - input.repeatTime > InputDevice.repeatFrequency)
+            {
+                input.repeatTime += InputDevice.repeatFrequency;
+                GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, key));
             }
         }
-        if (input.held)
-        {
-            GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyHeld(input._window, input));
-        }
-        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventKeyboardKeyRepeated(input._window, input));
     }
     
-    public static class Input extends InputDevice.Input<Key>
+    static final class Input extends InputDevice.Input
     {
-        private Input(Keyboard.Key input)
+        private Input(int initial)
         {
-            super(input);
+            super(initial);
         }
     }
     
@@ -260,7 +270,7 @@ public class Keyboard extends InputDevice<Keyboard.Key, Keyboard.Input>
         }
         
         /**
-         * @return Gets the Input that corresponds to the GLFW constant.
+         * @return Gets the Button that corresponds to the GLFW constant.
          */
         public static Key get(int ref)
         {

@@ -7,7 +7,7 @@ public class GLFWEventKeyboardKeyPressed extends GLFWEventKeyboardKey
 {
     private final boolean doublePressed;
     
-    public GLFWEventKeyboardKeyPressed(Window window, Keyboard.Input key, boolean doublePressed)
+    public GLFWEventKeyboardKeyPressed(Window window, Keyboard.Key key, boolean doublePressed)
     {
         super(window, key);
     

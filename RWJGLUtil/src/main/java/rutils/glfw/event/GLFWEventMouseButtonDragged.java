@@ -10,7 +10,7 @@ public class GLFWEventMouseButtonDragged extends GLFWEventMouseButton
     private final Vector2d rel;
     private final Vector2d dragStart;
     
-    public GLFWEventMouseButtonDragged(Window window, Mouse.Input button, Vector2d pos, Vector2d rel, Vector2d dragStart)
+    public GLFWEventMouseButtonDragged(Window window, Mouse.Button button, Vector2d pos, Vector2d rel, Vector2d dragStart)
     {
         super(window, button, pos);
     

@@ -6,7 +6,7 @@ import rutils.glfw.Window;
 
 public class GLFWEventMouseButtonUp extends GLFWEventMouseButton
 {
-    public GLFWEventMouseButtonUp(Window window, Mouse.Input button, Vector2d pos)
+    public GLFWEventMouseButtonUp(Window window, Mouse.Button button, Vector2d pos)
     {
         super(window, button, pos);
     }

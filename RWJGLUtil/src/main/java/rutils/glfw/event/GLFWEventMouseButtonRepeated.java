@@ -6,7 +6,7 @@ import rutils.glfw.Window;
 
 public class GLFWEventMouseButtonRepeated extends GLFWEventMouseButton
 {
-    public GLFWEventMouseButtonRepeated(Window window, Mouse.Input button, Vector2d pos)
+    public GLFWEventMouseButtonRepeated(Window window, Mouse.Button button, Vector2d pos)
     {
         super(window, button, pos);
     }

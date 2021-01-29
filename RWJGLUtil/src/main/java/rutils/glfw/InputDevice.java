@@ -3,21 +3,37 @@ package rutils.glfw;
 import org.jetbrains.annotations.NotNull;
 import rutils.Logger;
 
-import java.util.Map;
-import java.util.function.Predicate;
-
-import static org.lwjgl.glfw.GLFW.*;
-
-public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input<E>>
+public abstract class InputDevice
 {
     private static final Logger LOGGER = new Logger();
     
+    protected static long holdFrequency      = 1_000_000L;
     protected static long repeatDelay        = 500_000_000L;
     protected static long repeatFrequency    = 30_000_000L;
     protected static long doublePressedDelay = 200_000_000L;
     
     /**
-     * @return The delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * @return The frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     */
+    public static double holdFrequency()
+    {
+        return InputDevice.holdFrequency / 1_000_000_000D;
+    }
+    
+    /**
+     * Sets the frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     *
+     * @param holdFrequency The frequency, in seconds, that a "Held" event will be generated while an Button is down.
+     */
+    public static void holdFrequency(double holdFrequency)
+    {
+        InputDevice.LOGGER.finest("Setting InputDevice Hold Frequency:", holdFrequency);
+        
+        InputDevice.holdFrequency = (long) (holdFrequency * 1_000_000_000L);
+    }
+    
+    /**
+     * @return The delay, in seconds, before an Button is "held" before it starts to be "repeated".
      */
     public static double repeatDelay()
     {
@@ -25,19 +41,19 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
     }
     
     /**
-     * Sets the delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * Sets the delay, in seconds, before an Button is "held" before it starts to be "repeated".
      *
-     * @param repeatDelay The delay, in seconds, before an Input is "held" before it starts to be "repeated".
+     * @param repeatDelay The delay, in seconds, before an Button is "held" before it starts to be "repeated".
      */
     public static void repeatDelay(double repeatDelay)
     {
-        InputDevice.LOGGER.finest("Setting InputDevice Hold Delay:", repeatDelay);
+        InputDevice.LOGGER.finest("Setting InputDevice Repeat Delay:", repeatDelay);
         
         InputDevice.repeatDelay = (long) (repeatDelay * 1_000_000_000L);
     }
     
     /**
-     * @return The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * @return The frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
      */
     public static double repeatFrequency()
     {
@@ -45,19 +61,19 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
     }
     
     /**
-     * Sets the frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * Sets the frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
      *
-     * @param repeatFrequency The frequency, in seconds, that an Input is "repeated" after the initial delay has passed.
+     * @param repeatFrequency The frequency, in seconds, that an Button is "repeated" after the initial delay has passed.
      */
     public static void repeatFrequency(double repeatFrequency)
     {
-        InputDevice.LOGGER.finest("Setting InputDevice Repeat Delay:", repeatDelay);
+        InputDevice.LOGGER.finest("Setting InputDevice Repeat Frequency:", repeatDelay);
         
         InputDevice.repeatFrequency = (long) (repeatFrequency * 1_000_000_000L);
     }
     
     /**
-     * @return The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * @return The delay, in seconds, before an Button is pressed twice to be a double pressed.
      */
     public static double doublePressedDelay()
     {
@@ -65,9 +81,9 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
     }
     
     /**
-     * Sets the delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * Sets the delay, in seconds, before an Button is pressed twice to be a double pressed.
      *
-     * @param doublePressedDelay The delay, in seconds, before an Input is pressed twice to be a double pressed.
+     * @param doublePressedDelay The delay, in seconds, before an Button is pressed twice to be a double pressed.
      */
     public static void doublePressedDelay(double doublePressedDelay)
     {
@@ -76,21 +92,24 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
         InputDevice.doublePressedDelay = (long) (doublePressedDelay * 1_000_000_000L);
     }
     
-    protected final Map<E, I> inputMap;
-    
     protected       boolean running;
     protected final Thread  thread;
     
     public InputDevice()
     {
-        this.inputMap = generateMap();
+        fillInputMaps();
         
         this.running = true;
-        this.thread  = new Thread(this::runInThread, toString());
+        this.thread  = new Thread(this::runInThread, threadName());
         this.thread.start();
     }
     
-    protected abstract @NotNull Map<E, I> generateMap();
+    protected @NotNull String threadName()
+    {
+        return getClass().getSimpleName();
+    }
+    
+    protected abstract void fillInputMaps();
     
     protected void runInThread()
     {
@@ -101,10 +120,13 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
             t  = System.nanoTime();
             dt = t - last;
             
-            if (dt >= 1_000_000)
+            try
             {
-                last = t;
-                postEvents(t, dt);
+                if (dt >= 100_000) postEvents(last = t, dt);
+            }
+            catch (Throwable throwable)
+            {
+                InputDevice.LOGGER.severe(throwable);
             }
             
             Thread.yield();
@@ -118,125 +140,24 @@ public abstract class InputDevice<E extends Enum<E>, I extends InputDevice.Input
      * @param time  The system time in nanoseconds.
      * @param delta The time in nanoseconds since the last time this method was called.
      */
-    protected void postEvents(long time, long delta)
-    {
-        for (I input : this.inputMap.values())
-        {
-            input.down   = false;
-            input.up     = false;
-            input.repeat = false;
-            
-            if (input._action != input.action)
-            {
-                if (input._action == GLFW_PRESS)
-                {
-                    input.down     = true;
-                    input.held     = true;
-                    input.downTime = time + InputDevice.repeatDelay;
-                }
-                else if (input._action == GLFW_RELEASE)
-                {
-                    input.up       = true;
-                    input.held     = false;
-                    input.downTime = Long.MAX_VALUE;
-                }
-                input.action = input._action;
-            }
-            if (input.action == GLFW_REPEAT || time - input.downTime > InputDevice.repeatFrequency)
-            {
-                input.downTime += InputDevice.repeatFrequency;
-                input.repeat = true;
-            }
-            
-            postInputEvents(input, time, delta);
-        }
-    }
+    protected abstract void postEvents(long time, long delta);
     
-    /**
-     * Post events to the event bus
-     *
-     * @param input The input object to generate the events for.
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
-     */
-    protected abstract void postInputEvents(I input, long time, long delta);
-    
-    public static class Input<E extends Enum<E>>
+    public static class Input
     {
-        protected final E input;
+        protected int state, _state;
+        
+        protected boolean held;
+        
+        protected long holdTime   = Long.MAX_VALUE;
+        protected long repeatTime = Long.MAX_VALUE;
+        
+        protected long pressTime;
         
         protected Window _window;
         
-        protected boolean down, up, held, repeat;
-        
-        protected int _action, action;
-        
-        protected long pressTime = 0;
-        protected long downTime  = Long.MAX_VALUE;
-        
-        public Input(E input)
+        public Input(int initial)
         {
-            this.input = input;
-        }
-    
-        @Override
-        public String toString()
-        {
-            return "Input{" + this.input.getClass().getSimpleName() + '.' + this.input + '}';
-        }
-    
-        /**
-         * @return The enum value associated with this input.
-         */
-        public E input()
-        {
-            return this.input;
-        }
-    
-        /**
-         * @return If the Input is in the down state with optional modifiers. This will only be true for one frame.
-         */
-        public boolean down(Modifier... modifiers)
-        {
-            return this.down && checkModifiers(modifiers);
-        }
-        
-        /**
-         * @return If the Input was released with optional modifiers. This will only be true for one frame.
-         */
-        public boolean up(Modifier... modifiers)
-        {
-            return this.up && checkModifiers(modifiers);
-        }
-        
-        /**
-         * @return If the Input is being held down with optional modifiers.
-         */
-        public boolean held(Modifier... modifiers)
-        {
-            return this.held && checkModifiers(modifiers);
-        }
-        
-        /**
-         * @return If the Input is being repeated with optional modifiers. This will be true for one frame at a time.
-         */
-        public boolean repeat(Modifier... modifiers)
-        {
-            return this.repeat && checkModifiers(modifiers);
-        }
-        
-        /**
-         * Checks if the supplied modifiers match which modifiers are pressed.
-         *
-         * @param modifiers The array of modifiers.
-         * @return True if the supplied modifiers matches the actual modifiers.
-         */
-        protected boolean checkModifiers(Modifier[] modifiers)
-        {
-            if (modifiers.length == 0) return true;
-            Predicate<Integer> predicate = modifiers[0];
-            for (int i = 1; i < modifiers.length; i++) predicate = predicate.and(modifiers[i]);
-            return predicate.test(Modifier.activeMods());
+            this._state = initial;
         }
     }
 }

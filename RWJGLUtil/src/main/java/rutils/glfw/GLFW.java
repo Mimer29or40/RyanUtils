@@ -8,9 +8,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
-import rutils.glfw.event.GLFWEventBus;
-import rutils.glfw.event.GLFWEventMonitorConnected;
-import rutils.glfw.event.GLFWEventMonitorDisconnected;
+import rutils.glfw.event.*;
 import rutils.group.Pair;
 
 import java.nio.IntBuffer;
@@ -37,6 +35,8 @@ public final class GLFW
     static Mouse    MOUSE;
     static Keyboard KEYBOARD;
     
+    static final Map<Integer, Joystick> JOYSTICKS = new LinkedHashMap<>();
+    
     static boolean SUPPORT_RAW_MOUSE_MOTION;
     
     private GLFW() {}
@@ -57,6 +57,8 @@ public final class GLFW
             GLFW.LOGGER.finer("RWJGLUtil Compiled to '%s'", glfwGetVersionString());
         }
         
+        // glfwInitHint(GLFW_JOYSTICK_HAT_BUTTONS, GLFW_FALSE);
+        
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         GLFW.TASK_DELEGATOR.setThread();
@@ -74,6 +76,8 @@ public final class GLFW
         
         GLFW.MOUSE    = new Mouse();
         GLFW.KEYBOARD = new Keyboard();
+        
+        loadJoysticks();
         
         GLFW.SUPPORT_RAW_MOUSE_MOTION = glfwRawMouseMotionSupported();
     }
@@ -106,6 +110,8 @@ public final class GLFW
         
         GLFW.MOUSE.running    = false;
         GLFW.KEYBOARD.running = false;
+        
+        GLFW.JOYSTICKS.values().forEach(joystick -> joystick.running = false);
         
         Callback[] callbacks = new Callback[] {
                 glfwSetErrorCallback(null),
@@ -172,7 +178,7 @@ public final class GLFW
         glfwSetCharCallback(handle, GLFW::charCallback);
     }
     
-    // -------------------- Input -------------------- //
+    // -------------------- Button -------------------- //
     
     public static boolean supportRawMouseInput()
     {
@@ -187,6 +193,25 @@ public final class GLFW
     public static Keyboard keyboard()
     {
         return GLFW.KEYBOARD;
+    }
+    
+    private static void loadJoysticks()
+    {
+        for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
+        {
+            boolean present = glfwJoystickPresent(jid);
+            if (present)
+            {
+                // boolean gamepad = glfwJoystickIsGamepad(jid);
+                // GLFW.JOYSTICKS.put(jid, gamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
+                GLFW.JOYSTICKS.put(jid, new Joystick(jid, false));
+            }
+        }
+    }
+    
+    public static Joystick getJoystick(int index)
+    {
+        return GLFW.JOYSTICKS.getOrDefault(index, null);
     }
     
     // -------------------- Callbacks -------------------- //
@@ -230,7 +255,20 @@ public final class GLFW
     
     private static void joystickCallback(int jid, int event)
     {
-        // TODO - Add SubscribeGLFWEvent to this somehow.
+        switch (event)
+        {
+            case GLFW_CONNECTED -> {
+                boolean gamepad = glfwJoystickIsGamepad(jid);
+                // Joystick joystick = gamepad ? new Gamepad(jid, true) : new Joystick(jid, false);
+                Joystick joystick = new Joystick(jid, gamepad);
+                GLFW.JOYSTICKS.put(jid, joystick);
+                GLFW.EVENT_BUS.post(new GLFWEventJoystickConnected(joystick));
+            }
+            case GLFW_DISCONNECTED -> {
+                Joystick joystick = GLFW.JOYSTICKS.remove(jid);
+                GLFW.EVENT_BUS.post(new GLFWEventJoystickDisconnected(joystick));
+            }
+        }
     }
     
     private static void windowCloseCallback(long handle)
@@ -336,10 +374,10 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Mouse.Input input = GLFW.MOUSE.inputMap.get(Mouse.Button.get(button));
-        
+        Mouse.Input input = GLFW.MOUSE.buttonMap.get(Mouse.Button.get(button));
+    
         input._window = window;
-        input._action = action;
+        input._state  = action;
         
         Modifier.updateMods(mods);
     }
@@ -348,10 +386,10 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Keyboard.Input input = GLFW.KEYBOARD.inputMap.get(Keyboard.Key.get(key));
-        
+        Keyboard.Input input = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key));
+    
         input._window = window;
-        input._action = action;
+        input._state  = action;
         
         Modifier.updateMods(mods);
     }

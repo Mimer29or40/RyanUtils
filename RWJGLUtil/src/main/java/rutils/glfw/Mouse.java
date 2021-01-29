@@ -1,20 +1,20 @@
 package rutils.glfw;
 
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
 import org.lwjgl.system.Platform;
-import rutils.group.IPair;
 import rutils.Logger;
 import rutils.glfw.event.*;
+import rutils.group.IPair;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
+public class Mouse extends InputDevice
 {
     private static final Logger LOGGER = new Logger();
     
@@ -39,10 +39,19 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     // -------------------- Internal Objects -------------------- //
     
+    Map<Button, Input> buttonMap;
+    
     @Override
     public String toString()
     {
         return "Mouse{" + '}';
+    }
+    
+    @Override
+    protected void fillInputMaps()
+    {
+        this.buttonMap = new LinkedHashMap<>();
+        for (Button button : Mouse.Button.values()) this.buttonMap.put(button, new Input(GLFW_RELEASE));
     }
     
     // -------------------- Properties -------------------- //
@@ -187,14 +196,6 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     
     // -------------------- Callback Related Things -------------------- //
     
-    @Override
-    protected @NotNull Map<Button, Input> generateMap()
-    {
-        Map<Button, Input> map = new HashMap<>();
-        for (Button button : Button.values()) map.put(button, new Input(button));
-        return map;
-    }
-    
     /**
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
@@ -205,8 +206,6 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
     @Override
     protected void postEvents(long time, long delta)
     {
-        super.postEvents(time, delta);
-        
         boolean entered = false;
         
         IPair<Window, Boolean> enteredChange;
@@ -238,76 +237,69 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
             this._scroll.set(0);
             GLFW.EVENT_BUS.post(new GLFWEventMouseScrolled(this._scrollW, this.scroll));
         }
-    }
-    
-    /**
-     * Post events to the event bus
-     *
-     * @param input The input object to generate the events for.
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
-     */
-    @Override
-    protected void postInputEvents(Input input, long time, long delta)
-    {
-        if (input.down)
-        {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(input._window, input, this.pos));
-            
-            input.click.set(this.pos);
-        }
-        if (input.up)
-        {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(input._window, input, this.pos));
-            
-            boolean inClickRange  = Math.abs(this.pos.x - input.click.x) < 2 && Math.abs(this.pos.y - input.click.y) < 2;
-            boolean inDClickRange = Math.abs(this.pos.x - input.dClick.x) < 2 && Math.abs(this.pos.y - input.dClick.y) < 2;
-            
-            if (inDClickRange && time - input.pressTime < InputDevice.doublePressedDelay)
-            {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input, this.pos, true));
-                input.pressTime = 0;
-            }
-            else if (inClickRange)
-            {
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, input, this.pos, false));
-                input.dClick.set(this.pos);
-                input.pressTime = time;
-            }
-        }
-        input.dragged = false;
-        if (input.held)
-        {
-            GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(input._window, input, this.pos));
-            
-            if (this.rel.x != 0 || this.rel.y != 0)
-            {
-                input.dragged = true;
-                
-                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(input._window, input, this.pos, this.rel, input.click));
-            }
-        }
-        if (input.repeat) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeated(input._window, input, this.pos));
-    }
-    
-    public static class Input extends InputDevice.Input<Button>
-    {
-        protected boolean dragged;
         
+        for (Button button : this.buttonMap.keySet())
+        {
+            Input input = this.buttonMap.get(button);
+            
+            if (input._state != input.state)
+            {
+                if (input._state == GLFW_PRESS)
+                {
+                    input.held       = true;
+                    input.holdTime   = time + InputDevice.holdFrequency;
+                    input.repeatTime = time + InputDevice.repeatDelay;
+                    GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDown(input._window, button, this.pos));
+                    
+                    input.click.set(this.pos);
+                }
+                else if (input._state == GLFW_RELEASE)
+                {
+                    input.held       = false;
+                    input.holdTime   = Long.MAX_VALUE;
+                    input.repeatTime = Long.MAX_VALUE;
+                    GLFW.EVENT_BUS.post(new GLFWEventMouseButtonUp(input._window, button, this.pos));
+                    
+                    boolean inClickRange  = Math.abs(this.pos.x - input.click.x) < 2 && Math.abs(this.pos.y - input.click.y) < 2;
+                    boolean inDClickRange = Math.abs(this.pos.x - input.dClick.x) < 2 && Math.abs(this.pos.y - input.dClick.y) < 2;
+                    
+                    if (inDClickRange && time - input.pressTime < InputDevice.doublePressedDelay)
+                    {
+                        input.pressTime = 0;
+                        GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, button, this.pos, true));
+                    }
+                    else if (inClickRange)
+                    {
+                        input.dClick.set(this.pos);
+                        input.pressTime = time;
+                        GLFW.EVENT_BUS.post(new GLFWEventMouseButtonPressed(input._window, button, this.pos, false));
+                    }
+                }
+                input.state = input._state;
+            }
+            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
+            {
+                input.holdTime += InputDevice.holdFrequency;
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonHeld(input._window, button, this.pos));
+                
+                if (this.rel.x != 0 || this.rel.y != 0) GLFW.EVENT_BUS.post(new GLFWEventMouseButtonDragged(input._window, button, this.pos, this.rel, input.click));
+            }
+            if (input.state == GLFW_REPEAT || time - input.repeatTime > InputDevice.repeatFrequency)
+            {
+                input.repeatTime += InputDevice.repeatFrequency;
+                GLFW.EVENT_BUS.post(new GLFWEventMouseButtonRepeated(input._window, button, this.pos));
+            }
+        }
+    }
+    
+    static final class Input extends InputDevice.Input
+    {
         final Vector2d click  = new Vector2d();
         final Vector2d dClick = new Vector2d();
         
-        private Input(Button input)
+        private Input(int initial)
         {
-            super(input);
-        }
-        
-        /**
-         * @return If the GLFWMouseButton is being dragged.
-         */
-        public boolean dragged(Modifier... modifiers)
-        {
-            return this.dragged && checkModifiers(modifiers);
+            super(initial);
         }
     }
     
@@ -337,18 +329,18 @@ public class Mouse extends InputDevice<Mouse.Button, Mouse.Input>
         }
         
         /**
-         * @return Gets the Input that corresponds to the GLFW constant.
+         * @return Gets the Button that corresponds to the GLFW constant.
          */
         public static Button get(int ref)
         {
-            return Button.BUTTON_MAP.getOrDefault(ref, Button.NONE);
+            return Mouse.Button.BUTTON_MAP.getOrDefault(ref, Mouse.Button.NONE);
         }
         
         static
         {
             for (Button button : values())
             {
-                Button.BUTTON_MAP.put(button.ref, button);
+                Mouse.Button.BUTTON_MAP.put(button.ref, button);
             }
         }
     }

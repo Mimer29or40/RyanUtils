@@ -5,7 +5,7 @@ import rutils.glfw.Window;
 
 public class GLFWEventKeyboardKeyRepeated extends GLFWEventKeyboardKey
 {
-    public GLFWEventKeyboardKeyRepeated(Window window, Keyboard.Input key)
+    public GLFWEventKeyboardKeyRepeated(Window window, Keyboard.Key key)
     {
         super(window, key);
     }

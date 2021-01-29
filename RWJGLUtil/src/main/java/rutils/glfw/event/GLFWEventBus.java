@@ -190,7 +190,8 @@ public class GLFWEventBus
         
         Map<Class<?>, List<IGLFWEventListener>> classListenersMap = this.classListenersMaps.get(priority);
         
-        this.eventListeners.remove(eventType);
+        // this.eventListeners.remove(eventType);
+        this.eventListeners.clear();
         
         List<IGLFWEventListener> classListeners = classListenersMap.computeIfAbsent(eventType, c -> Collections.synchronizedList(new ArrayList<>()));
         classListeners.add(listener);
@@ -198,7 +199,7 @@ public class GLFWEventBus
     
     public IGLFWEventListener wrapMethod(final Object target, final Method method)
     {
-        int hash = Objects.hash(target, method);
+        int hash = Objects.hash(target, method.getName(), Arrays.hashCode(method.getParameterTypes()));
         return this.wrappedCache.computeIfAbsent(hash, h -> event -> {
             try
             {

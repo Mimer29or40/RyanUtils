@@ -7,19 +7,19 @@ import rutils.glfw.Window;
 
 public class GLFWEventMouseButton extends GLFWEventMouse
 {
-    private final Mouse.Input button;
-    private final Vector2d    pos;
+    private final Mouse.Button button;
+    private final Vector2d     pos;
     
-    public GLFWEventMouseButton(Window window, Mouse.Input button, Vector2d pos)
+    public GLFWEventMouseButton(Window window, Mouse.Button button, Vector2d pos)
     {
         super(window);
-    
+        
         this.button = button;
         this.pos    = pos;
     }
     
     @Property(printName = false)
-    public Mouse.Input button()
+    public Mouse.Button button()
     {
         return this.button;
     }
