@@ -3,7 +3,7 @@ package rutils.glfw;
 import org.joml.Vector2d;
 import org.lwjgl.system.Platform;
 import rutils.Logger;
-import rutils.glfw.event.events.*;
+import rutils.glfw.event.*;
 import rutils.group.IPair;
 
 import java.util.HashMap;

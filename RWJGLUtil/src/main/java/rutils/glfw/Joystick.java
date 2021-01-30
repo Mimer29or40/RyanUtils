@@ -1,7 +1,7 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.event.events.*;
+import rutils.glfw.event.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

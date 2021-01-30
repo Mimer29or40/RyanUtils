@@ -2,7 +2,7 @@ package rutils.glfw;
 
 import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryStack;
-import rutils.glfw.event.events.*;
+import rutils.glfw.event.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

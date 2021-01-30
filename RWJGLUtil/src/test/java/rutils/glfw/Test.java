@@ -1,8 +1,10 @@
 package rutils.glfw;
 
 import rutils.Logger;
-import rutils.glfw.event.*;
-import rutils.glfw.event.events.*;
+import rutils.glfw.event.Event;
+import rutils.glfw.event.EventInput;
+import rutils.glfw.event.EventJoystickHat;
+import rutils.glfw.event.EventKeyboardKey;
 
 import java.util.logging.Level;
 
