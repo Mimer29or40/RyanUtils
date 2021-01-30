@@ -2,29 +2,44 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Monitor;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowMonitorChanged extends EventWindow
+public interface EventWindowMonitorChanged extends EventWindow
 {
-    private final Monitor from;
-    private final Monitor to;
+    @EventProperty
+    Monitor from();
     
-    public EventWindowMonitorChanged(Window window, Monitor from, Monitor to)
+    @EventProperty
+    Monitor to();
+    
+    final class _EventWindowMonitorChanged extends AbstractEventWindow implements EventWindowMonitorChanged
     {
-        super(window);
+        private final Monitor from;
+        private final Monitor to;
+    
+        private _EventWindowMonitorChanged(Window window, Monitor from, Monitor to)
+        {
+            super(window);
         
-        this.from = from;
-        this.to = to;
+            this.from = from;
+            this.to = to;
+        }
+    
+        @Override
+        public Monitor from()
+        {
+            return this.from;
+        }
+    
+        @Override
+        public Monitor to()
+        {
+            return this.to;
+        }
     }
     
-    @Property
-    public Monitor from()
+    static EventWindowMonitorChanged create(Window window, Monitor from, Monitor to)
     {
-        return this.from;
-    }
-    
-    @Property
-    public Monitor to()
-    {
-        return this.to;
+        return new _EventWindowMonitorChanged(window, from, to);
     }
 }

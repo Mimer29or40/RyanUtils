@@ -2,16 +2,17 @@ package rutils.glfw;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
-import rutils.glfw.event.*;
-import rutils.glfw.event.events.EventMonitorConnected;
+import rutils.glfw.event.EventBus;
 import rutils.glfw.event.events.EventJoystickConnected;
 import rutils.glfw.event.events.EventJoystickDisconnected;
+import rutils.glfw.event.events.EventMonitorConnected;
 import rutils.glfw.event.events.EventMonitorDisconnected;
 import rutils.group.Pair;
 
@@ -21,7 +22,6 @@ import java.nio.IntBuffer;
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.glfwGetJoystickAxes;
 
 public final class GLFW
 {
@@ -31,7 +31,7 @@ public final class GLFW
     
     public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
     
-    public static final GLFWEventBus EVENT_BUS = new GLFWEventBus(true);
+    public static final EventBus EVENT_BUS = new EventBus(true);
     
     static final Map<Long, Monitor> MONITORS        = new LinkedHashMap<>();
     static       Monitor            PRIMARY_MONITOR = null;
@@ -92,31 +92,86 @@ public final class GLFW
         while (GLFW.WINDOWS.size() > 1)
         {
             glfwPollEvents();
-    
+            
             synchronized (GLFW.JOYSTICKS)
             {
                 for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
                 {
                     Joystick joystick = GLFW.JOYSTICKS.getOrDefault(jid, null);
-        
+                    
                     if (joystick != null)
                     {
-                        FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(jid), "Joystick is not connected.");
-                        for (int axis = 0, n = axes.remaining(); axis < n; axis++)
+                        if (!joystick.isGamepad())
                         {
-                            joystick.axisMap.get(axis)._value = axes.get(axis);
+                            synchronized (joystick.axisMap)
+                            {
+                                FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(jid), "Joystick is not connected.");
+                                for (int axis = 0, n = axes.remaining(); axis < n; axis++)
+                                {
+                                    joystick.axisMap.get(axis)._value = axes.get(axis);
+                                }
+                            }
+                            
+                            synchronized (joystick.axisMap)
+                            {
+                                ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(jid), "Joystick is not connected.");
+                                for (int button = 0, n = buttons.remaining(); button < n; button++)
+                                {
+                                    joystick.buttonMap.get(button)._state = buttons.get(button);
+                                }
+                            }
+                            
+                            synchronized (joystick.axisMap)
+                            {
+                                ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(jid), "Joystick is not connected.");
+                                for (int hat = 0, n = hats.remaining(); hat < n; hat++)
+                                {
+                                    joystick.hatMap.get(hat)._state = hats.get(hat);
+                                }
+                            }
                         }
-            
-                        ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(jid), "Joystick is not connected.");
-                        for (int button = 0, n = buttons.remaining(); button < n; button++)
+                        else
                         {
-                            joystick.buttonMap.get(button)._state = buttons.get(button);
-                        }
-            
-                        ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(jid), "Joystick is not connected.");
-                        for (int hat = 0, n = hats.remaining(); hat < n; hat++)
-                        {
-                            joystick.hatMap.get(hat)._state = hats.get(hat);
+                            Gamepad gamepad = (Gamepad) joystick;
+                            
+                            try (MemoryStack stack = MemoryStack.stackPush())
+                            {
+                                GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
+                                
+                                if (glfwGetGamepadState(jid, state))
+                                {
+                                    synchronized (gamepad.axisMap)
+                                    {
+                                        FloatBuffer axes = state.axes();
+                                        for (Gamepad.Axis axis : gamepad.axisMap.keySet())
+                                        {
+                                            gamepad.axisMap.get(axis)._value = axes.get(axis.id());
+                                        }
+                                    }
+                                    
+                                    synchronized (gamepad.buttonMap)
+                                    {
+                                        ByteBuffer buttons = state.buttons();
+                                        for (Gamepad.Button button : gamepad.buttonMap.keySet())
+                                        {
+                                            gamepad.buttonMap.get(button)._state = buttons.get(button.id());
+                                        }
+                                    }
+                                    
+                                    synchronized (gamepad.hatMap)
+                                    {
+                                        ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(jid), "Joystick is not connected.");
+                                        for (int hat = 0, n = hats.remaining(); hat < n; hat++)
+                                        {
+                                            gamepad.hatMap.get(hat)._state = hats.get(hat);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    throw new RuntimeException("Joystick is not connected.");
+                                }
+                            }
                         }
                     }
                 }
@@ -236,9 +291,8 @@ public final class GLFW
             boolean present = glfwJoystickPresent(jid);
             if (present)
             {
-                // boolean gamepad = glfwJoystickIsGamepad(jid);
-                // GLFW.JOYSTICKS.put(jid, gamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
-                GLFW.JOYSTICKS.put(jid, new Joystick(jid, false));
+                boolean gamepad = glfwJoystickIsGamepad(jid);
+                GLFW.JOYSTICKS.put(jid, gamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
             }
         }
     }
@@ -276,11 +330,11 @@ public final class GLFW
             case GLFW_CONNECTED -> {
                 Monitor monitor = new Monitor(handle, GLFW.MONITORS.size());
                 GLFW.MONITORS.put(handle, monitor);
-                GLFW.EVENT_BUS.post(new EventMonitorConnected(monitor));
+                GLFW.EVENT_BUS.post(EventMonitorConnected.create(monitor));
             }
             case GLFW_DISCONNECTED -> {
                 Monitor monitor = GLFW.MONITORS.remove(handle);
-                GLFW.EVENT_BUS.post(new EventMonitorDisconnected(monitor));
+                GLFW.EVENT_BUS.post(EventMonitorDisconnected.create(monitor));
             }
         }
         
@@ -294,15 +348,15 @@ public final class GLFW
             switch (event)
             {
                 case GLFW_CONNECTED -> {
-                    boolean gamepad = glfwJoystickIsGamepad(jid);
-                    // Joystick joystick = gamepad ? new Gamepad(jid, true) : new Joystick(jid, false);
-                    Joystick joystick = new Joystick(jid, gamepad);
+                    boolean  gamepad  = glfwJoystickIsGamepad(jid);
+                    Joystick joystick = gamepad ? new Gamepad(jid, true) : new Joystick(jid, false);
+                    // Joystick joystick = new Joystick(jid, gamepad);
                     GLFW.JOYSTICKS.put(jid, joystick);
-                    GLFW.EVENT_BUS.post(new EventJoystickConnected(joystick));
+                    GLFW.EVENT_BUS.post(EventJoystickConnected.create(joystick));
                 }
                 case GLFW_DISCONNECTED -> {
                     Joystick joystick = GLFW.JOYSTICKS.remove(jid);
-                    GLFW.EVENT_BUS.post(new EventJoystickDisconnected(joystick));
+                    GLFW.EVENT_BUS.post(EventJoystickDisconnected.create(joystick));
                 }
             }
         }
@@ -412,7 +466,7 @@ public final class GLFW
         Window window = GLFW.WINDOWS.get(handle);
         
         Mouse.ButtonInput buttonObj = GLFW.MOUSE.buttonMap.get(Mouse.Button.get(button));
-    
+        
         buttonObj._window = window;
         buttonObj._state  = action;
         
@@ -424,7 +478,7 @@ public final class GLFW
         Window window = GLFW.WINDOWS.get(handle);
         
         Keyboard.KeyInput keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key));
-    
+        
         keyObj._window = window;
         keyObj._state  = action;
         

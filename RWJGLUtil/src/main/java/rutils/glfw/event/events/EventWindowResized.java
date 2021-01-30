@@ -3,49 +3,64 @@ package rutils.glfw.event.events;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowResized extends EventWindow
+public interface EventWindowResized extends EventWindow
 {
-    private final Vector2i size;
-    private final Vector2i rel;
+    @EventProperty
+    Vector2ic size();
     
-    public EventWindowResized(Window window, Vector2i size, Vector2i rel)
+    default int width()
     {
-        super(window);
-    
-        this.size = size;
-        this.rel  = rel;
+        return size().x();
     }
     
-    @Property
-    public Vector2ic size()
+    default int height()
     {
-        return this.size;
+        return size().y();
     }
     
-    public int width()
+    @EventProperty
+    Vector2ic rel();
+    
+    default int dWidth()
     {
-        return this.size.x;
+        return rel().x();
     }
     
-    public int height()
+    default int dHeight()
     {
-        return this.size.y;
+        return rel().y();
     }
     
-    @Property
-    public Vector2ic rel()
+    final class _EventWindowResized extends AbstractEventWindow implements EventWindowResized
     {
-        return this.rel;
+        private final Vector2i size;
+        private final Vector2i rel;
+        
+        private _EventWindowResized(Window window, Vector2ic size, Vector2ic rel)
+        {
+            super(window);
+            
+            this.size = new Vector2i(size);
+            this.rel  = new Vector2i(rel);
+        }
+        
+        @Override
+        public Vector2ic size()
+        {
+            return this.size;
+        }
+        
+        @Override
+        public Vector2ic rel()
+        {
+            return this.rel;
+        }
     }
     
-    public int dWidth()
+    static EventWindowResized create(Window window, Vector2ic pos, Vector2ic rel)
     {
-        return this.rel.x;
-    }
-    
-    public int dHeight()
-    {
-        return this.rel.y;
+        return new _EventWindowResized(window, pos, rel);
     }
 }

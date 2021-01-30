@@ -32,16 +32,15 @@ public class Gamepad extends Joystick
             
             glfwGetGamepadState(this.jid, state);
             
-            
             synchronized (this.axisMap = new LinkedHashMap<>())
             {
-                FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(this.jid), "Joystick is not connected.");
+                FloatBuffer axes = state.axes();
                 for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(Axis.get(i), new AxisInput(axes.get(i)));
             }
             
             synchronized (this.buttonMap = new LinkedHashMap<>())
             {
-                ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(this.jid), "Joystick is not connected.");
+                ByteBuffer buttons = state.buttons();
                 for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(Button.get(i), new ButtonInput(buttons.get(i)));
             }
             
@@ -79,7 +78,7 @@ public class Gamepad extends Joystick
                     {
                         float difference = axisObj._value - axisObj.value;
                         axisObj.value = axisObj._value;
-                        // GLFW.EVENT_BUS.post(new EventJoystickAxis(this, axis, axisObj.value, difference)); // TODO
+                        GLFW.EVENT_BUS.post(EventGamepadAxis.create(this, axis, axisObj.value, difference));
                     }
                 }
             }
@@ -100,36 +99,36 @@ public class Gamepad extends Joystick
                             buttonObj.held       = true;
                             buttonObj.holdTime   = time + InputDevice.holdFrequency;
                             buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            // GLFW.EVENT_BUS.post(new EventJoystickButtonDown(this, button)); // TODO
+                            GLFW.EVENT_BUS.post(EventGamepadButtonDown.create(this, button));
                         }
                         else if (buttonObj.state == GLFW_RELEASE)
                         {
                             buttonObj.held       = false;
                             buttonObj.holdTime   = Long.MAX_VALUE;
                             buttonObj.repeatTime = Long.MAX_VALUE;
-                            // GLFW.EVENT_BUS.post(new EventJoystickButtonUp(this, button)); // TODO
+                            GLFW.EVENT_BUS.post(EventGamepadButtonUp.create(this, button));
                             
                             if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                             {
                                 buttonObj.pressTime = 0;
-                                // GLFW.EVENT_BUS.post(new EventJoystickButtonPressed(this, button, true)); // TODO
+                                GLFW.EVENT_BUS.post(EventGamepadButtonPressed.create(this, button, true));
                             }
                             else
                             {
                                 buttonObj.pressTime = time;
-                                // GLFW.EVENT_BUS.post(new EventJoystickButtonPressed(this, button, false)); // TODO
+                                GLFW.EVENT_BUS.post(EventGamepadButtonPressed.create(this, button, false));
                             }
                         }
                     }
                     if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
                     {
                         buttonObj.holdTime += InputDevice.holdFrequency;
-                        // GLFW.EVENT_BUS.post(new EventJoystickButtonHeld(this, button)); // TODO
+                        GLFW.EVENT_BUS.post(EventGamepadButtonHeld.create(this, button));
                     }
                     if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
                     {
                         buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        // GLFW.EVENT_BUS.post(new EventJoystickButtonRepeated(this, button)); // TODO
+                        GLFW.EVENT_BUS.post(EventGamepadButtonRepeated.create(this, button));
                     }
                 }
             }
@@ -146,7 +145,7 @@ public class Gamepad extends Joystick
                     if (hatObj.state != hatObj._state)
                     {
                         hatObj.state = hatObj._state;
-                        GLFW.EVENT_BUS.post(new EventJoystickHat(this, hat, Hat.get(hatObj.state)));
+                        GLFW.EVENT_BUS.post(EventGamepadHat.create(this, hat, Hat.get(hatObj.state)));
                     }
                 }
             }
@@ -167,16 +166,21 @@ public class Gamepad extends Joystick
         RIGHT_TRIGGER(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),
         ;
         
-        private final int ref;
+        private final int id;
         
-        Axis(int ref)
+        Axis(int id)
         {
-            this.ref = ref;
+            this.id = id;
+        }
+    
+        public int id()
+        {
+            return this.id;
         }
         
         public static Axis get(int value)
         {
-            for (Axis hat : Axis.values()) if ((value & hat.ref) == value) return hat;
+            for (Axis hat : Axis.values()) if (hat.id == value) return hat;
             return Axis.NONE;
         }
     }
@@ -211,16 +215,21 @@ public class Gamepad extends Joystick
         TRIANGLE(GLFW_GAMEPAD_BUTTON_TRIANGLE),
         ;
         
-        private final int ref;
+        private final int id;
         
-        Button(int ref)
+        Button(int id)
         {
-            this.ref = ref;
+            this.id = id;
+        }
+        
+        public int id()
+        {
+            return this.id;
         }
         
         public static Button get(int value)
         {
-            for (Button button : Button.values()) if ((value & button.ref) == value) return button;
+            for (Button button : Button.values()) if (button.id == value) return button;
             return Button.NONE;
         }
     }

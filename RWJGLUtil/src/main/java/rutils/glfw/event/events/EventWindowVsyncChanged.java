@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowVsyncChanged extends EventWindow
+public interface EventWindowVsyncChanged extends EventWindow
 {
-    private final boolean vsync;
+    @EventProperty
+    boolean vsync();
     
-    public EventWindowVsyncChanged(Window window, boolean vsync)
+    final class _EventWindowVsyncChanged extends AbstractEventWindow implements EventWindowVsyncChanged
     {
-        super(window);
+        private final boolean vsync;
         
-        this.vsync = vsync;
+        private _EventWindowVsyncChanged(Window window, boolean vsync)
+        {
+            super(window);
+    
+            this.vsync = vsync;
+        }
+        
+        @Override
+        public boolean vsync()
+        {
+            return this.vsync;
+        }
     }
     
-    @Property
-    public boolean vsync()
+    static EventWindowVsyncChanged create(Window window, boolean maximized)
     {
-        return this.vsync;
+        return new _EventWindowVsyncChanged(window, maximized);
     }
 }

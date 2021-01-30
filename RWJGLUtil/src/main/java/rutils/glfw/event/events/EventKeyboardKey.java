@@ -2,21 +2,23 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventKeyboardKey extends EventKeyboard
+public interface EventKeyboardKey extends EventKeyboard
 {
-    private final Keyboard.Key key;
+    @EventProperty(printName = false)
+    Keyboard.Key key();
     
-    public EventKeyboardKey(Window window, Keyboard.Key key)
+    final class _EventKeyboardKey extends AbstractEventKeyboardKey implements EventKeyboardKey
     {
-        super(window);
-        
-        this.key = key;
+        private _EventKeyboardKey(Window window, Keyboard.Key key)
+        {
+            super(window, key);
+        }
     }
     
-    @Property(printName = false)
-    public Keyboard.Key key()
+    static EventKeyboardKey create(Window window, Keyboard.Key key)
     {
-        return this.key;
+        return new _EventKeyboardKey(window, key);
     }
 }

@@ -1,29 +1,44 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Joystick;
+import rutils.glfw.event.EventProperty;
 
-public class EventJoystickHat extends EventJoystick
+public interface EventJoystickHat extends EventJoystick
 {
-    private final int          hat;
-    private final Joystick.Hat state;
+    @EventProperty
+    int hat();
     
-    public EventJoystickHat(Joystick joystick, int hat, Joystick.Hat state)
+    @EventProperty
+    Joystick.Hat state();
+    
+    final class _EventJoystickHat extends AbstractEventJoystick implements EventJoystickHat
     {
-        super(joystick);
+        private final int          hat;
+        private final Joystick.Hat state;
     
-        this.hat   = hat;
-        this.state = state;
+        private _EventJoystickHat(Joystick joystick, int hat, Joystick.Hat state)
+        {
+            super(joystick);
+        
+            this.hat   = hat;
+            this.state = state;
+        }
+    
+        @Override
+        public int hat()
+        {
+            return this.hat;
+        }
+    
+        @Override
+        public Joystick.Hat state()
+        {
+            return this.state;
+        }
     }
     
-    @Property
-    public int hat()
+    static EventJoystickHat create(Joystick joystick, int hat, Joystick.Hat state)
     {
-        return this.hat;
-    }
-    
-    @Property
-    public Joystick.Hat state()
-    {
-        return this.state;
+        return new _EventJoystickHat(joystick, hat, state);
     }
 }

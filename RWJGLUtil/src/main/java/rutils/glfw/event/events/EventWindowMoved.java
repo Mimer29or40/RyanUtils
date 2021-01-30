@@ -3,49 +3,64 @@ package rutils.glfw.event.events;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowMoved extends EventWindow
+public interface EventWindowMoved extends EventWindow
 {
-    private final Vector2i pos;
-    private final Vector2i rel;
+    @EventProperty
+    Vector2ic pos();
     
-    public EventWindowMoved(Window window, Vector2i pos, Vector2i rel)
+    default int x()
     {
-        super(window);
+        return pos().x();
+    }
+    
+    default int y()
+    {
+        return pos().y();
+    }
+    
+    @EventProperty
+    Vector2ic rel();
+    
+    default int dx()
+    {
+        return rel().x();
+    }
+    
+    default int dy()
+    {
+        return rel().y();
+    }
+    
+    final class _EventWindowMoved extends AbstractEventWindow implements EventWindowMoved
+    {
+        private final Vector2i pos;
+        private final Vector2i rel;
         
-        this.pos = pos;
-        this.rel = rel;
+        private _EventWindowMoved(Window window, Vector2ic pos, Vector2ic rel)
+        {
+            super(window);
+            
+            this.pos = new Vector2i(pos);
+            this.rel = new Vector2i(rel);
+        }
+        
+        @Override
+        public Vector2ic pos()
+        {
+            return this.pos;
+        }
+        
+        @Override
+        public Vector2ic rel()
+        {
+            return this.rel;
+        }
     }
     
-    @Property
-    public Vector2ic pos()
+    static EventWindowMoved create(Window window, Vector2ic pos, Vector2ic rel)
     {
-        return this.pos;
-    }
-    
-    public int x()
-    {
-        return this.pos.x;
-    }
-    
-    public int y()
-    {
-        return this.pos.y;
-    }
-    
-    @Property
-    public Vector2ic rel()
-    {
-        return this.rel;
-    }
-    
-    public int dx()
-    {
-        return this.rel.x;
-    }
-    
-    public int dy()
-    {
-        return this.rel.y;
+        return new _EventWindowMoved(window, pos, rel);
     }
 }

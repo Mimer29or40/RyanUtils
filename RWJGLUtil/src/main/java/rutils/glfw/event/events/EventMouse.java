@@ -2,10 +2,18 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
 
-public class EventMouse extends EventInput
+public interface EventMouse extends EventInput
 {
-    public EventMouse(Window window)
+    final class _EventMouse extends AbstractEventInput implements EventMouse
     {
-        super(window);
+        private _EventMouse(Window window)
+        {
+            super(window);
+        }
+    }
+    
+    static EventMouse create(Window window)
+    {
+        return new _EventMouse(window);
     }
 }

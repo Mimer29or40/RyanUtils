@@ -1,37 +1,55 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Joystick;
+import rutils.glfw.event.EventProperty;
 
-public class EventJoystickAxis extends EventJoystick
+public interface EventJoystickAxis extends EventJoystick
 {
-    private final int    axis;
-    private final double value;
-    private final double delta;
+    @EventProperty
+    int axis();
     
-    public EventJoystickAxis(Joystick joystick, int axis, double value, double delta)
+    @EventProperty
+    double value();
+    
+    @EventProperty
+    double delta();
+    
+    final class _EventJoystickAxis extends AbstractEventJoystick implements EventJoystickAxis
     {
-        super(joystick);
+        private final int    axis;
+        private final double value;
+        private final double delta;
+    
+        private _EventJoystickAxis(Joystick joystick, int axis, double value, double delta)
+        {
+            super(joystick);
         
-        this.axis  = axis;
-        this.value = value;
-        this.delta = delta;
+            this.axis  = axis;
+            this.value = value;
+            this.delta = delta;
+        }
+    
+        @Override
+        public int axis()
+        {
+            return this.axis;
+        }
+    
+        @Override
+        public double value()
+        {
+            return this.value;
+        }
+    
+        @Override
+        public double delta()
+        {
+            return this.delta;
+        }
     }
     
-    @Property
-    public int axis()
+    static EventJoystickAxis create(Joystick joystick, int axis, double value, double delta)
     {
-        return this.axis;
-    }
-    
-    @Property
-    public double value()
-    {
-        return this.value;
-    }
-    
-    @Property
-    public double delta()
-    {
-        return this.delta;
+        return new _EventJoystickAxis(joystick, axis, value, delta);
     }
 }

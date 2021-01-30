@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowFocused extends EventWindow
+public interface EventWindowFocused extends EventWindow
 {
-    private final boolean focused;
+    @EventProperty
+    boolean focused();
     
-    public EventWindowFocused(Window window, boolean focused)
+    final class _EventWindowFocused extends AbstractEventWindow implements EventWindowFocused
     {
-        super(window);
+        private final boolean focused;
+    
+        private _EventWindowFocused(Window window, boolean focused)
+        {
+            super(window);
         
-        this.focused = focused;
+            this.focused = focused;
+        }
+    
+        @Override
+        public boolean focused()
+        {
+            return this.focused;
+        }
     }
     
-    @Property
-    public boolean focused()
+    static EventWindowFocused create(Window window, boolean focused)
     {
-        return this.focused;
+        return new _EventWindowFocused(window, focused);
     }
 }

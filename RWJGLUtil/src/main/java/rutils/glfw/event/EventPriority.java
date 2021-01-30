@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.glfw.event.events.Event;
 
-public enum GLFWEventPriority implements IGLFWEventListener
+public enum EventPriority implements IEventListener
 {
     /**
      * Priority of event listeners, listeners will be sorted with respect to this priority level.

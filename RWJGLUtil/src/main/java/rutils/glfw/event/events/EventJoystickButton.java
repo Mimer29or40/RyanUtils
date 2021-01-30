@@ -1,21 +1,23 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Joystick;
+import rutils.glfw.event.EventProperty;
 
-public class EventJoystickButton extends EventJoystick
+public interface EventJoystickButton extends EventJoystick
 {
-    private final int button;
+    @EventProperty
+    int button();
     
-    public EventJoystickButton(Joystick joystick, int button)
+    final class _EventJoystickButton extends AbstractEventJoystickButton implements EventJoystickButton
     {
-        super(joystick);
-    
-        this.button = button;
+        private _EventJoystickButton(Joystick joystick, int button)
+        {
+            super(joystick, button);
+        }
     }
     
-    @Property
-    public int button()
+    static EventJoystickButton create(Joystick joystick, int button)
     {
-        return this.button;
+        return new _EventJoystickButton(joystick, button);
     }
 }

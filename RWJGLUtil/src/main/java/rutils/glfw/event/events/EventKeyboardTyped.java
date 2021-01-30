@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventKeyboardTyped extends EventKeyboard
+public interface EventKeyboardTyped extends EventKeyboard
 {
-    private final String typed;
+    @EventProperty
+    String typed();
     
-    public EventKeyboardTyped(Window window, String typed)
+    final class _EventKeyboardTyped extends AbstractEventInput implements EventKeyboardTyped
     {
-        super(window);
+        private final String typed;
     
-        this.typed = typed;
+        private _EventKeyboardTyped(Window window, String typed)
+        {
+            super(window);
+        
+            this.typed = typed;
+        }
+    
+        @Override
+        public String typed()
+        {
+            return this.typed;
+        }
     }
     
-    @Property
-    public String typed()
+    static EventKeyboardTyped create(Window window, String typed)
     {
-        return this.typed;
+        return new _EventKeyboardTyped(window, typed);
     }
 }

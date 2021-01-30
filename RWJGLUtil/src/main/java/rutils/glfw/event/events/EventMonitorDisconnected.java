@@ -2,10 +2,18 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Monitor;
 
-public class EventMonitorDisconnected extends EventMonitor
+public interface EventMonitorDisconnected extends EventMonitor
 {
-    public EventMonitorDisconnected(Monitor monitor)
+    final class _EventMonitorDisconnected extends AbstractEventMonitor implements EventMonitorDisconnected
     {
-        super(monitor);
+        private _EventMonitorDisconnected(Monitor monitor)
+        {
+            super(monitor);
+        }
+    }
+    
+    static EventMonitorDisconnected create(Monitor monitor)
+    {
+        return new _EventMonitorDisconnected(monitor);
     }
 }

@@ -1,19 +1,24 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Monitor;
+import rutils.glfw.Monitor;
+import rutils.glfw.event.EventProperty;
 
-public class EventMonitor extends Event
+public interface EventMonitor extends Event
 {
-    private final Monitor monitor;
+    @EventProperty(printName = false)
+    Monitor monitor();
     
-    public EventMonitor(Monitor monitor)
+    final class _EventMonitor extends AbstractEventMonitor implements EventMonitor
     {
-        this.monitor = monitor;
+        private _EventMonitor(Monitor monitor)
+        {
+            super(monitor);
+        }
     }
     
-    @Property(printName = false)
-    public Monitor monitor()
+    static EventMonitor create(Monitor monitor)
     {
-        return this.monitor;
+        return new _EventMonitor(monitor);
     }
 }

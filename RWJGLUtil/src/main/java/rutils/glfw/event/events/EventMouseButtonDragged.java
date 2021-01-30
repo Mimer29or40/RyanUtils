@@ -4,49 +4,64 @@ import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventMouseButtonDragged extends EventMouseButton
+public interface EventMouseButtonDragged extends EventMouseButton
 {
-    private final Vector2d rel;
-    private final Vector2d dragStart;
+    @EventProperty
+    Vector2dc rel();
     
-    public EventMouseButtonDragged(Window window, Mouse.Button button, Vector2d pos, Vector2d rel, Vector2d dragStart)
+    default double dx()
     {
-        super(window, button, pos);
-    
-        this.rel = rel;
-        this.dragStart = dragStart;
+        return this.rel().x();
     }
     
-    @Property
-    public Vector2dc rel()
+    default double dy()
     {
-        return this.rel;
+        return this.rel().y();
     }
     
-    public double dx()
+    @EventProperty
+    Vector2dc dragStart();
+    
+    default double dragStartX()
     {
-        return this.rel.x;
+        return this.dragStart().x();
     }
     
-    public double dy()
+    default double dragStartY()
     {
-        return this.rel.y;
+        return this.dragStart().y();
     }
     
-    @Property
-    public Vector2dc dragStart()
+    final class _EventMouseButtonDragged extends AbstractEventMouseButton implements EventMouseButtonDragged
     {
-        return this.dragStart;
+        private final Vector2d rel;
+        private final Vector2d dragStart;
+        
+        private _EventMouseButtonDragged(Window window, Mouse.Button button, Vector2dc pos, Vector2dc rel, Vector2dc dragStart)
+        {
+            super(window, button, pos);
+            
+            this.rel       = new Vector2d(rel);
+            this.dragStart = new Vector2d(dragStart);
+        }
+        
+        @Override
+        public Vector2dc rel()
+        {
+            return this.rel;
+        }
+        
+        @Override
+        public Vector2dc dragStart()
+        {
+            return this.dragStart;
+        }
     }
     
-    public double dragStartX()
+    static EventMouseButtonDragged create(Window window, Mouse.Button button, Vector2dc pos, Vector2dc rel, Vector2dc dragStart)
     {
-        return this.dragStart.x;
-    }
-    
-    public double dragStartY()
-    {
-        return this.dragStart.y;
+        return new _EventMouseButtonDragged(window, button, pos, rel, dragStart);
     }
 }

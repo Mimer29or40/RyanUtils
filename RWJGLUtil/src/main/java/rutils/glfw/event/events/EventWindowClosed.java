@@ -2,10 +2,18 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
 
-public class EventWindowClosed extends EventWindow
+public interface EventWindowClosed extends EventWindow
 {
-    public EventWindowClosed(Window window)
+    final class _EventWindowClosed extends AbstractEventWindow implements EventWindowClosed
     {
-        super(window);
+        private _EventWindowClosed(Window window)
+        {
+            super(window);
+        }
+    }
+    
+    static EventWindowClosed create(Window window)
+    {
+        return new _EventWindowClosed(window);
     }
 }

@@ -2,10 +2,18 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
 
-public class EventWindowRefreshed extends EventWindow
+public interface EventWindowRefreshed extends EventWindow
 {
-    public EventWindowRefreshed(Window window)
+    final class _EventWindowRefreshed extends AbstractEventWindow implements EventWindowRefreshed
     {
-        super(window);
+        private _EventWindowRefreshed(Window window)
+        {
+            super(window);
+        }
+    }
+    
+    static EventWindowRefreshed create(Window window)
+    {
+        return new _EventWindowRefreshed(window);
     }
 }

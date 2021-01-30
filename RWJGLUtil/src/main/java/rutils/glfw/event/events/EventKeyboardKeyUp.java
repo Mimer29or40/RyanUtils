@@ -3,10 +3,18 @@ package rutils.glfw.event.events;
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
-public class EventKeyboardKeyUp extends EventKeyboardKey
+public interface EventKeyboardKeyUp extends EventKeyboardKey
 {
-    public EventKeyboardKeyUp(Window window, Keyboard.Key key)
+    final class _EventKeyboardKeyUp extends AbstractEventKeyboardKey implements EventKeyboardKeyUp
     {
-        super(window, key);
+        private _EventKeyboardKeyUp(Window window, Keyboard.Key key)
+        {
+            super(window, key);
+        }
+    }
+    
+    static EventKeyboardKeyUp create(Window window, Keyboard.Key key)
+    {
+        return new _EventKeyboardKeyUp(window, key);
     }
 }

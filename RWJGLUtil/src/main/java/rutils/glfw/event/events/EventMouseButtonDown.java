@@ -1,13 +1,21 @@
 package rutils.glfw.event.events;
 
-import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-public class EventMouseButtonDown extends EventMouseButton
+public interface EventMouseButtonDown extends EventMouseButton
 {
-    public EventMouseButtonDown(Window window, Mouse.Button button, Vector2d pos)
+    final class _EventMouseButtonDown extends AbstractEventMouseButton implements EventMouseButtonDown
     {
-        super(window, button, pos);
+        private _EventMouseButtonDown(Window window, Mouse.Button button, Vector2dc pos)
+        {
+            super(window, button, pos);
+        }
+    }
+    
+    static EventMouseButtonDown create(Window window, Mouse.Button button, Vector2dc pos)
+    {
+        return new _EventMouseButtonDown(window, button, pos);
     }
 }

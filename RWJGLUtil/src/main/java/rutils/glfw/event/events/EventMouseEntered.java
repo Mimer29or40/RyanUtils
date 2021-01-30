@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventMouseEntered extends EventMouse
+public interface EventMouseEntered extends EventMouse
 {
-    private final boolean entered;
+    @EventProperty
+    boolean entered();
     
-    public EventMouseEntered(Window window, boolean entered)
+    final class _EventMouseEntered extends AbstractEventInput implements EventMouseEntered
     {
-        super(window);
+        private final boolean entered;
         
-        this.entered = entered;
+        private _EventMouseEntered(Window window, boolean entered)
+        {
+            super(window);
+            
+            this.entered = entered;
+        }
+        
+        @Override
+        public boolean entered()
+        {
+            return this.entered;
+        }
     }
     
-    @Property
-    public boolean entered()
+    static EventMouseEntered create(Window window, boolean entered)
     {
-        return this.entered;
+        return new _EventMouseEntered(window, entered);
     }
 }

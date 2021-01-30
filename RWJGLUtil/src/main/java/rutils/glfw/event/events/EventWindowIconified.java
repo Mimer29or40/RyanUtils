@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowIconified extends EventWindow
+public interface EventWindowIconified extends EventWindow
 {
-    private final boolean iconified;
+    @EventProperty
+    boolean iconified();
     
-    public EventWindowIconified(Window window, boolean iconified)
+    final class _EventWindowIconified extends AbstractEventWindow implements EventWindowIconified
     {
-        super(window);
+        private final boolean iconified;
+        
+        private _EventWindowIconified(Window window, boolean iconified)
+        {
+            super(window);
     
-        this.iconified = iconified;
+            this.iconified = iconified;
+        }
+        
+        @Override
+        public boolean iconified()
+        {
+            return this.iconified;
+        }
     }
     
-    @Property
-    public boolean iconified()
+    static EventWindowIconified create(Window window, boolean iconified)
     {
-        return this.iconified;
+        return new _EventWindowIconified(window, iconified);
     }
 }

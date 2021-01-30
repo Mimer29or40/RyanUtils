@@ -1,23 +1,35 @@
 package rutils.glfw.event.events;
 
-import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventMouseButtonPressed extends EventMouseButton
+public interface EventMouseButtonPressed extends EventMouseButton
 {
-    private final boolean doublePressed;
+    @EventProperty
+    boolean doublePressed();
     
-    public EventMouseButtonPressed(Window window, Mouse.Button button, Vector2d pos, boolean doublePressed)
+    final class _EventMouseButtonPressed extends AbstractEventMouseButton implements EventMouseButtonPressed
     {
-        super(window, button, pos);
-    
-        this.doublePressed = doublePressed;
+        private final boolean doublePressed;
+        
+        private _EventMouseButtonPressed(Window window, Mouse.Button button, Vector2dc pos, boolean doublePressed)
+        {
+            super(window, button, pos);
+            
+            this.doublePressed = doublePressed;
+        }
+        
+        @Override
+        public boolean doublePressed()
+        {
+            return this.doublePressed;
+        }
     }
     
-    @Property
-    public boolean doublePressed()
+    static EventMouseButtonPressed create(Window window, Mouse.Button button, Vector2dc pos, boolean doublePressed)
     {
-        return this.doublePressed;
+        return new _EventMouseButtonPressed(window, button, pos, doublePressed);
     }
 }

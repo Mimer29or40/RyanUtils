@@ -2,21 +2,33 @@ package rutils.glfw.event.events;
 
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventKeyboardKeyPressed extends EventKeyboardKey
+public interface EventKeyboardKeyPressed extends EventKeyboardKey
 {
-    private final boolean doublePressed;
+    @EventProperty
+    boolean doublePressed();
     
-    public EventKeyboardKeyPressed(Window window, Keyboard.Key key, boolean doublePressed)
+    final class _EventKeyboardKeyPressed extends AbstractEventKeyboardKey implements EventKeyboardKeyPressed
     {
-        super(window, key);
+        private final boolean doublePressed;
     
-        this.doublePressed = doublePressed;
+        private _EventKeyboardKeyPressed(Window window, Keyboard.Key key, boolean doublePressed)
+        {
+            super(window, key);
+    
+            this.doublePressed = doublePressed;
+        }
+    
+        @Override
+        public boolean doublePressed()
+        {
+            return this.doublePressed;
+        }
     }
     
-    @Property
-    public boolean doublePressed()
+    static EventKeyboardKeyPressed create(Window window, Keyboard.Key key, boolean doublePressed)
     {
-        return this.doublePressed;
+        return new _EventKeyboardKeyPressed(window, key, doublePressed);
     }
 }

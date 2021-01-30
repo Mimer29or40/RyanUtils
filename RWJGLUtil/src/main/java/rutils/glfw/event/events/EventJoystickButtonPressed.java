@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Joystick;
+import rutils.glfw.event.EventProperty;
 
-public class EventJoystickButtonPressed extends EventJoystickButton
+public interface EventJoystickButtonPressed extends EventJoystickButton
 {
-    private final boolean doublePressed;
+    @EventProperty
+    boolean doublePressed();
     
-    public EventJoystickButtonPressed(Joystick joystick, int button, boolean doublePressed)
+    final class _EventJoystickButtonPressed extends AbstractEventJoystickButton implements EventJoystickButtonPressed
     {
-        super(joystick, button);
+        private final boolean doublePressed;
+    
+        private _EventJoystickButtonPressed(Joystick joystick, int button, boolean doublePressed)
+        {
+            super(joystick, button);
+            
+            this.doublePressed = doublePressed;
+        }
         
-        this.doublePressed = doublePressed;
+        @Override
+        public boolean doublePressed()
+        {
+            return this.doublePressed;
+        }
     }
     
-    @Property
-    public boolean doublePressed()
+    static EventJoystickButtonPressed create(Joystick joystick, int button, boolean doublePressed)
     {
-        return this.doublePressed;
+        return new _EventJoystickButtonPressed(joystick, button, doublePressed);
     }
 }

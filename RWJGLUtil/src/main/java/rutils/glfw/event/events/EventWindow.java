@@ -1,19 +1,23 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindow extends Event
+public interface EventWindow extends Event
 {
-    private final Window window;
+    @EventProperty(printName = false)
+    Window window();
     
-    public EventWindow(Window window)
+    final class _EventWindow extends AbstractEventWindow implements EventWindow
     {
-        this.window = window;
+        private _EventWindow(Window window)
+        {
+            super(window);
+        }
     }
     
-    @Property(printName = false)
-    public Window window()
+    static EventWindow create(Window window)
     {
-        return this.window;
+        return new _EventWindow(window);
     }
 }

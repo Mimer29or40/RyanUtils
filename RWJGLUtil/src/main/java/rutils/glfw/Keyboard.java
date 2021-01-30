@@ -76,7 +76,7 @@ public class Keyboard extends InputDevice
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
-            GLFW.EVENT_BUS.post(new EventKeyboardTyped(charChange.getA(), charChange.getB()));
+            GLFW.EVENT_BUS.post(EventKeyboardTyped.create(charChange.getA(), charChange.getB()));
         }
     
         synchronized (this.keyMap)
@@ -92,24 +92,24 @@ public class Keyboard extends InputDevice
                         keyObj.held       = true;
                         keyObj.holdTime   = time + InputDevice.holdFrequency;
                         keyObj.repeatTime = time + InputDevice.repeatDelay;
-                        GLFW.EVENT_BUS.post(new EventKeyboardKeyDown(keyObj._window, key));
+                        GLFW.EVENT_BUS.post(EventKeyboardKeyDown.create(keyObj._window, key));
                     }
                     else if (keyObj._state == GLFW_RELEASE)
                     {
                         keyObj.held       = false;
                         keyObj.holdTime   = Long.MAX_VALUE;
                         keyObj.repeatTime = Long.MAX_VALUE;
-                        GLFW.EVENT_BUS.post(new EventKeyboardKeyUp(keyObj._window, key));
+                        GLFW.EVENT_BUS.post(EventKeyboardKeyUp.create(keyObj._window, key));
                     
                         if (time - keyObj.pressTime < InputDevice.doublePressedDelay)
                         {
                             keyObj.pressTime = 0;
-                            GLFW.EVENT_BUS.post(new EventKeyboardKeyPressed(keyObj._window, key, true));
+                            GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(keyObj._window, key, true));
                         }
                         else
                         {
                             keyObj.pressTime = time;
-                            GLFW.EVENT_BUS.post(new EventKeyboardKeyPressed(keyObj._window, key, false));
+                            GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(keyObj._window, key, false));
                         }
                     }
                     keyObj.state = keyObj._state;
@@ -117,12 +117,12 @@ public class Keyboard extends InputDevice
                 if (keyObj.held && time - keyObj.holdTime >= InputDevice.holdFrequency)
                 {
                     keyObj.holdTime += InputDevice.holdFrequency;
-                    GLFW.EVENT_BUS.post(new EventKeyboardKeyHeld(keyObj._window, key));
+                    GLFW.EVENT_BUS.post(EventKeyboardKeyHeld.create(keyObj._window, key));
                 }
                 if (time - keyObj.repeatTime > InputDevice.repeatFrequency)
                 {
                     keyObj.repeatTime += InputDevice.repeatFrequency;
-                    GLFW.EVENT_BUS.post(new EventKeyboardKeyRepeated(keyObj._window, key));
+                    GLFW.EVENT_BUS.post(EventKeyboardKeyRepeated.create(keyObj._window, key));
                 }
             }
         }

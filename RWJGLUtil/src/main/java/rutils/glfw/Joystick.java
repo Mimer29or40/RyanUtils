@@ -91,7 +91,7 @@ public class Joystick extends InputDevice
                     {
                         float difference = axisObj._value - axisObj.value;
                         axisObj.value = axisObj._value;
-                        GLFW.EVENT_BUS.post(new EventJoystickAxis(this, axis, axisObj.value, difference));
+                        GLFW.EVENT_BUS.post(EventJoystickAxis.create(this, axis, axisObj.value, difference));
                     }
                 }
             }
@@ -112,36 +112,36 @@ public class Joystick extends InputDevice
                             buttonObj.held       = true;
                             buttonObj.holdTime   = time + InputDevice.holdFrequency;
                             buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            GLFW.EVENT_BUS.post(new EventJoystickButtonDown(this, button));
+                            GLFW.EVENT_BUS.post(EventJoystickButtonDown.create(this, button));
                         }
                         else if (buttonObj.state == GLFW_RELEASE)
                         {
                             buttonObj.held       = false;
                             buttonObj.holdTime   = Long.MAX_VALUE;
                             buttonObj.repeatTime = Long.MAX_VALUE;
-                            GLFW.EVENT_BUS.post(new EventJoystickButtonUp(this, button));
+                            GLFW.EVENT_BUS.post(EventJoystickButtonUp.create(this, button));
                             
                             if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                             {
                                 buttonObj.pressTime = 0;
-                                GLFW.EVENT_BUS.post(new EventJoystickButtonPressed(this, button, true));
+                                GLFW.EVENT_BUS.post(EventJoystickButtonPressed.create(this, button, true));
                             }
                             else
                             {
                                 buttonObj.pressTime = time;
-                                GLFW.EVENT_BUS.post(new EventJoystickButtonPressed(this, button, false));
+                                GLFW.EVENT_BUS.post(EventJoystickButtonPressed.create(this, button, false));
                             }
                         }
                     }
                     if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
                     {
                         buttonObj.holdTime += InputDevice.holdFrequency;
-                        GLFW.EVENT_BUS.post(new EventJoystickButtonHeld(this, button));
+                        GLFW.EVENT_BUS.post(EventJoystickButtonHeld.create(this, button));
                     }
                     if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
                     {
                         buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        GLFW.EVENT_BUS.post(new EventJoystickButtonRepeated(this, button));
+                        GLFW.EVENT_BUS.post(EventJoystickButtonRepeated.create(this, button));
                     }
                 }
             }
@@ -158,7 +158,7 @@ public class Joystick extends InputDevice
                     if (hatObj.state != hatObj._state)
                     {
                         hatObj.state = hatObj._state;
-                        GLFW.EVENT_BUS.post(new EventJoystickHat(this, hat, Hat.get(hatObj.state)));
+                        GLFW.EVENT_BUS.post(EventJoystickHat.create(this, hat, Hat.get(hatObj.state)));
                     }
                 }
             }

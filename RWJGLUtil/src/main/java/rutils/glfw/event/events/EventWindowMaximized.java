@@ -1,21 +1,33 @@
 package rutils.glfw.event.events;
 
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowMaximized extends EventWindow
+public interface EventWindowMaximized extends EventWindow
 {
-    private final boolean maximized;
+    @EventProperty
+    boolean maximized();
     
-    public EventWindowMaximized(Window window, boolean maximized)
+    final class _EventWindowMaximized extends AbstractEventWindow implements EventWindowMaximized
     {
-        super(window);
-    
-        this.maximized = maximized;
+        private final boolean maximized;
+        
+        private _EventWindowMaximized(Window window, boolean maximized)
+        {
+            super(window);
+            
+            this.maximized = maximized;
+        }
+        
+        @Override
+        public boolean maximized()
+        {
+            return this.maximized;
+        }
     }
     
-    @Property
-    public boolean maximized()
+    static EventWindowMaximized create(Window window, boolean maximized)
     {
-        return this.maximized;
+        return new _EventWindowMaximized(window, maximized);
     }
 }

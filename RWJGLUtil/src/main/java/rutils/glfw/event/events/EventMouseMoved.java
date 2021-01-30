@@ -3,49 +3,64 @@ package rutils.glfw.event.events;
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventMouseMoved extends EventMouse
+public interface EventMouseMoved extends EventMouse
 {
-    private final Vector2d pos;
-    private final Vector2d rel;
+    @EventProperty
+    Vector2dc pos();
     
-    public EventMouseMoved(Window window, Vector2d pos, Vector2d rel)
+    default double x()
     {
-        super(window);
+        return pos().x();
+    }
+    
+    default double y()
+    {
+        return pos().y();
+    }
+    
+    @EventProperty
+    Vector2dc rel();
+    
+    default double dx()
+    {
+        return rel().x();
+    }
+    
+    default double dy()
+    {
+        return rel().y();
+    }
+    
+    final class _EventMouseMoved extends AbstractEventInput implements EventMouseMoved
+    {
+        private final Vector2d pos;
+        private final Vector2d rel;
         
-        this.pos = pos;
-        this.rel = rel;
+        private _EventMouseMoved(Window window, Vector2dc pos, Vector2dc rel)
+        {
+            super(window);
+            
+            this.pos = new Vector2d(pos);
+            this.rel = new Vector2d(rel);
+        }
+        
+        @Override
+        public Vector2dc pos()
+        {
+            return this.pos;
+        }
+        
+        @Override
+        public Vector2dc rel()
+        {
+            return this.rel;
+        }
     }
     
-    @Property
-    public Vector2dc pos()
+    static EventMouseMoved create(Window window, Vector2dc pos, Vector2dc rel)
     {
-        return this.pos;
-    }
-    
-    public double x()
-    {
-        return this.pos.x;
-    }
-    
-    public double y()
-    {
-        return this.pos.y;
-    }
-    
-    @Property
-    public Vector2dc rel()
-    {
-        return this.rel;
-    }
-    
-    public double dx()
-    {
-        return this.rel.x;
-    }
-    
-    public double dy()
-    {
-        return this.rel.y;
+        return new _EventMouseMoved(window, pos, rel);
     }
 }

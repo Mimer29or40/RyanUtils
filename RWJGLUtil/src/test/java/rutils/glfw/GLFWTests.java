@@ -129,7 +129,7 @@ public class GLFWTests
             //                     // {
             //                     //     for (EngineEvent event : EngineEvents.get())
             //                     //     {
-            //                     //         GLFWTests.LOGGER.finer("State Handing SubscribeGLFWEvent:", event);
+            //                     //         GLFWTests.LOGGER.finer("State Handing SubscribeEvent:", event);
             //                     //
             //                     //         Application.state.handleEvent(d_t, d_dt, event);
             //                     //     }

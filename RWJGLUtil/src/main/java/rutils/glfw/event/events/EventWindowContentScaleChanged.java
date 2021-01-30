@@ -3,49 +3,64 @@ package rutils.glfw.event.events;
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import rutils.glfw.Window;
+import rutils.glfw.event.EventProperty;
 
-public class EventWindowContentScaleChanged extends EventWindow
+public interface EventWindowContentScaleChanged extends EventWindow
 {
-    private final Vector2d scale;
-    private final Vector2d rel;
+    @EventProperty
+    Vector2dc contentScale();
     
-    public EventWindowContentScaleChanged(Window window, Vector2d scale, Vector2d rel)
+    default double contentScaleX()
     {
-        super(window);
+        return contentScale().x();
+    }
+    
+    default double contentScaleY()
+    {
+        return contentScale().y();
+    }
+    
+    @EventProperty
+    Vector2dc rel();
+    
+    default double dx()
+    {
+        return rel().x();
+    }
+    
+    default double dy()
+    {
+        return rel().y();
+    }
+    
+    final class _EventWindowContentScaleChanged extends AbstractEventWindow implements EventWindowContentScaleChanged
+    {
+        private final Vector2d scale;
+        private final Vector2d rel;
+    
+        private _EventWindowContentScaleChanged(Window window, Vector2d scale, Vector2d rel)
+        {
+            super(window);
         
-        this.scale = scale;
-        this.rel   = rel;
+            this.scale = new Vector2d(scale);
+            this.rel   = new Vector2d(rel);
+        }
+    
+        @Override
+        public Vector2dc contentScale()
+        {
+            return this.scale;
+        }
+    
+        @Override
+        public Vector2dc rel()
+        {
+            return this.rel;
+        }
     }
     
-    @Property
-    public Vector2dc contentScale()
+    static EventWindowContentScaleChanged create(Window window, Vector2d scale, Vector2d rel)
     {
-        return this.scale;
-    }
-    
-    public double contentScaleX()
-    {
-        return this.scale.x;
-    }
-    
-    public double contentScaleY()
-    {
-        return this.scale.y;
-    }
-    
-    @Property
-    public Vector2dc rel()
-    {
-        return this.rel;
-    }
-    
-    public double dx()
-    {
-        return this.rel.x;
-    }
-    
-    public double dy()
-    {
-        return this.rel.y;
+        return new _EventWindowContentScaleChanged(window, scale, rel);
     }
 }

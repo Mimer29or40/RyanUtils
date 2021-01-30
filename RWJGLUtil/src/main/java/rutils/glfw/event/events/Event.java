@@ -2,37 +2,26 @@ package rutils.glfw.event.events;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import rutils.ClassUtil;
-import rutils.StringUtil;
-import rutils.glfw.event.GLFWEventPriority;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import rutils.glfw.event.EventProperty;
+import rutils.glfw.event.EventPriority;
 
 public interface Event
 {
-    @Property
+    @EventProperty
     double time();
     
     @Nullable
-    GLFWEventPriority getPhase();
+    EventPriority getPhase();
     
-    void setPhase(@NotNull GLFWEventPriority value);
+    void setPhase(@NotNull EventPriority value);
     
-    @Retention(value = RUNTIME)
-    @Target(value = METHOD)
-    @interface Property
+    final class _Event extends AbstractEvent implements Event
     {
-        boolean printName() default true;
+        private _Event() {}
+    }
+    
+    static Event create()
+    {
+        return new _Event();
     }
 }
