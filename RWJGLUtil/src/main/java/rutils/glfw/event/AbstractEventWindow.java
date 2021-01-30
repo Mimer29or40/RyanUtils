@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-public abstract class AbstractEventWindow extends AbstractEvent implements EventWindow
+abstract class AbstractEventWindow extends AbstractEvent implements EventWindow
 {
     private final Window window;
     

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
-public abstract class AbstractEvent implements Event
+abstract class AbstractEvent implements Event
 {
     private static final Map<Class<? extends Event>, Set<Method>> METHOD_CACHE = new ConcurrentHashMap<>();
     

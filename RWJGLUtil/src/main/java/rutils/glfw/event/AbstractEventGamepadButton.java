@@ -2,11 +2,11 @@ package rutils.glfw.event;
 
 import rutils.glfw.Gamepad;
 
-public abstract class AbstractEventGamepadButton extends AbstractEventJoystickButton implements EventGamepadButton
+abstract class AbstractEventGamepadButton extends AbstractEventJoystickButton implements EventGamepadButton
 {
     private final Gamepad.Button button;
     
-    public AbstractEventGamepadButton(Gamepad gamepad, Gamepad.Button button)
+    AbstractEventGamepadButton(Gamepad gamepad, Gamepad.Button button)
     {
         super(gamepad, button.id());
     
@@ -15,7 +15,7 @@ public abstract class AbstractEventGamepadButton extends AbstractEventJoystickBu
     
     public Gamepad gamepad()
     {
-        return (Gamepad) this.joystick;
+        return (Gamepad) joystick();
     }
     
     public Gamepad.Button gamepadButton()
