@@ -1,5 +1,6 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWGamepadState;
@@ -7,6 +8,7 @@ import org.lwjgl.system.APIUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import rutils.IOUtil;
 import rutils.Logger;
 import rutils.TaskDelegator;
 import rutils.glfw.event.EventJoystickConnected;
@@ -68,7 +70,6 @@ public final class GLFW
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
         GLFW.TASK_DELEGATOR.setThread();
-        GLFW.EVENT_BUS.start();
         
         glfwSetErrorCallback(GLFW::errorCallback);
         glfwSetMonitorCallback(GLFW::monitorCallback);
@@ -84,6 +85,8 @@ public final class GLFW
         loadJoysticks();
         
         GLFW.SUPPORT_RAW_MOUSE_MOTION = glfwRawMouseMotionSupported();
+    
+        GLFW.EVENT_BUS.start();
     }
     
     public static void eventLoop()
@@ -91,7 +94,9 @@ public final class GLFW
         while (GLFW.WINDOWS.size() > 1)
         {
             glfwPollEvents();
-            
+    
+            GLFW.TASK_DELEGATOR.runTasks();
+    
             synchronized (GLFW.JOYSTICKS)
             {
                 for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
@@ -175,8 +180,6 @@ public final class GLFW
                     }
                 }
             }
-            
-            GLFW.TASK_DELEGATOR.runTasks();
             
             ArrayList<Long> toRemove = new ArrayList<>();
             GLFW.WINDOWS.values().forEach(w -> {
@@ -266,11 +269,39 @@ public final class GLFW
         glfwSetCharCallback(handle, GLFW::charCallback);
     }
     
-    // -------------------- ButtonInput -------------------- //
+    // -------------------- Input -------------------- //
     
     public static boolean supportRawMouseInput()
     {
         return GLFW.SUPPORT_RAW_MOUSE_MOTION;
+    }
+    
+    /**
+     * Adds the specified SDL_GameControllerDB gamepad mappings.
+     * <p>
+     * This function parses the specified ASCII encoded string and updates
+     * the internal list with any gamepad mappings it finds. This string may
+     * contain either a single gamepad mapping or many mappings separated by
+     * newlines. The parser supports the full format of the
+     * {@code gamecontrollerdb.txt} source file including empty lines and
+     * comments.
+     * <p>
+     * See
+     * <a target="_blank" href="http://www.glfw.org/docs/latest/input.html#gamepad_mapping">gamepad_mapping</a>
+     * for a description of the format.
+     * <p>
+     * If there is already a gamepad mapping for a given GUID in the internal
+     * list, it will be replaced by the one passed to this function. If the
+     * library is terminated and re-initialized the internal list will revert
+     * to the built-in default.
+     *
+     * @param filePath the path to the file containing the gamepad mappings
+     * @return {@code true}, or {@code false} if an error occurred
+     */
+    @SuppressWarnings("ConstantConditions")
+    public static boolean loadControllerMapping(String filePath)
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwUpdateGamepadMappings(IOUtil.resourceToByteBuffer(filePath)));
     }
     
     public static Mouse mouse()
@@ -299,6 +330,31 @@ public final class GLFW
     public static Joystick getJoystick(int index)
     {
         return GLFW.JOYSTICKS.getOrDefault(index, null);
+    }
+    
+    /**
+     * Returns the contents of the system clipboard, if it contains or is
+     * convertible to a UTF-8 encoded string. If the clipboard is empty or if
+     * its contents cannot be converted, {@code NULL} is returned and a
+     * {@link org.lwjgl.glfw.GLFW#GLFW_FORMAT_UNAVAILABLE FORMAT_UNAVAILABLE}
+     * error is generated.
+     *
+     * @return the contents of the clipboard as a UTF-8 encoded string, or {@code null} if an error occurred
+     */
+    @Nullable
+    public static String getClipboardString()
+    {
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetClipboardString(0L));
+    }
+    
+    /**
+     * Sets the system clipboard to the specified, UTF-8 encoded string.
+     *
+     * @param string a UTF-8 encoded string
+     */
+    public static void setClipboardString(CharSequence string)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetClipboardString(0L, string));
     }
     
     // -------------------- Callbacks -------------------- //
