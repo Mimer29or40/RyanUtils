@@ -963,7 +963,7 @@ public class Window
     {
         try
         {
-            Window.LOGGER.fine("Starting");
+            Window.LOGGER.fine("Opening");
             
             this.taskDelegator.setThread();
             
@@ -1089,7 +1089,7 @@ public class Window
         }
         finally
         {
-            Window.LOGGER.fine("Stopping");
+            Window.LOGGER.fine("Closing");
             
             org.lwjgl.opengl.GL.destroy();
             

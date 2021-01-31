@@ -501,7 +501,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Keyboard.KeyInput keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key));
+        Keyboard.KeyInput keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key, scancode));
         
         keyObj._window = window;
         keyObj._state  = action;
