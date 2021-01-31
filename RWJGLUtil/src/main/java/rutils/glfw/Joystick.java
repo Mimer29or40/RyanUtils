@@ -1,5 +1,6 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
 import rutils.glfw.event.*;
 
@@ -22,9 +23,9 @@ public class Joystick extends InputDevice
     
     private final boolean gamepad;
     
-    final Map<Integer, AxisInput>   axisMap;
-    final Map<Integer, ButtonInput> buttonMap;
-    final Map<Integer, HatInput>    hatMap;
+    final Map<Integer, AxisInput> axisMap;
+    final Map<Integer, Input>     buttonMap;
+    final Map<Integer, Input>     hatMap;
     
     Joystick(int jid, boolean gamepad)
     {
@@ -43,11 +44,11 @@ public class Joystick extends InputDevice
         
         this.buttonMap = new LinkedHashMap<>();
         ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(this.jid), "Joystick is not connected.");
-        for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
+        for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input(buttons.get(i)));
         
         this.hatMap = new LinkedHashMap<>();
         ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
-        for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
+        for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new Input(hats.get(i)));
         
         if (!this.gamepad) this.threadStart.countDown();
         
@@ -60,17 +61,44 @@ public class Joystick extends InputDevice
         return getClass().getSimpleName() + "{" + this.jid + ", name='" + this.name + '\'' + '}';
     }
     
+    /**
+     * Returns whether the specified joystick is both present and has a gamepad mapping.
+     *
+     * @return {@code true} if a joystick is both present and has a gamepad mapping or {@code false} otherwise
+     */
     public boolean isGamepad()
     {
         return this.gamepad;
     }
     
-    public String name()
+    /**
+     * Returns the name, encoded as UTF-8, of the specified joystick.
+     *
+     * @return the UTF-8 encoded name of the joystick, or {@code NULL} if the joystick is not present
+     */
+    public @Nullable String name()
     {
         return this.name;
     }
     
-    public String guid()
+    /**
+     * Returns the SDL compatible GUID, as a UTF-8 encoded hexadecimal string,
+     * of the specified joystick.
+     * <p>
+     * The GUID is what connects a joystick to a gamepad mapping. A connected
+     * joystick will always have a GUID even if there is no gamepad mapping
+     * assigned to it.
+     * <p>
+     * The GUID uses the format introduced in SDL 2.0.5. This GUID tries to
+     * uniquely identify the make and model of a joystick but does not identify
+     * a specific unit, e.g. all wired Xbox 360 controllers will have the same
+     * GUID on that platform. The GUID for a unit may vary between platforms
+     * depending on what hardware information the platform specific APIs
+     * provide.
+     *
+     * @return the UTF-8 encoded GUID of the joystick, or {@code NULL} if the joystick is not present or an error occurred
+     */
+    public @Nullable String guid()
     {
         return this.guid;
     }
@@ -98,7 +126,7 @@ public class Joystick extends InputDevice
         
         for (int button : this.buttonMap.keySet())
         {
-            ButtonInput input = this.buttonMap.get(button);
+            Input input = this.buttonMap.get(button);
             
             input.state  = input._state;
             input._state = -1;
@@ -136,7 +164,7 @@ public class Joystick extends InputDevice
         
         for (int hat : this.hatMap.keySet())
         {
-            HatInput hatObj = this.hatMap.get(hat);
+            Input hatObj = this.hatMap.get(hat);
             
             if (hatObj.state != hatObj._state)
             {
@@ -188,22 +216,6 @@ public class Joystick extends InputDevice
         AxisInput(double initial)
         {
             this._value = initial;
-        }
-    }
-    
-    static final class ButtonInput extends Input
-    {
-        public ButtonInput(int initial)
-        {
-            super(initial);
-        }
-    }
-    
-    static final class HatInput extends Input
-    {
-        public HatInput(int initial)
-        {
-            super(initial);
         }
     }
     

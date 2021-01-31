@@ -37,7 +37,7 @@ public class Keyboard extends InputDevice
     @Override
     public String toString()
     {
-        return "Mouse{" + '}';
+        return "Keyboard{" + '}';
     }
     
     /**

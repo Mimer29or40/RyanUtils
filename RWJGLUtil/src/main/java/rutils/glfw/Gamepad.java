@@ -1,13 +1,12 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFWGamepadState;
 import org.lwjgl.system.MemoryStack;
 import rutils.glfw.event.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.util.LinkedHashMap;
-import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -20,32 +19,37 @@ public class Gamepad extends Joystick
         super(jid, gamepad);
         
         this.name = glfwGetGamepadName(this.jid);
-    
+        
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
-        
+            
             if (glfwGetGamepadState(jid, state))
             {
                 this.axisMap.clear();
                 FloatBuffer axes = state.axes();
                 for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
-    
+                
                 this.buttonMap.clear();
                 ByteBuffer buttons = state.buttons();
-                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
+                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input(buttons.get(i)));
             }
             else
             {
                 throw new RuntimeException("Gamepad is not connected.");
             }
         }
-    
+        
         this.threadStart.countDown();
     }
     
+    /**
+     * Returns the name, encoded as UTF-8, of the specified joystick.
+     *
+     * @return the UTF-8 encoded name of the joystick, or {@code NULL} if the joystick is not present
+     */
     @Override
-    public String name()
+    public @Nullable String name()
     {
         return this.name;
     }
