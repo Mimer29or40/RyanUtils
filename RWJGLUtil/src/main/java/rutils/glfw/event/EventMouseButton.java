@@ -1,9 +1,8 @@
 package rutils.glfw.event;
 
 import org.joml.Vector2dc;
-import rutils.glfw.Mouse;
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Mouse;
 
 public interface EventMouseButton extends EventInputDeviceInput, EventMouse
 {
@@ -21,18 +20,5 @@ public interface EventMouseButton extends EventInputDeviceInput, EventMouse
     default double y()
     {
         return pos().y();
-    }
-    
-    final class _EventMouseButton extends AbstractEventMouseButton implements EventMouseButton
-    {
-        private _EventMouseButton(Window window, Mouse.Button button, Vector2dc pos)
-        {
-            super(window, button, pos);
-        }
-    }
-    
-    static EventMouseButton create(Window window, Mouse.Button button, Vector2dc pos)
-    {
-        return new _EventMouseButton(window, button, pos);
     }
 }

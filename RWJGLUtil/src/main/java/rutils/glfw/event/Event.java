@@ -14,14 +14,4 @@ public interface Event
     EventPriority getPhase();
     
     void setPhase(@NotNull EventPriority value);
-    
-    final class _Event extends AbstractEvent implements Event
-    {
-        private _Event() {}
-    }
-    
-    static Event create()
-    {
-        return new _Event();
-    }
 }

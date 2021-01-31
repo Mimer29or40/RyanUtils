@@ -8,17 +8,4 @@ public interface EventGamepad extends EventJoystick
     {
         return (Gamepad) joystick();
     }
-    
-    final class _EventGamepad extends AbstractEventJoystick implements EventGamepad
-    {
-        private _EventGamepad(Gamepad gamepad)
-        {
-            super(gamepad);
-        }
-    }
-    
-    static EventGamepad create(Gamepad gamepad)
-    {
-        return new _EventGamepad(gamepad);
-    }
 }
