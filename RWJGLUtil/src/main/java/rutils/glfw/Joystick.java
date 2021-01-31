@@ -18,6 +18,7 @@ public class Joystick extends InputDevice
     protected final int jid;
     
     private final String name;
+    private final String guid;
     
     private final boolean gamepad;
     
@@ -27,13 +28,14 @@ public class Joystick extends InputDevice
     
     Joystick(int jid, boolean gamepad)
     {
-        super("Joystick-" + jid);
+        super(gamepad ? "Gamepad" : "Joystick" + "-" + jid);
         
         this.jid = jid;
         
         this.gamepad = gamepad;
         
         this.name = glfwGetJoystickName(this.jid);
+        this.guid = glfwGetJoystickGUID(this.jid);
         
         this.axisMap = new LinkedHashMap<>();
         FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(this.jid), "Joystick is not connected.");
@@ -47,7 +49,9 @@ public class Joystick extends InputDevice
         ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
         for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
         
-        this.threadStart.countDown();
+        if (!this.gamepad) this.threadStart.countDown();
+        
+        Joystick.LOGGER.finer("Created", this);
     }
     
     @Override
@@ -64,6 +68,11 @@ public class Joystick extends InputDevice
     public String name()
     {
         return this.name;
+    }
+    
+    public String guid()
+    {
+        return this.guid;
     }
     
     /**

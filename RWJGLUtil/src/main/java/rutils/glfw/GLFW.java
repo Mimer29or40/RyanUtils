@@ -45,6 +45,12 @@ public final class GLFW
     
     static final Map<Integer, Joystick> JOYSTICKS = new LinkedHashMap<>();
     
+    // -------------------- Joystick Callback Emulation -------------------- //
+    private static final float[][] JOYSTICK_AXIS_STATES   = new float[GLFW_JOYSTICK_LAST][];
+    private static final byte[][]  JOYSTICK_BUTTON_STATES = new byte[GLFW_JOYSTICK_LAST][];
+    private static final byte[][]  JOYSTICK_HAT_STATES    = new byte[GLFW_JOYSTICK_LAST][];
+    // -------------------- Joystick Callback Emulation -------------------- //
+    
     static boolean SUPPORT_RAW_MOUSE_MOTION;
     
     private GLFW() {}
@@ -87,11 +93,45 @@ public final class GLFW
         
         for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
         {
-            boolean present = glfwJoystickPresent(jid);
-            if (present)
+            // -------------------- Joystick Callback Emulation -------------------- //
+            if (glfwJoystickIsGamepad(jid))
             {
-                boolean gamepad = glfwJoystickIsGamepad(jid);
-                GLFW.JOYSTICKS.put(jid, gamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
+                try (MemoryStack stack = MemoryStack.stackPush())
+                {
+                    GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
+                    
+                    if (glfwGetGamepadState(jid, state))
+                    {
+                        FloatBuffer axes = state.axes();
+                        GLFW.JOYSTICK_AXIS_STATES[jid] = new float[axes.remaining()];
+                        
+                        ByteBuffer buttons = state.buttons();
+                        GLFW.JOYSTICK_BUTTON_STATES[jid] = new byte[buttons.remaining()];
+                    }
+                    else
+                    {
+                        GLFW.JOYSTICK_AXIS_STATES[jid]   = new float[0];
+                        GLFW.JOYSTICK_BUTTON_STATES[jid] = new byte[0];
+                    }
+                }
+            }
+            else
+            {
+                FloatBuffer axes = glfwGetJoystickAxes(jid);
+                GLFW.JOYSTICK_AXIS_STATES[jid] = axes != null ? new float[axes.remaining()] : new float[0];
+                
+                ByteBuffer buttons = glfwGetJoystickButtons(jid);
+                GLFW.JOYSTICK_BUTTON_STATES[jid] = buttons != null ? new byte[buttons.remaining()] : new byte[0];
+            }
+            
+            ByteBuffer hats = glfwGetJoystickHats(jid);
+            GLFW.JOYSTICK_HAT_STATES[jid] = hats != null ? new byte[hats.remaining()] : new byte[0];
+            // -------------------- Joystick Callback Emulation -------------------- //
+            
+            if (glfwJoystickPresent(jid))
+            {
+                boolean isGamepad = glfwJoystickIsGamepad(jid);
+                GLFW.JOYSTICKS.put(jid, isGamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
             }
         }
         
@@ -105,58 +145,85 @@ public final class GLFW
             glfwPollEvents();
             
             GLFW.TASK_DELEGATOR.runTasks();
-    
-            // TODO - Create polling to mimic callbacks
-            for (Joystick joystick : GLFW.JOYSTICKS.values())
+            
+            // -------------------- Joystick Callback Emulation -------------------- //
+            for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
             {
-                if (!joystick.isGamepad())
-                {
-                    FloatBuffer axes = glfwGetJoystickAxes(joystick.jid);
-                    if (axes == null) continue;
-                    for (int axis = 0, n = axes.remaining(); axis < n; axis++)
-                    {
-                        joystick.axisMap.get(axis)._value = axes.get(axis);
-                    }
-            
-                    ByteBuffer buttons = glfwGetJoystickButtons(joystick.jid);
-                    if (buttons == null) continue;
-                    for (int button = 0, n = buttons.remaining(); button < n; button++)
-                    {
-                        joystick.buttonMap.get(button)._state = buttons.get(button);
-                    }
-                }
-                else
-                {
-                    Gamepad gamepad = (Gamepad) joystick;
-            
-                    try (MemoryStack stack = MemoryStack.stackPush())
-                    {
-                        GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
+                int n;
                 
-                        if (glfwGetGamepadState(joystick.jid, state))
-                        {
-                            FloatBuffer axes = state.axes();
-                            for (int axis : gamepad.axisMap.keySet())
-                            {
-                                gamepad.axisMap.get(axis)._value = axes.get(axis);
-                            }
+                if (glfwJoystickPresent(jid))
+                {
+                    FloatBuffer axes    = null;
+                    ByteBuffer  buttons = null;
+                    ByteBuffer  hats    = glfwGetJoystickHats(jid);
                     
-                            ByteBuffer buttons = state.buttons();
-                            for (int button : gamepad.buttonMap.keySet())
+                    if (!glfwJoystickIsGamepad(jid))
+                    {
+                        axes    = glfwGetJoystickAxes(jid);
+                        buttons = glfwGetJoystickButtons(jid);
+                    }
+                    else
+                    {
+                        try (MemoryStack stack = MemoryStack.stackPush())
+                        {
+                            GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
+                            
+                            if (glfwGetGamepadState(jid, state))
                             {
-                                gamepad.buttonMap.get(button)._state = buttons.get(button);
+                                axes    = state.axes();
+                                buttons = state.buttons();
+                            }
+                        }
+                    }
+                    
+                    if (axes != null)
+                    {
+                        n = axes.remaining();
+                        if (GLFW.JOYSTICK_AXIS_STATES[jid].length != n) GLFW.JOYSTICK_AXIS_STATES[jid] = new float[n];
+                        for (int axis = 0; axis < n; axis++)
+                        {
+                            float newValue = axes.get(axis);
+                            if (Float.compare(GLFW.JOYSTICK_AXIS_STATES[jid][axis], newValue) != 0)
+                            {
+                                GLFW.JOYSTICK_AXIS_STATES[jid][axis] = newValue;
+                                if (!glfwJoystickPresent(jid)) break;
+                                joystickAxisCallback(jid, axis, GLFW.JOYSTICK_AXIS_STATES[jid][axis]);
+                            }
+                        }
+                    }
+                    if (buttons != null)
+                    {
+                        n = buttons.remaining();
+                        if (GLFW.JOYSTICK_BUTTON_STATES[jid].length != n) GLFW.JOYSTICK_BUTTON_STATES[jid] = new byte[n];
+                        for (int button = 0; button < n; button++)
+                        {
+                            byte newValue = buttons.get(button);
+                            if (Float.compare(GLFW.JOYSTICK_BUTTON_STATES[jid][button], newValue) != 0)
+                            {
+                                GLFW.JOYSTICK_BUTTON_STATES[jid][button] = newValue;
+                                if (!glfwJoystickPresent(jid)) break;
+                                joystickButtonCallback(jid, button, GLFW.JOYSTICK_BUTTON_STATES[jid][button]);
+                            }
+                        }
+                    }
+                    if (hats != null)
+                    {
+                        n = hats.remaining();
+                        if (GLFW.JOYSTICK_HAT_STATES[jid].length != n) GLFW.JOYSTICK_HAT_STATES[jid] = new byte[n];
+                        for (int hat = 0; hat < n; hat++)
+                        {
+                            byte newValue = hats.get(hat);
+                            if (Float.compare(GLFW.JOYSTICK_HAT_STATES[jid][hat], newValue) != 0)
+                            {
+                                GLFW.JOYSTICK_HAT_STATES[jid][hat] = newValue;
+                                if (!glfwJoystickPresent(jid)) break;
+                                joystickHatCallback(jid, hat, GLFW.JOYSTICK_HAT_STATES[jid][hat]);
                             }
                         }
                     }
                 }
-        
-                ByteBuffer hats = glfwGetJoystickHats(joystick.jid);
-                if (hats == null) continue;
-                for (int hat = 0, n = hats.remaining(); hat < n; hat++)
-                {
-                    joystick.hatMap.get(hat)._state = hats.get(hat);
-                }
             }
+            // -------------------- Joystick Callback Emulation -------------------- //
             
             GLFW.WINDOWS.values().removeIf(window -> !window.isOpen());
             
@@ -350,8 +417,7 @@ public final class GLFW
         switch (event)
         {
             case GLFW_CONNECTED -> {
-                boolean  gamepad  = glfwJoystickIsGamepad(jid);
-                Joystick joystick = gamepad ? new Gamepad(jid, true) : new Joystick(jid, false);
+                Joystick joystick = glfwJoystickIsGamepad(jid) ? new Gamepad(jid, true) : new Joystick(jid, false);
                 GLFW.JOYSTICKS.put(jid, joystick);
                 GLFW.EVENT_BUS.post(EventJoystickConnected.create(joystick));
             }
@@ -363,24 +429,21 @@ public final class GLFW
         }
     }
     
-    @SuppressWarnings("unused")
-    private static void joystickAxisCallback(int jid, int axis, float value) // TODO
+    private static void joystickAxisCallback(int jid, int axis, float value)
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
         joystick.axisMap.get(axis)._value = value;
     }
     
-    @SuppressWarnings("unused")
-    private static void joystickButtonCallback(int jid, int button, int action) // TODO
+    private static void joystickButtonCallback(int jid, int button, int action)
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
         joystick.buttonMap.get(button)._state = action;
     }
     
-    @SuppressWarnings("unused")
-    private static void joystickHatCallback(int jid, int hat, int action) // TODO
+    private static void joystickHatCallback(int jid, int hat, int action)
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
