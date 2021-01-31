@@ -23,8 +23,8 @@ public class Joystick extends InputDevice
     
     private final boolean gamepad;
     
-    private final String name;
-    private final String guid;
+    protected final String name;
+    protected final String guid;
     
     protected final Queue<Pair<Integer, Float>>   axisStateChanges   = new ConcurrentLinkedQueue<>();
     protected final Queue<Pair<Integer, Integer>> buttonStateChanges = new ConcurrentLinkedQueue<>();
@@ -65,7 +65,7 @@ public class Joystick extends InputDevice
     @Override
     public String toString()
     {
-        return getClass().getSimpleName() + "{" + this.jid + ", name='" + this.name + '\'' + '}';
+        return getClass().getSimpleName() + "{" + "name='" + this.name + '\'' + ", jid=" + this.jid + '}';
     }
     
     /**

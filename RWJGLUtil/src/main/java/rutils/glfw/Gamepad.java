@@ -12,7 +12,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Gamepad extends Joystick
 {
-    private final String name;
+    protected final String name;
     
     Gamepad(int jid, boolean gamepad)
     {
@@ -44,12 +44,12 @@ public class Gamepad extends Joystick
     }
     
     /**
-     * Returns the name, encoded as UTF-8, of the specified joystick.
+     * Returns the human-readable name of the gamepad from the gamepad mapping
+     * assigned to the specified joystick.
      *
-     * @return the UTF-8 encoded name of the joystick, or {@code NULL} if the joystick is not present
+     * @return the UTF-8 encoded name of the gamepad, or {@code null} if the gamepad is not present, or does not have a mapping.
      */
-    @Override
-    public @Nullable String name()
+    public @Nullable String gamepadName()
     {
         return this.name;
     }
