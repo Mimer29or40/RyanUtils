@@ -4,7 +4,7 @@ import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-public interface EventMouseButtonUp extends EventMouseButton
+public interface EventMouseButtonUp extends EventInputDeviceInputUp, EventMouseButton
 {
     final class _EventMouseButtonUp extends AbstractEventMouseButton implements EventMouseButtonUp
     {

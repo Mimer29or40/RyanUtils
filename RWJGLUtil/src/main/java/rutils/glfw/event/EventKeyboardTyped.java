@@ -8,7 +8,7 @@ public interface EventKeyboardTyped extends EventKeyboard
     @EventProperty
     String typed();
     
-    final class _EventKeyboardTyped extends AbstractEventInput implements EventKeyboardTyped
+    final class _EventKeyboardTyped extends AbstractEventInputDevice implements EventKeyboardTyped
     {
         private final String typed;
     

@@ -3,11 +3,8 @@ package rutils.glfw.event;
 import rutils.glfw.Gamepad;
 import rutils.glfw.EventProperty;
 
-public interface EventGamepadButtonPressed extends EventJoystickButtonPressed, EventGamepadButton
+public interface EventGamepadButtonPressed extends EventInputDeviceInputPressed, EventJoystickButtonPressed, EventGamepadButton
 {
-    @EventProperty
-    boolean doublePressed();
-    
     final class _EventJoystickButtonPressed extends AbstractEventGamepadButton implements EventGamepadButtonPressed
     {
         private final boolean doublePressed;

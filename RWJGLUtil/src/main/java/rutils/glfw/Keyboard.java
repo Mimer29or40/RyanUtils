@@ -22,14 +22,14 @@ public class Keyboard extends InputDevice
     
     // -------------------- Internal Objects -------------------- //
     
-    final Map<Key, KeyInput> keyMap;
+    final Map<Key, Input> keyMap;
     
     Keyboard()
     {
         super("Keyboard");
         
         this.keyMap = new LinkedHashMap<>();
-        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new KeyInput(GLFW_RELEASE));
+        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new Input(GLFW_RELEASE));
         
         this.threadStart.countDown();
     }
@@ -81,55 +81,40 @@ public class Keyboard extends InputDevice
         
         for (Key key : this.keyMap.keySet())
         {
-            KeyInput keyObj = this.keyMap.get(key);
+            Input input = this.keyMap.get(key);
             
-            if (keyObj._state != keyObj.state)
+            input.state  = input._state;
+            input._state = -1;
+            switch (input.state)
             {
-                if (keyObj._state == GLFW_PRESS)
-                {
-                    keyObj.held       = true;
-                    keyObj.holdTime   = time + InputDevice.holdFrequency;
-                    keyObj.repeatTime = time + InputDevice.repeatDelay;
-                    GLFW.EVENT_BUS.post(EventKeyboardKeyDown.create(keyObj._window, key));
+                case GLFW_PRESS -> {
+                    input.held     = true;
+                    input.holdTime = time + InputDevice.holdFrequency;
+                    GLFW.EVENT_BUS.post(EventKeyboardKeyDown.create(input._window, key));
                 }
-                else if (keyObj._state == GLFW_RELEASE)
-                {
-                    keyObj.held       = false;
-                    keyObj.holdTime   = Long.MAX_VALUE;
-                    keyObj.repeatTime = Long.MAX_VALUE;
-                    GLFW.EVENT_BUS.post(EventKeyboardKeyUp.create(keyObj._window, key));
+                case GLFW_RELEASE -> {
+                    input.held     = false;
+                    input.holdTime = Long.MAX_VALUE;
+                    GLFW.EVENT_BUS.post(EventKeyboardKeyUp.create(input._window, key));
                     
-                    if (time - keyObj.pressTime < InputDevice.doublePressedDelay)
+                    if (time - input.pressTime < InputDevice.doublePressedDelay)
                     {
-                        keyObj.pressTime = 0;
-                        GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(keyObj._window, key, true));
+                        input.pressTime = 0;
+                        GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(input._window, key, true));
                     }
                     else
                     {
-                        keyObj.pressTime = time;
-                        GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(keyObj._window, key, false));
+                        input.pressTime = time;
+                        GLFW.EVENT_BUS.post(EventKeyboardKeyPressed.create(input._window, key, false));
                     }
                 }
-                keyObj.state = keyObj._state;
+                case GLFW_REPEAT -> GLFW.EVENT_BUS.post(EventKeyboardKeyRepeated.create(input._window, key));
             }
-            if (keyObj.held && time - keyObj.holdTime >= InputDevice.holdFrequency)
+            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
             {
-                keyObj.holdTime += InputDevice.holdFrequency;
-                GLFW.EVENT_BUS.post(EventKeyboardKeyHeld.create(keyObj._window, key));
+                input.holdTime += InputDevice.holdFrequency;
+                GLFW.EVENT_BUS.post(EventKeyboardKeyHeld.create(input._window, key));
             }
-            if (time - keyObj.repeatTime > InputDevice.repeatFrequency)
-            {
-                keyObj.repeatTime += InputDevice.repeatFrequency;
-                GLFW.EVENT_BUS.post(EventKeyboardKeyRepeated.create(keyObj._window, key));
-            }
-        }
-    }
-    
-    static final class KeyInput extends Input
-    {
-        private KeyInput(int initial)
-        {
-            super(initial);
         }
     }
     

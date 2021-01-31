@@ -3,12 +3,12 @@ package rutils.glfw.event;
 import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
 
-public interface EventInput extends Event
+public interface EventInputDevice extends Event
 {
     @EventProperty(printName = false)
     Window window();
     
-    final class _EventInput extends AbstractEventInput implements EventInput
+    final class _EventInput extends AbstractEventInputDevice implements EventInputDevice
     {
         private _EventInput(Window window)
         {
@@ -16,7 +16,7 @@ public interface EventInput extends Event
         }
     }
     
-    static EventInput create(Window window)
+    static EventInputDevice create(Window window)
     {
         return new _EventInput(window);
     }

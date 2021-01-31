@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.glfw.Gamepad;
 
-public interface EventGamepadButtonRepeated extends EventJoystickButtonRepeated, EventGamepadButton
+public interface EventGamepadButtonRepeated extends EventInputDeviceInputRepeated, EventJoystickButtonRepeated, EventGamepadButton
 {
     final class _EventGamepadButtonRepeated extends AbstractEventGamepadButton implements EventGamepadButtonRepeated
     {

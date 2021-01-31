@@ -3,7 +3,7 @@ package rutils.glfw.event;
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
-abstract class AbstractEventKeyboardKey extends AbstractEventInput implements EventKeyboardKey
+abstract class AbstractEventKeyboardKey extends AbstractEventInputDevice implements EventKeyboardKey
 {
     private final Keyboard.Key key;
     

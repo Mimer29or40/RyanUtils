@@ -20,7 +20,7 @@ public interface EventMouseScrolled extends EventMouse
         return scroll().y();
     }
     
-    final class _EventMouseScrolled extends AbstractEventInput implements EventMouseScrolled
+    final class _EventMouseScrolled extends AbstractEventInputDevice implements EventMouseScrolled
     {
         private final Vector2d scroll;
         

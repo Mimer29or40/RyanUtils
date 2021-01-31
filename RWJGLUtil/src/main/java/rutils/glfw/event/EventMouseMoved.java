@@ -33,7 +33,7 @@ public interface EventMouseMoved extends EventMouse
         return rel().y();
     }
     
-    final class _EventMouseMoved extends AbstractEventInput implements EventMouseMoved
+    final class _EventMouseMoved extends AbstractEventInputDevice implements EventMouseMoved
     {
         private final Vector2d pos;
         private final Vector2d rel;

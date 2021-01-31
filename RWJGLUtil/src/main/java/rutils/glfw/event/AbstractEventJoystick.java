@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.glfw.Joystick;
 
-abstract class AbstractEventJoystick extends AbstractEventInput implements EventJoystick
+abstract class AbstractEventJoystick extends AbstractEventInputDevice implements EventJoystick
 {
     private final Joystick joystick;
     

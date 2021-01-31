@@ -3,7 +3,7 @@ package rutils.glfw.event;
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 
-public interface EventKeyboardKeyDown extends EventKeyboardKey
+public interface EventKeyboardKeyDown extends EventInputDeviceInputDown, EventKeyboardKey
 {
     final class _EventKeyboardKeyDown extends AbstractEventKeyboardKey implements EventKeyboardKeyDown
     {

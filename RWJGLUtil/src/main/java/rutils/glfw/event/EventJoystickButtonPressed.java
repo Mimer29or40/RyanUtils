@@ -3,11 +3,8 @@ package rutils.glfw.event;
 import rutils.glfw.Joystick;
 import rutils.glfw.EventProperty;
 
-public interface EventJoystickButtonPressed extends EventJoystickButton
+public interface EventJoystickButtonPressed extends EventInputDeviceInputPressed, EventJoystickButton
 {
-    @EventProperty
-    boolean doublePressed();
-    
     final class _EventJoystickButtonPressed extends AbstractEventJoystickButton implements EventJoystickButtonPressed
     {
         private final boolean doublePressed;

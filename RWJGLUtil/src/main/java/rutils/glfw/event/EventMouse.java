@@ -2,9 +2,9 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-public interface EventMouse extends EventInput
+public interface EventMouse extends EventInputDevice
 {
-    final class _EventMouse extends AbstractEventInput implements EventMouse
+    final class _EventMouse extends AbstractEventInputDevice implements EventMouse
     {
         private _EventMouse(Window window)
         {

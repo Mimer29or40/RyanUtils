@@ -5,7 +5,7 @@ import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 
-abstract class AbstractEventMouseButton extends AbstractEventInput implements EventMouseButton
+abstract class AbstractEventMouseButton extends AbstractEventInputDevice implements EventMouseButton
 {
     private final Mouse.Button button;
     private final Vector2d     pos;

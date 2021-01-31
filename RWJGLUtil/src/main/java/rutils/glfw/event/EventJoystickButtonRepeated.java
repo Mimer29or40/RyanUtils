@@ -2,7 +2,7 @@ package rutils.glfw.event;
 
 import rutils.glfw.Joystick;
 
-public interface EventJoystickButtonRepeated extends EventJoystickButton
+public interface EventJoystickButtonRepeated extends EventInputDeviceInputRepeated, EventJoystickButton
 {
     final class _EventJoystickButtonRepeated extends AbstractEventJoystickButton implements EventJoystickButtonRepeated
     {

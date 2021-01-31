@@ -5,11 +5,8 @@ import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
 
-public interface EventMouseButtonPressed extends EventMouseButton
+public interface EventMouseButtonPressed extends EventInputDeviceInputPressed, EventMouseButton
 {
-    @EventProperty
-    boolean doublePressed();
-    
     final class _EventMouseButtonPressed extends AbstractEventMouseButton implements EventMouseButtonPressed
     {
         private final boolean doublePressed;

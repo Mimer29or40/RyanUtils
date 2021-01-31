@@ -89,45 +89,39 @@ public class Joystick extends InputDevice
         
         for (int button : this.buttonMap.keySet())
         {
-            ButtonInput buttonObj = this.buttonMap.get(button);
-            if (buttonObj.state != buttonObj._state)
+            ButtonInput input = this.buttonMap.get(button);
+            
+            input.state  = input._state;
+            input._state = -1;
+            switch (input.state)
             {
-                buttonObj.state = buttonObj._state;
-                if (buttonObj.state == GLFW_PRESS)
-                {
-                    buttonObj.held       = true;
-                    buttonObj.holdTime   = time + InputDevice.holdFrequency;
-                    buttonObj.repeatTime = time + InputDevice.repeatDelay;
+                case GLFW_PRESS -> {
+                    input.held     = true;
+                    input.holdTime = time + InputDevice.holdFrequency;
                     postButtonDownEvent(button);
                 }
-                else if (buttonObj.state == GLFW_RELEASE)
-                {
-                    buttonObj.held       = false;
-                    buttonObj.holdTime   = Long.MAX_VALUE;
-                    buttonObj.repeatTime = Long.MAX_VALUE;
+                case GLFW_RELEASE -> {
+                    input.held     = false;
+                    input.holdTime = Long.MAX_VALUE;
                     postButtonUpEvent(button);
                     
-                    if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
+                    if (time - input.pressTime < InputDevice.doublePressedDelay)
                     {
-                        buttonObj.pressTime = 0;
+                        input.pressTime = 0;
                         postButtonPressedEvent(button, true);
                     }
                     else
                     {
-                        buttonObj.pressTime = time;
+                        input.pressTime = time;
                         postButtonPressedEvent(button, false);
                     }
                 }
+                case GLFW_REPEAT -> postButtonRepeatedEvent(button);
             }
-            if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
+            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
             {
-                buttonObj.holdTime += InputDevice.holdFrequency;
+                input.holdTime += InputDevice.holdFrequency;
                 postButtonHeldEvent(button);
-            }
-            if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
-            {
-                buttonObj.repeatTime += InputDevice.repeatFrequency;
-                postButtonRepeatedEvent(button);
             }
         }
         

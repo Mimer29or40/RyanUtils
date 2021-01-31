@@ -8,7 +8,7 @@ public interface EventMouseEntered extends EventMouse
     @EventProperty
     boolean entered();
     
-    final class _EventMouseEntered extends AbstractEventInput implements EventMouseEntered
+    final class _EventMouseEntered extends AbstractEventInputDevice implements EventMouseEntered
     {
         private final boolean entered;
         

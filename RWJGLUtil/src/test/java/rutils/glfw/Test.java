@@ -13,43 +13,49 @@ public class Test
     static Window window1;
     
     @SubscribeEvent
-    public static void allEvents(Event event)
+    public static void handleEvent(Event event)
     {
         // LOGGER.info("allEvents", event);
     }
     
     @SubscribeEvent
-    public static void joystickConnectedEvents(EventJoystickConnected event)
+    public static void handleEvent(EventJoystickConnected event)
     {
-        LOGGER.info("joystickConnectedEvents", event);
+        // LOGGER.info("EventJoystickConnected", event);
     }
     
     @SubscribeEvent
-    public static void joystickDisconnectedEvents(EventJoystickDisconnected event)
+    public static void handleEvent(EventJoystickDisconnected event)
     {
-        LOGGER.info("joystickDisconnectedEvents", event);
+        // LOGGER.info("EventJoystickDisconnected", event);
     }
     
     @SubscribeEvent
-    public static void allInputEvents(EventInput event)
+    public static void handleEvent(EventInputDevice event)
     {
-        LOGGER.info("allInputEvents", event);
+        // LOGGER.info("EventInputDevice", event);
     }
     
     @SubscribeEvent
-    public static void joystickHatEvents(EventJoystickHat event)
+    public static void handleEvent(EventInputDeviceInputDown event)
     {
-        // LOGGER.info("joystickHatEvents", event);
+        LOGGER.info("EventInputDeviceInputDown", event);
     }
     
     @SubscribeEvent
-    public static void gamepadHatEvents(EventGamepadHat event)
+    public static void handleEvent(EventJoystickHat event)
     {
-        // LOGGER.info("gamepadHatEvents", event);
+        // LOGGER.info("EventJoystickHat", event);
     }
     
     @SubscribeEvent
-    public static void keyEvents(EventKeyboardKey event)
+    public static void handleEvent(EventGamepadHat event)
+    {
+        // LOGGER.info("EventGamepadHat", event);
+    }
+    
+    @SubscribeEvent
+    public static void handleEvent(EventKeyboardKey event)
     {
         // if (event instanceof EventKeyboardKeyDown)
         // {
@@ -78,8 +84,8 @@ public class Test
             GLFW.EVENT_BUS.register(Test.class);
             
             window  = new Window.Builder().name("First").build();
-            window1 = new Window.Builder().name("Second").build();
-            
+            // window1 = new Window.Builder().name("Second").build();
+
             GLFW.eventLoop();
         }
         catch (Throwable e)

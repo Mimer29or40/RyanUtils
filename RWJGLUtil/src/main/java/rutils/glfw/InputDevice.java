@@ -9,8 +9,6 @@ public abstract class InputDevice
     private static final Logger LOGGER = new Logger();
     
     protected static long holdFrequency      = 1_000_000L;
-    protected static long repeatDelay        = 500_000_000L;
-    protected static long repeatFrequency    = 30_000_000L;
     protected static long doublePressedDelay = 200_000_000L;
     
     /**
@@ -34,46 +32,6 @@ public abstract class InputDevice
     }
     
     /**
-     * @return The delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
-     */
-    public static double repeatDelay()
-    {
-        return InputDevice.repeatDelay / 1_000_000_000D;
-    }
-    
-    /**
-     * Sets the delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
-     *
-     * @param repeatDelay The delay, in seconds, before an ButtonInput is "held" before it starts to be "repeated".
-     */
-    public static void repeatDelay(double repeatDelay)
-    {
-        InputDevice.LOGGER.finest("Setting InputDevice Repeat Delay:", repeatDelay);
-        
-        InputDevice.repeatDelay = (long) (repeatDelay * 1_000_000_000L);
-    }
-    
-    /**
-     * @return The frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
-     */
-    public static double repeatFrequency()
-    {
-        return InputDevice.repeatFrequency / 1_000_000_000D;
-    }
-    
-    /**
-     * Sets the frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
-     *
-     * @param repeatFrequency The frequency, in seconds, that an ButtonInput is "repeated" after the initial delay has passed.
-     */
-    public static void repeatFrequency(double repeatFrequency)
-    {
-        InputDevice.LOGGER.finest("Setting InputDevice Repeat Frequency:", repeatDelay);
-        
-        InputDevice.repeatFrequency = (long) (repeatFrequency * 1_000_000_000L);
-    }
-    
-    /**
      * @return The delay, in seconds, before an ButtonInput is pressed twice to be a double pressed.
      */
     public static double doublePressedDelay()
@@ -88,7 +46,7 @@ public abstract class InputDevice
      */
     public static void doublePressedDelay(double doublePressedDelay)
     {
-        InputDevice.LOGGER.finest("Setting InputDevice Double Delay:", repeatDelay);
+        InputDevice.LOGGER.finest("Setting InputDevice Double Delay:", doublePressedDelay);
         
         InputDevice.doublePressedDelay = (long) (doublePressedDelay * 1_000_000_000L);
     }
@@ -160,12 +118,11 @@ public abstract class InputDevice
     
     static class Input
     {
-        protected int state, _state;
+        protected int state = -1, _state;
         
         protected boolean held;
         
-        protected long holdTime   = Long.MAX_VALUE;
-        protected long repeatTime = Long.MAX_VALUE;
+        protected long holdTime = Long.MAX_VALUE;
         
         protected long pressTime;
         

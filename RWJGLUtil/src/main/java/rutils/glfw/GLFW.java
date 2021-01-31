@@ -106,6 +106,7 @@ public final class GLFW
             
             GLFW.TASK_DELEGATOR.runTasks();
     
+            // TODO - Create polling to mimic callbacks
             for (Joystick joystick : GLFW.JOYSTICKS.values())
             {
                 if (!joystick.isGamepad())
@@ -501,7 +502,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Keyboard.KeyInput keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key, scancode));
+        Keyboard.Input keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key, scancode));
         
         keyObj._window = window;
         keyObj._state  = action;

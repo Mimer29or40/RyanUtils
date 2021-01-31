@@ -4,11 +4,8 @@ import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
 
-public interface EventKeyboardKeyPressed extends EventKeyboardKey
+public interface EventKeyboardKeyPressed extends EventInputDeviceInputPressed, EventKeyboardKey
 {
-    @EventProperty
-    boolean doublePressed();
-    
     final class _EventKeyboardKeyPressed extends AbstractEventKeyboardKey implements EventKeyboardKeyPressed
     {
         private final boolean doublePressed;

@@ -3,7 +3,7 @@ package rutils.glfw.event;
 import rutils.glfw.Joystick;
 import rutils.glfw.EventProperty;
 
-public interface EventJoystick extends EventInput
+public interface EventJoystick extends EventInputDevice
 {
     @EventProperty(printName = false)
     Joystick joystick();

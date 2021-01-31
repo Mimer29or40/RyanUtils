@@ -4,7 +4,7 @@ import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
 
-public interface EventKeyboardKey extends EventKeyboard
+public interface EventKeyboardKey extends EventInputDeviceInput, EventKeyboard
 {
     @EventProperty(printName = false)
     Keyboard.Key key();

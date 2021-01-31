@@ -2,9 +2,9 @@ package rutils.glfw.event;
 
 import rutils.glfw.Window;
 
-public interface EventKeyboard extends EventInput
+public interface EventKeyboard extends EventInputDevice
 {
-    final class _EventKeyboard extends AbstractEventInput implements EventKeyboard
+    final class _EventKeyboard extends AbstractEventInputDevice implements EventKeyboard
     {
         private _EventKeyboard(Window window)
         {

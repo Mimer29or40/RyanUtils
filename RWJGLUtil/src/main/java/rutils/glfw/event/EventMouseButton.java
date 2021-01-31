@@ -5,7 +5,7 @@ import rutils.glfw.Mouse;
 import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
 
-public interface EventMouseButton extends EventMouse
+public interface EventMouseButton extends EventInputDeviceInput, EventMouse
 {
     @EventProperty(printName = false)
     Mouse.Button button();
