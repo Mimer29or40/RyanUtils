@@ -21,7 +21,7 @@ public class Test
     @SubscribeEvent
     public static void allInputEvents(EventInput event)
     {
-        // LOGGER.info(event);
+        LOGGER.info(event);
     }
     
     @SubscribeEvent
@@ -33,7 +33,7 @@ public class Test
     @SubscribeEvent
     public static void gamepadHatEvents(EventGamepadHat event)
     {
-        LOGGER.info(event);
+        // LOGGER.info(event);
     }
     
     @SubscribeEvent
@@ -66,7 +66,7 @@ public class Test
             GLFW.EVENT_BUS.register(Test.class);
             
             window  = new Window.Builder().name("First").build();
-            // window1 = new Window.Builder().name("Second").build();
+            window1 = new Window.Builder().name("Second").build();
             
             GLFW.eventLoop();
         }

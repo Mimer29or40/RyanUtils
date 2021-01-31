@@ -180,12 +180,8 @@ public final class GLFW
                     }
                 }
             }
-            
-            ArrayList<Long> toRemove = new ArrayList<>();
-            GLFW.WINDOWS.values().forEach(w -> {
-                if (!w.isOpen()) toRemove.add(w.handle);
-            });
-            toRemove.forEach(GLFW.WINDOWS::remove);
+    
+            GLFW.WINDOWS.values().removeIf(window -> !window.isOpen());
             
             Thread.yield();
         }
