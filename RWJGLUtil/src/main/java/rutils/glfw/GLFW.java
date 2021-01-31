@@ -58,6 +58,12 @@ public final class GLFW
     
     // -------------------- Global Methods -------------------- //
     
+    /**
+     * Initializes the GLFW library. Before most GLFW functions can be used,
+     * GLFW must be initialized, and before an application terminates GLFW
+     * should be terminated in order to free any resources allocated during or
+     * after initialization.
+     */
     public static void init()
     {
         try (MemoryStack stack = MemoryStack.stackPush())
@@ -141,6 +147,29 @@ public final class GLFW
         GLFW.SUPPORT_RAW_MOUSE_MOTION = glfwRawMouseMotionSupported();
     }
     
+    /**
+     * Processes all pending events.
+     * <p>
+     * This function processes only those events that are already in the event
+     * queue and then returns immediately. Processing events will cause the
+     * window and input callbacks associated with those events to be called.
+     * <p>
+     * On some platforms, a window move, resize or menu operation will cause
+     * event processing to block. This is due to how event processing is
+     * designed on those platforms. You can use the
+     * <a target="_blank" href="http://www.glfw.org/docs/latest/window.html#window_refresh">window refresh callback</a>
+     * to redraw the contents of your window when necessary during such operations.
+     * <p>
+     * On some platforms, certain events are sent directly to the application without going through the event queue, causing callbacks to be called outside of
+     * a call to one of the event processing functions.
+     *
+     * <div style="margin-left: 26px; border-left: 1px solid gray; padding-left: 14px;">
+     *     <h5>Note</h5>
+     *     <ul>
+     *     <li>This function must only be called from the main thread.</li>
+     *     </ul>
+     * </div>
+     */
     public static void eventLoop()
     {
         while (GLFW.WINDOWS.size() > 1)
@@ -236,6 +265,17 @@ public final class GLFW
         }
     }
     
+    /**
+     * Destroys all remaining windows and cursors, restores any modified gamma
+     * ramps and frees any other allocated resources. Once this function is
+     * called, you must again call {@link #init()} successfully before you will
+     * be able to use most GLFW functions.
+     * <p>
+     * If GLFW has been successfully initialized, this function should be
+     * called before the application exits. If initialization fails, there is
+     * no need to call this function, as it is called by {@link #init()} before
+     * it returns failure.
+     */
     public static void destroy()
     {
         GLFW.LOGGER.fine("GLFW Destruction");
@@ -338,16 +378,32 @@ public final class GLFW
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwUpdateGamepadMappings(IOUtil.resourceToByteBuffer(filePath)));
     }
     
+    /**
+     * @return The mouse instance.
+     */
     public static Mouse mouse()
     {
         return GLFW.MOUSE;
     }
     
+    /**
+     * @return The keyboard instance.
+     */
     public static Keyboard keyboard()
     {
         return GLFW.KEYBOARD;
     }
     
+    /**
+     * Returns the joystick at the provided index if one is connected in that
+     * index. If a joystick is not present then {@code null} will be returned.
+     * <p>
+     * If the connected joystick is a Gamepad then the instance return will be
+     * of type {@link Gamepad}.
+     *
+     * @param index The slot of the joystick.
+     * @return The joystick/gamepad at the index or {@code null}.
+     */
     public static Joystick getJoystick(int index)
     {
         return GLFW.JOYSTICKS.get(index);
