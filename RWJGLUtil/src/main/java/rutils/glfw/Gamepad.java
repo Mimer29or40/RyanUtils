@@ -20,30 +20,30 @@ public class Gamepad extends Joystick
         
         this.name = glfwGetGamepadName(this.jid);
         
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
-            
-            glfwGetGamepadState(this.jid, state);
-            
-            synchronized (this.axisMap)
-            {
-                FloatBuffer axes = state.axes();
-                for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
-            }
-            
-            synchronized (this.buttonMap)
-            {
-                ByteBuffer buttons = state.buttons();
-                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
-            }
-            
-            synchronized (this.hatMap)
-            {
-                ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
-                for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
-            }
-        }
+        // try (MemoryStack stack = MemoryStack.stackPush())
+        // {
+        //     GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
+        //
+        //     glfwGetGamepadState(this.jid, state);
+        //
+        //     synchronized (this.axisMap)
+        //     {
+        //         FloatBuffer axes = state.axes();
+        //         for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
+        //     }
+        //
+        //     synchronized (this.buttonMap)
+        //     {
+        //         ByteBuffer buttons = state.buttons();
+        //         for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
+        //     }
+        //
+        //     synchronized (this.hatMap)
+        //     {
+        //         ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
+        //         for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
+        //     }
+        // }
     }
     
     @Override

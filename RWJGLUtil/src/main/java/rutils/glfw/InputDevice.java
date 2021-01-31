@@ -2,6 +2,8 @@ package rutils.glfw;
 
 import rutils.Logger;
 
+import java.util.concurrent.CountDownLatch;
+
 public abstract class InputDevice
 {
     private static final Logger LOGGER = new Logger();
@@ -91,18 +93,31 @@ public abstract class InputDevice
         InputDevice.doublePressedDelay = (long) (doublePressedDelay * 1_000_000_000L);
     }
     
-    protected       boolean running;
-    protected final Thread  thread;
+    private boolean running;
+    
+    protected final CountDownLatch threadStart;
+    private final   Thread         thread;
     
     InputDevice(String threadName)
     {
         this.running = true;
-        this.thread  = new Thread(this::runInThread, threadName);
+        
+        this.threadStart = new CountDownLatch(1);
+        this.thread      = new Thread(this::runInThread, threadName);
         this.thread.start();
     }
     
     protected void runInThread()
     {
+        try
+        {
+            this.threadStart.await();
+        }
+        catch (InterruptedException e)
+        {
+            return;
+        }
+        
         long t, dt, last = System.nanoTime();
         
         while (this.running)
@@ -132,7 +147,18 @@ public abstract class InputDevice
      */
     protected abstract void postEvents(long time, long deltaTime);
     
-    public static class Input
+    public void destroy()
+    {
+        this.running = false;
+        try
+        {
+            this.thread.interrupt();
+            this.thread.join();
+        }
+        catch (InterruptedException ignored) { }
+    }
+    
+    static class Input
     {
         protected int state, _state;
         
@@ -145,7 +171,7 @@ public abstract class InputDevice
         
         protected Window _window;
         
-        public Input(int initial)
+        Input(int initial)
         {
             this._state = initial;
         }

@@ -45,10 +45,10 @@ public class Mouse extends InputDevice
     {
         super("Mouse");
         
-        synchronized (this.buttonMap = new LinkedHashMap<>())
-        {
-            for (Button button : Mouse.Button.values()) this.buttonMap.put(button, new ButtonInput(GLFW_RELEASE));
-        }
+        this.buttonMap = new LinkedHashMap<>();
+        for (Button button : Mouse.Button.values()) this.buttonMap.put(button, new ButtonInput(GLFW_RELEASE));
+        
+        this.threadStart.countDown();
     }
     
     @Override
@@ -241,62 +241,56 @@ public class Mouse extends InputDevice
             GLFW.EVENT_BUS.post(EventMouseScrolled.create(this._scrollW, this.scroll));
         }
         
-        if (this.buttonMap != null)
+        for (Button button : this.buttonMap.keySet())
         {
-            synchronized (this.buttonMap)
+            ButtonInput buttonObj = this.buttonMap.get(button);
+            
+            if (buttonObj._state != buttonObj.state)
             {
-                for (Button button : this.buttonMap.keySet())
+                if (buttonObj._state == GLFW_PRESS)
                 {
-                    ButtonInput buttonObj = this.buttonMap.get(button);
+                    buttonObj.held       = true;
+                    buttonObj.holdTime   = time + InputDevice.holdFrequency;
+                    buttonObj.repeatTime = time + InputDevice.repeatDelay;
+                    GLFW.EVENT_BUS.post(EventMouseButtonDown.create(buttonObj._window, button, this.pos));
                     
-                    if (buttonObj._state != buttonObj.state)
+                    buttonObj.click.set(this.pos);
+                }
+                else if (buttonObj._state == GLFW_RELEASE)
+                {
+                    buttonObj.held       = false;
+                    buttonObj.holdTime   = Long.MAX_VALUE;
+                    buttonObj.repeatTime = Long.MAX_VALUE;
+                    GLFW.EVENT_BUS.post(EventMouseButtonUp.create(buttonObj._window, button, this.pos));
+                    
+                    boolean inClickRange  = Math.abs(this.pos.x - buttonObj.click.x) < 2 && Math.abs(this.pos.y - buttonObj.click.y) < 2;
+                    boolean inDClickRange = Math.abs(this.pos.x - buttonObj.dClick.x) < 2 && Math.abs(this.pos.y - buttonObj.dClick.y) < 2;
+                    
+                    if (inDClickRange && time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                     {
-                        if (buttonObj._state == GLFW_PRESS)
-                        {
-                            buttonObj.held       = true;
-                            buttonObj.holdTime   = time + InputDevice.holdFrequency;
-                            buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            GLFW.EVENT_BUS.post(EventMouseButtonDown.create(buttonObj._window, button, this.pos));
-                            
-                            buttonObj.click.set(this.pos);
-                        }
-                        else if (buttonObj._state == GLFW_RELEASE)
-                        {
-                            buttonObj.held       = false;
-                            buttonObj.holdTime   = Long.MAX_VALUE;
-                            buttonObj.repeatTime = Long.MAX_VALUE;
-                            GLFW.EVENT_BUS.post(EventMouseButtonUp.create(buttonObj._window, button, this.pos));
-                            
-                            boolean inClickRange  = Math.abs(this.pos.x - buttonObj.click.x) < 2 && Math.abs(this.pos.y - buttonObj.click.y) < 2;
-                            boolean inDClickRange = Math.abs(this.pos.x - buttonObj.dClick.x) < 2 && Math.abs(this.pos.y - buttonObj.dClick.y) < 2;
-                            
-                            if (inDClickRange && time - buttonObj.pressTime < InputDevice.doublePressedDelay)
-                            {
-                                buttonObj.pressTime = 0;
-                                GLFW.EVENT_BUS.post(EventMouseButtonPressed.create(buttonObj._window, button, this.pos, true));
-                            }
-                            else if (inClickRange)
-                            {
-                                buttonObj.dClick.set(this.pos);
-                                buttonObj.pressTime = time;
-                                GLFW.EVENT_BUS.post(EventMouseButtonPressed.create(buttonObj._window, button, this.pos, false));
-                            }
-                        }
-                        buttonObj.state = buttonObj._state;
+                        buttonObj.pressTime = 0;
+                        GLFW.EVENT_BUS.post(EventMouseButtonPressed.create(buttonObj._window, button, this.pos, true));
                     }
-                    if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
+                    else if (inClickRange)
                     {
-                        buttonObj.holdTime += InputDevice.holdFrequency;
-                        GLFW.EVENT_BUS.post(EventMouseButtonHeld.create(buttonObj._window, button, this.pos));
-                        
-                        if (this.rel.x != 0 || this.rel.y != 0) GLFW.EVENT_BUS.post(EventMouseButtonDragged.create(buttonObj._window, button, this.pos, this.rel, buttonObj.click));
-                    }
-                    if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime > InputDevice.repeatFrequency)
-                    {
-                        buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        GLFW.EVENT_BUS.post(EventMouseButtonRepeated.create(buttonObj._window, button, this.pos));
+                        buttonObj.dClick.set(this.pos);
+                        buttonObj.pressTime = time;
+                        GLFW.EVENT_BUS.post(EventMouseButtonPressed.create(buttonObj._window, button, this.pos, false));
                     }
                 }
+                buttonObj.state = buttonObj._state;
+            }
+            if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
+            {
+                buttonObj.holdTime += InputDevice.holdFrequency;
+                GLFW.EVENT_BUS.post(EventMouseButtonHeld.create(buttonObj._window, button, this.pos));
+                
+                if (this.rel.x != 0 || this.rel.y != 0) GLFW.EVENT_BUS.post(EventMouseButtonDragged.create(buttonObj._window, button, this.pos, this.rel, buttonObj.click));
+            }
+            if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime > InputDevice.repeatFrequency)
+            {
+                buttonObj.repeatTime += InputDevice.repeatFrequency;
+                GLFW.EVENT_BUS.post(EventMouseButtonRepeated.create(buttonObj._window, button, this.pos));
             }
         }
     }

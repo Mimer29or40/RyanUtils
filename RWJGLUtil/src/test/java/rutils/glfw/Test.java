@@ -15,25 +15,37 @@ public class Test
     @SubscribeEvent
     public static void allEvents(Event event)
     {
-        // LOGGER.info(event);
+        // LOGGER.info("allEvents", event);
+    }
+    
+    @SubscribeEvent
+    public static void joystickConnectedEvents(EventJoystickConnected event)
+    {
+        LOGGER.info("joystickConnectedEvents", event);
+    }
+    
+    @SubscribeEvent
+    public static void joystickDisconnectedEvents(EventJoystickDisconnected event)
+    {
+        LOGGER.info("joystickDisconnectedEvents", event);
     }
     
     @SubscribeEvent
     public static void allInputEvents(EventInput event)
     {
-        LOGGER.info(event);
+        LOGGER.info("allInputEvents", event);
     }
     
     @SubscribeEvent
     public static void joystickHatEvents(EventJoystickHat event)
     {
-        // LOGGER.info(event);
+        // LOGGER.info("joystickHatEvents", event);
     }
     
     @SubscribeEvent
     public static void gamepadHatEvents(EventGamepadHat event)
     {
-        // LOGGER.info(event);
+        // LOGGER.info("gamepadHatEvents", event);
     }
     
     @SubscribeEvent

@@ -35,23 +35,19 @@ public class Joystick extends InputDevice
         
         this.name = glfwGetJoystickName(this.jid);
         
-        synchronized (this.axisMap = new LinkedHashMap<>())
-        {
-            FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(this.jid), "Joystick is not connected.");
-            for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
-        }
+        this.axisMap = new LinkedHashMap<>();
+        FloatBuffer axes = Objects.requireNonNull(glfwGetJoystickAxes(this.jid), "Joystick is not connected.");
+        for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
         
-        synchronized (this.buttonMap = new LinkedHashMap<>())
-        {
-            ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(this.jid), "Joystick is not connected.");
-            for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
-        }
+        this.buttonMap = new LinkedHashMap<>();
+        ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(this.jid), "Joystick is not connected.");
+        for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
         
-        synchronized (this.hatMap = new LinkedHashMap<>())
-        {
-            ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
-            for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
-        }
+        this.hatMap = new LinkedHashMap<>();
+        ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
+        for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
+        
+        this.threadStart.countDown();
     }
     
     @Override
@@ -80,87 +76,69 @@ public class Joystick extends InputDevice
     @Override
     protected void postEvents(long time, long deltaTime)
     {
-        if (this.axisMap != null)
+        for (int axis : this.axisMap.keySet())
         {
-            synchronized (this.axisMap)
+            AxisInput axisObj = this.axisMap.get(axis);
+            if (Double.compare(axisObj.value, axisObj._value) != 0)
             {
-                for (int axis : this.axisMap.keySet())
-                {
-                    AxisInput axisObj = this.axisMap.get(axis);
-                    if (Double.compare(axisObj.value, axisObj._value) != 0)
-                    {
-                        double delta = axisObj._value - axisObj.value;
-                        axisObj.value = axisObj._value;
-                        postAxisEvent(axis, axisObj.value, delta);
-                    }
-                }
+                double delta = axisObj._value - axisObj.value;
+                axisObj.value = axisObj._value;
+                postAxisEvent(axis, axisObj.value, delta);
             }
         }
         
-        if (this.buttonMap != null)
+        for (int button : this.buttonMap.keySet())
         {
-            synchronized (this.buttonMap)
+            ButtonInput buttonObj = this.buttonMap.get(button);
+            if (buttonObj.state != buttonObj._state)
             {
-                for (int button : this.buttonMap.keySet())
+                buttonObj.state = buttonObj._state;
+                if (buttonObj.state == GLFW_PRESS)
                 {
-                    ButtonInput buttonObj = this.buttonMap.get(button);
-                    if (buttonObj.state != buttonObj._state)
-                    {
-                        buttonObj.state = buttonObj._state;
-                        if (buttonObj.state == GLFW_PRESS)
-                        {
-                            buttonObj.held       = true;
-                            buttonObj.holdTime   = time + InputDevice.holdFrequency;
-                            buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            postButtonDownEvent(button);
-                        }
-                        else if (buttonObj.state == GLFW_RELEASE)
-                        {
-                            buttonObj.held       = false;
-                            buttonObj.holdTime   = Long.MAX_VALUE;
-                            buttonObj.repeatTime = Long.MAX_VALUE;
-                            postButtonUpEvent(button);
-                            
-                            if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
-                            {
-                                buttonObj.pressTime = 0;
-                                postButtonPressedEvent(button, true);
-                            }
-                            else
-                            {
-                                buttonObj.pressTime = time;
-                                postButtonPressedEvent(button, false);
-                            }
-                        }
-                    }
-                    if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
-                    {
-                        buttonObj.holdTime += InputDevice.holdFrequency;
-                        postButtonHeldEvent(button);
-                    }
-                    if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
-                    {
-                        buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        postButtonRepeatedEvent(button);
-                    }
+                    buttonObj.held       = true;
+                    buttonObj.holdTime   = time + InputDevice.holdFrequency;
+                    buttonObj.repeatTime = time + InputDevice.repeatDelay;
+                    postButtonDownEvent(button);
                 }
-            }
-        }
-        
-        if (this.hatMap != null)
-        {
-            synchronized (this.hatMap)
-            {
-                for (int hat : this.hatMap.keySet())
+                else if (buttonObj.state == GLFW_RELEASE)
                 {
-                    HatInput hatObj = this.hatMap.get(hat);
+                    buttonObj.held       = false;
+                    buttonObj.holdTime   = Long.MAX_VALUE;
+                    buttonObj.repeatTime = Long.MAX_VALUE;
+                    postButtonUpEvent(button);
                     
-                    if (hatObj.state != hatObj._state)
+                    if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                     {
-                        hatObj.state = hatObj._state;
-                        postHatEvent(hat, hatObj.state);
+                        buttonObj.pressTime = 0;
+                        postButtonPressedEvent(button, true);
+                    }
+                    else
+                    {
+                        buttonObj.pressTime = time;
+                        postButtonPressedEvent(button, false);
                     }
                 }
+            }
+            if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
+            {
+                buttonObj.holdTime += InputDevice.holdFrequency;
+                postButtonHeldEvent(button);
+            }
+            if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
+            {
+                buttonObj.repeatTime += InputDevice.repeatFrequency;
+                postButtonRepeatedEvent(button);
+            }
+        }
+        
+        for (int hat : this.hatMap.keySet())
+        {
+            HatInput hatObj = this.hatMap.get(hat);
+            
+            if (hatObj.state != hatObj._state)
+            {
+                hatObj.state = hatObj._state;
+                postHatEvent(hat, hatObj.state);
             }
         }
     }

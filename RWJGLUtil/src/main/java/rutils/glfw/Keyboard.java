@@ -27,11 +27,11 @@ public class Keyboard extends InputDevice
     Keyboard()
     {
         super("Keyboard");
-        
-        synchronized (this.keyMap = new LinkedHashMap<>())
-        {
-            for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new KeyInput(GLFW_RELEASE));
-        }
+    
+        this.keyMap = new LinkedHashMap<>();
+        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new KeyInput(GLFW_RELEASE));
+    
+        this.threadStart.countDown();
     }
     
     @Override
