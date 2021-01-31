@@ -27,7 +27,7 @@ public class Keyboard extends InputDevice
     Keyboard()
     {
         super("Keyboard");
-    
+        
         synchronized (this.keyMap = new LinkedHashMap<>())
         {
             for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new KeyInput(GLFW_RELEASE));
@@ -67,24 +67,24 @@ public class Keyboard extends InputDevice
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
      *
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
+     * @param time      The system time in nanoseconds.
+     * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postEvents(long time, long delta)
+    protected void postEvents(long time, long deltaTime)
     {
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
             GLFW.EVENT_BUS.post(EventKeyboardTyped.create(charChange.getA(), charChange.getB()));
         }
-    
+        
         synchronized (this.keyMap)
         {
             for (Key key : this.keyMap.keySet())
             {
                 KeyInput keyObj = this.keyMap.get(key);
-            
+                
                 if (keyObj._state != keyObj.state)
                 {
                     if (keyObj._state == GLFW_PRESS)
@@ -100,7 +100,7 @@ public class Keyboard extends InputDevice
                         keyObj.holdTime   = Long.MAX_VALUE;
                         keyObj.repeatTime = Long.MAX_VALUE;
                         GLFW.EVENT_BUS.post(EventKeyboardKeyUp.create(keyObj._window, key));
-                    
+                        
                         if (time - keyObj.pressTime < InputDevice.doublePressedDelay)
                         {
                             keyObj.pressTime = 0;

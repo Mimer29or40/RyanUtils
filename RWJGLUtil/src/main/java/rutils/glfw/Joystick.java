@@ -57,7 +57,7 @@ public class Joystick extends InputDevice
     @Override
     public String toString()
     {
-        return "Joystick{" + this.jid + ", name='" + this.name + '\'' + '}';
+        return getClass().getSimpleName() + "{" + this.jid + ", name='" + this.name + '\'' + '}';
     }
     
     public boolean isGamepad()
@@ -74,11 +74,11 @@ public class Joystick extends InputDevice
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
      *
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
+     * @param time      The system time in nanoseconds.
+     * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postEvents(long time, long delta)
+    protected void postEvents(long time, long deltaTime)
     {
         if (this.axisMap != null)
         {
@@ -87,11 +87,11 @@ public class Joystick extends InputDevice
                 for (int axis : this.axisMap.keySet())
                 {
                     AxisInput axisObj = this.axisMap.get(axis);
-                    if (Float.compare(axisObj.value, axisObj._value) != 0)
+                    if (Double.compare(axisObj.value, axisObj._value) != 0)
                     {
-                        float difference = axisObj._value - axisObj.value;
+                        double delta = axisObj._value - axisObj.value;
                         axisObj.value = axisObj._value;
-                        GLFW.EVENT_BUS.post(EventJoystickAxis.create(this, axis, axisObj.value, difference));
+                        postAxisEvent(axis, axisObj.value, delta);
                     }
                 }
             }
@@ -112,36 +112,36 @@ public class Joystick extends InputDevice
                             buttonObj.held       = true;
                             buttonObj.holdTime   = time + InputDevice.holdFrequency;
                             buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            GLFW.EVENT_BUS.post(EventJoystickButtonDown.create(this, button));
+                            postButtonDownEvent(button);
                         }
                         else if (buttonObj.state == GLFW_RELEASE)
                         {
                             buttonObj.held       = false;
                             buttonObj.holdTime   = Long.MAX_VALUE;
                             buttonObj.repeatTime = Long.MAX_VALUE;
-                            GLFW.EVENT_BUS.post(EventJoystickButtonUp.create(this, button));
+                            postButtonUpEvent(button);
                             
                             if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                             {
                                 buttonObj.pressTime = 0;
-                                GLFW.EVENT_BUS.post(EventJoystickButtonPressed.create(this, button, true));
+                                postButtonPressedEvent(button, true);
                             }
                             else
                             {
                                 buttonObj.pressTime = time;
-                                GLFW.EVENT_BUS.post(EventJoystickButtonPressed.create(this, button, false));
+                                postButtonPressedEvent(button, false);
                             }
                         }
                     }
                     if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
                     {
                         buttonObj.holdTime += InputDevice.holdFrequency;
-                        GLFW.EVENT_BUS.post(EventJoystickButtonHeld.create(this, button));
+                        postButtonHeldEvent(button);
                     }
                     if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
                     {
                         buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        GLFW.EVENT_BUS.post(EventJoystickButtonRepeated.create(this, button));
+                        postButtonRepeatedEvent(button);
                     }
                 }
             }
@@ -158,18 +158,53 @@ public class Joystick extends InputDevice
                     if (hatObj.state != hatObj._state)
                     {
                         hatObj.state = hatObj._state;
-                        GLFW.EVENT_BUS.post(EventJoystickHat.create(this, hat, Hat.get(hatObj.state)));
+                        postHatEvent(hat, hatObj.state);
                     }
                 }
             }
         }
     }
     
+    protected void postAxisEvent(int axis, double value, double delta)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickAxis.create(this, axis, value, delta));
+    }
+    
+    protected void postButtonDownEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickButtonDown.create(this, button));
+    }
+    
+    protected void postButtonUpEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickButtonUp.create(this, button));
+    }
+    
+    protected void postButtonPressedEvent(int button, boolean doublePressed)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickButtonPressed.create(this, button, doublePressed));
+    }
+    
+    protected void postButtonHeldEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickButtonHeld.create(this, button));
+    }
+    
+    protected void postButtonRepeatedEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickButtonRepeated.create(this, button));
+    }
+    
+    protected void postHatEvent(int hat, int state)
+    {
+        GLFW.EVENT_BUS.post(EventJoystickHat.create(this, hat, Hat.get(state)));
+    }
+    
     static final class AxisInput
     {
-        protected float _value, value;
+        protected double _value, value;
         
-        AxisInput(float initial)
+        AxisInput(double initial)
         {
             this._value = initial;
         }

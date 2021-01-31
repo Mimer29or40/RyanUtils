@@ -6,8 +6,6 @@ import rutils.glfw.event.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -15,10 +13,6 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Gamepad extends Joystick
 {
     private final String name;
-    
-    final Map<Axis, AxisInput>     axisMap;
-    final Map<Button, ButtonInput> buttonMap;
-    final Map<Integer, HatInput>   hatMap;
     
     Gamepad(int jid, boolean gamepad)
     {
@@ -32,19 +26,19 @@ public class Gamepad extends Joystick
             
             glfwGetGamepadState(this.jid, state);
             
-            synchronized (this.axisMap = new LinkedHashMap<>())
+            synchronized (this.axisMap)
             {
                 FloatBuffer axes = state.axes();
-                for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(Axis.get(i), new AxisInput(axes.get(i)));
+                for (int i = 0, n = axes.remaining(); i < n; i++) this.axisMap.put(i, new AxisInput(axes.get(i)));
             }
             
-            synchronized (this.buttonMap = new LinkedHashMap<>())
+            synchronized (this.buttonMap)
             {
                 ByteBuffer buttons = state.buttons();
-                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(Button.get(i), new ButtonInput(buttons.get(i)));
+                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new ButtonInput(buttons.get(i)));
             }
             
-            synchronized (this.hatMap = new LinkedHashMap<>())
+            synchronized (this.hatMap)
             {
                 ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
                 for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new HatInput(hats.get(i)));
@@ -57,99 +51,47 @@ public class Gamepad extends Joystick
     {
         return this.name;
     }
-    /**
-     * This method is called by the window it is attached to. This is where
-     * events should be posted to when something has changed.
-     *
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
-     */
+    
     @Override
-    protected void postEvents(long time, long delta)
+    protected void postAxisEvent(int axis, double value, double delta)
     {
-        if (this.axisMap != null)
-        {
-            synchronized (this.axisMap)
-            {
-                for (Axis axis : this.axisMap.keySet())
-                {
-                    AxisInput axisObj = this.axisMap.get(axis);
-                    if (Float.compare(axisObj.value, axisObj._value) != 0)
-                    {
-                        float difference = axisObj._value - axisObj.value;
-                        axisObj.value = axisObj._value;
-                        GLFW.EVENT_BUS.post(EventGamepadAxis.create(this, axis, axisObj.value, difference));
-                    }
-                }
-            }
-        }
-        
-        if (this.buttonMap != null)
-        {
-            synchronized (this.buttonMap)
-            {
-                for (Button button : this.buttonMap.keySet())
-                {
-                    ButtonInput buttonObj = this.buttonMap.get(button);
-                    if (buttonObj.state != buttonObj._state)
-                    {
-                        buttonObj.state = buttonObj._state;
-                        if (buttonObj.state == GLFW_PRESS)
-                        {
-                            buttonObj.held       = true;
-                            buttonObj.holdTime   = time + InputDevice.holdFrequency;
-                            buttonObj.repeatTime = time + InputDevice.repeatDelay;
-                            GLFW.EVENT_BUS.post(EventGamepadButtonDown.create(this, button));
-                        }
-                        else if (buttonObj.state == GLFW_RELEASE)
-                        {
-                            buttonObj.held       = false;
-                            buttonObj.holdTime   = Long.MAX_VALUE;
-                            buttonObj.repeatTime = Long.MAX_VALUE;
-                            GLFW.EVENT_BUS.post(EventGamepadButtonUp.create(this, button));
-                            
-                            if (time - buttonObj.pressTime < InputDevice.doublePressedDelay)
-                            {
-                                buttonObj.pressTime = 0;
-                                GLFW.EVENT_BUS.post(EventGamepadButtonPressed.create(this, button, true));
-                            }
-                            else
-                            {
-                                buttonObj.pressTime = time;
-                                GLFW.EVENT_BUS.post(EventGamepadButtonPressed.create(this, button, false));
-                            }
-                        }
-                    }
-                    if (buttonObj.held && time - buttonObj.holdTime >= InputDevice.holdFrequency)
-                    {
-                        buttonObj.holdTime += InputDevice.holdFrequency;
-                        GLFW.EVENT_BUS.post(EventGamepadButtonHeld.create(this, button));
-                    }
-                    if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime >= InputDevice.repeatFrequency)
-                    {
-                        buttonObj.repeatTime += InputDevice.repeatFrequency;
-                        GLFW.EVENT_BUS.post(EventGamepadButtonRepeated.create(this, button));
-                    }
-                }
-            }
-        }
-        
-        if (this.hatMap != null)
-        {
-            synchronized (this.hatMap)
-            {
-                for (int hat : this.hatMap.keySet())
-                {
-                    HatInput hatObj = this.hatMap.get(hat);
-                    
-                    if (hatObj.state != hatObj._state)
-                    {
-                        hatObj.state = hatObj._state;
-                        GLFW.EVENT_BUS.post(EventGamepadHat.create(this, hat, Hat.get(hatObj.state)));
-                    }
-                }
-            }
-        }
+        GLFW.EVENT_BUS.post(EventGamepadAxis.create(this, Axis.get(axis), value, delta));
+    }
+    
+    @Override
+    protected void postButtonDownEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadButtonDown.create(this, Button.get(button)));
+    }
+    
+    @Override
+    protected void postButtonUpEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadButtonUp.create(this, Button.get(button)));
+    }
+    
+    @Override
+    protected void postButtonPressedEvent(int button, boolean doublePressed)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadButtonPressed.create(this, Button.get(button), doublePressed));
+    }
+    
+    @Override
+    protected void postButtonHeldEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadButtonHeld.create(this, Button.get(button)));
+    }
+    
+    @Override
+    protected void postButtonRepeatedEvent(int button)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadButtonRepeated.create(this, Button.get(button)));
+    }
+    
+    @Override
+    protected void postHatEvent(int hat, int state)
+    {
+        GLFW.EVENT_BUS.post(EventGamepadHat.create(this, hat, Hat.get(state)));
     }
     
     public enum Axis
@@ -172,7 +114,7 @@ public class Gamepad extends Joystick
         {
             this.id = id;
         }
-    
+        
         public int id()
         {
             return this.id;

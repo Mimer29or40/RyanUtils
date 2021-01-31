@@ -203,11 +203,11 @@ public class Mouse extends InputDevice
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
      *
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
+     * @param time      The system time in nanoseconds.
+     * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
-    protected void postEvents(long time, long delta)
+    protected void postEvents(long time, long deltaTime)
     {
         boolean entered = false;
         
@@ -248,7 +248,7 @@ public class Mouse extends InputDevice
                 for (Button button : this.buttonMap.keySet())
                 {
                     ButtonInput buttonObj = this.buttonMap.get(button);
-            
+                    
                     if (buttonObj._state != buttonObj.state)
                     {
                         if (buttonObj._state == GLFW_PRESS)
@@ -257,7 +257,7 @@ public class Mouse extends InputDevice
                             buttonObj.holdTime   = time + InputDevice.holdFrequency;
                             buttonObj.repeatTime = time + InputDevice.repeatDelay;
                             GLFW.EVENT_BUS.post(EventMouseButtonDown.create(buttonObj._window, button, this.pos));
-                    
+                            
                             buttonObj.click.set(this.pos);
                         }
                         else if (buttonObj._state == GLFW_RELEASE)
@@ -266,10 +266,10 @@ public class Mouse extends InputDevice
                             buttonObj.holdTime   = Long.MAX_VALUE;
                             buttonObj.repeatTime = Long.MAX_VALUE;
                             GLFW.EVENT_BUS.post(EventMouseButtonUp.create(buttonObj._window, button, this.pos));
-                    
+                            
                             boolean inClickRange  = Math.abs(this.pos.x - buttonObj.click.x) < 2 && Math.abs(this.pos.y - buttonObj.click.y) < 2;
                             boolean inDClickRange = Math.abs(this.pos.x - buttonObj.dClick.x) < 2 && Math.abs(this.pos.y - buttonObj.dClick.y) < 2;
-                    
+                            
                             if (inDClickRange && time - buttonObj.pressTime < InputDevice.doublePressedDelay)
                             {
                                 buttonObj.pressTime = 0;
@@ -288,7 +288,7 @@ public class Mouse extends InputDevice
                     {
                         buttonObj.holdTime += InputDevice.holdFrequency;
                         GLFW.EVENT_BUS.post(EventMouseButtonHeld.create(buttonObj._window, button, this.pos));
-                
+                        
                         if (this.rel.x != 0 || this.rel.y != 0) GLFW.EVENT_BUS.post(EventMouseButtonDragged.create(buttonObj._window, button, this.pos, this.rel, buttonObj.click));
                     }
                     if (buttonObj.state == GLFW_REPEAT || time - buttonObj.repeatTime > InputDevice.repeatFrequency)

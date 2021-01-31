@@ -1,6 +1,5 @@
 package rutils.glfw;
 
-import org.jetbrains.annotations.NotNull;
 import rutils.Logger;
 
 public abstract class InputDevice
@@ -128,10 +127,10 @@ public abstract class InputDevice
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
      *
-     * @param time  The system time in nanoseconds.
-     * @param delta The time in nanoseconds since the last time this method was called.
+     * @param time      The system time in nanoseconds.
+     * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
-    protected abstract void postEvents(long time, long delta);
+    protected abstract void postEvents(long time, long deltaTime);
     
     public static class Input
     {
