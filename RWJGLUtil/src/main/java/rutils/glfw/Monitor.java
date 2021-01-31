@@ -20,20 +20,20 @@ public class Monitor
 {
     private static final Logger LOGGER = new Logger();
     
-    private final long   handle;
-    private final int    index;
-    private final String name;
+    protected final long   handle;
+    protected final int    index;
+    protected final String name;
     
-    private final ArrayList<VideoMode> videoModes = new ArrayList<>();
+    protected final ArrayList<VideoMode> videoModes = new ArrayList<>();
     
-    private final Vector2i actualSize = new Vector2i();
+    protected final Vector2i actualSize = new Vector2i();
     
-    private final Vector2f scale = new Vector2f();
+    protected final Vector2f scale = new Vector2f();
     
-    private final Vector2i pos = new Vector2i();
+    protected final Vector2i pos = new Vector2i();
     
-    private final Vector2i workAreaPos  = new Vector2i();
-    private final Vector2i workAreaSize = new Vector2i();
+    protected final Vector2i workAreaPos  = new Vector2i();
+    protected final Vector2i workAreaSize = new Vector2i();
     
     Monitor(long handle, int index)
     {
@@ -93,14 +93,6 @@ public class Monitor
     public String toString()
     {
         return "Monitor{" + "name='"  + this.name + '\'' + ", index=" + this.index+ '}';
-    }
-    
-    /**
-     * @return The GLFW address of the monitor.
-     */
-    public long handle()
-    {
-        return this.handle;
     }
     
     /**

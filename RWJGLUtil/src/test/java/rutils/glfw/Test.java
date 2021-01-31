@@ -63,15 +63,16 @@ public class Test
     @SubscribeEvent
     public static void handleEvent(EventKeyboardKey event)
     {
-        // if (event instanceof EventKeyboardKeyDown)
-        // {
-        //     switch (event.key())
-        //     {
-        //         case S -> GLFW.mouse().show(window);
-        //         case H -> GLFW.mouse().hide(window);
-        //         case C -> GLFW.mouse().capture(window);
-        //     }
-        // }
+        if (event instanceof EventKeyboardKeyDown)
+        {
+            switch (event.key())
+            {
+                case S -> GLFW.mouse().show(window);
+                case H -> GLFW.mouse().hide(window);
+                case C -> GLFW.mouse().capture(window);
+                case F -> window.windowed(!window.windowed());
+            }
+        }
     }
     
     public static void main(String[] args)

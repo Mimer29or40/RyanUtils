@@ -30,7 +30,12 @@ public class Window
     
     protected Monitor monitor;
     
+    protected boolean windowed;
+    protected VideoMode prevVideoMode;
+    
     protected boolean open;
+    
+    protected int refreshRate;
     
     protected final Vector2i minSize = new Vector2i();
     protected final Vector2i maxSize = new Vector2i();
@@ -86,8 +91,10 @@ public class Window
             // TODO - Use the builder to load monitor from config.
             this.monitor = builder.monitor != null ? builder.monitor : GLFW.PRIMARY_MONITOR;
             
+            this.windowed = builder.windowed;
+            
             String title   = builder.title != null ? builder.title : this.name != null ? this.name : "Window";
-            long   monitor = builder.windowed ? 0L : this.monitor.handle();
+            long   monitor = this.windowed ? 0L : this.monitor.handle;
             long   window  = GLFW.MAIN_WINDOW != null ? GLFW.MAIN_WINDOW.handle : 0L;
             
             long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);
@@ -148,7 +155,7 @@ public class Window
             
             glfwSetInputMode(handle, GLFW_LOCK_KEY_MODS, Modifier.lockMods() ? GLFW_TRUE : GLFW_FALSE);
             
-            // glfwSetWindowMonitor(handle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate); // TODO
+            this.refreshRate = builder.refreshRate != null ? builder.refreshRate : GLFW_DONT_CARE;
             
             GLFW.attachWindow(handle, this);
             
@@ -576,6 +583,69 @@ public class Window
         return this.taskDelegator.waitReturnTask(() -> this.handle == glfwGetCurrentContext());
     }
     
+    /**
+     * @return Retrieves if the window is in windowed mode.
+     */
+    public boolean windowed()
+    {
+        return this.windowed;
+    }
+    
+    /**
+     * Sets the window to into windowed mode or fullscreen mode.
+     * <p>
+     * If windowed is set to {@code true}, then the window will be set to
+     * fullscreen in the current monitor that it is in.
+     * <p>
+     * If windowed is set to {@code false}, then the window will be set to
+     * windowed in the current monitor and placed in the center of the it and
+     * the window will be resized to the previously set size.
+     * <p>
+     * If you only wish to update the resolution of a full screen window or the
+     * size of a windowed mode window, see {@link #size(Vector2ic)}.
+     * <p>
+     * When a window transitions from full screen to windowed mode, this
+     * function restores any previous window settings such as whether it is
+     * decorated, floating, resizable, has size or aspect ratio limits, etc.
+     *
+     * @param windowed The new windowed mode state.
+     */
+    public void windowed(boolean windowed)
+    {
+        // TODO - When exiting fullscreen mode, the window is set to the center of the primary monitor and not the monitor that it was fullscreen in.
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            if (this.windowed != windowed && !windowed) this.prevVideoMode = this.monitor.videoMode();
+            long monitor = (this.windowed = windowed) ? 0L : this.monitor.handle;
+    
+            int x = (this.prevVideoMode.width - this.size.x) >> 1 + this.monitor.x();
+            int y = (this.prevVideoMode.height - this.size.y) >> 1 + this.monitor.y();
+    
+            glfwSetWindowMonitor(this.handle, monitor, x, y, this.size.x, this.size.y, this.refreshRate);
+        });
+    }
+    
+    /**
+     * @return Retrieves the refresh rate of the window, or {@link org.lwjgl.glfw.GLFW#GLFW_DONT_CARE DONT_CARE}
+     */
+    public int refreshRate()
+    {
+        return this.refreshRate;
+    }
+    
+    /**
+     * Sets the refresh rate of the window.
+     *
+     * @param refreshRate The new refresh rate.
+     */
+    public void refreshRate(int refreshRate)
+    {
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            long monitor = this.windowed ? 0L : this.monitor.handle;
+            
+            glfwSetWindowMonitor(this.handle, monitor, this.pos.x, this.pos.y, this.size.x, this.size.y, this.refreshRate = refreshRate);
+        });
+    }
+    
     // -------------------- Callback Related Things -------------------- //
     
     /**
@@ -983,7 +1053,7 @@ public class Window
                     GLFW.EVENT_BUS.post(EventWindowClosed.create(this));
                 }
                 
-                if (this.vsync != this._vsync && isCurrent())
+                if (this.vsync != this._vsync)
                 {
                     this.vsync = this._vsync;
                     glfwSwapInterval(this.vsync ? 1 : 0);
