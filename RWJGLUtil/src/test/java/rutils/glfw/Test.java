@@ -43,6 +43,12 @@ public class Test
     }
     
     @SubscribeEvent
+    public static void handleEvent(EventMouse event)
+    {
+        // LOGGER.info("EventMouse", event);
+    }
+    
+    @SubscribeEvent
     public static void handleEvent(EventJoystickHat event)
     {
         // LOGGER.info("EventJoystickHat", event);

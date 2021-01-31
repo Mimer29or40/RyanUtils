@@ -1,10 +1,13 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
+import org.joml.Vector2dc;
 import org.lwjgl.system.Platform;
 import rutils.Logger;
 import rutils.glfw.event.*;
 import rutils.group.IPair;
+import rutils.group.Triple;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,7 +42,9 @@ public class Mouse extends InputDevice
     
     // -------------------- Internal Objects -------------------- //
     
-    final Map<Button, ButtonInput> buttonMap;
+    protected final Queue<Triple<Window, Button, Integer>> buttonStateChanges = new ConcurrentLinkedQueue<>();
+    
+    protected final Map<Button, ButtonInput> buttonMap;
     
     Mouse()
     {
@@ -200,6 +205,192 @@ public class Mouse extends InputDevice
     // -------------------- Callback Related Things -------------------- //
     
     /**
+     * Returns the position of the cursor, in screen coordinates, relative to
+     * the upper-left corner of the content area of the last window the mouse
+     * was reported in.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The position of the cursor, in screen coordinates, relative to the upper-left corner of the content area of the last window the mouse was reported in.
+     */
+    public @NotNull Vector2dc pos()
+    {
+        return this.pos;
+    }
+    
+    /**
+     * Returns the x position of the cursor, in screen coordinates, relative to
+     * the upper-left corner of the content area of the last window the mouse
+     * was reported in.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The x position of the cursor, in screen coordinates, relative to the upper-left corner of the content area of the last window the mouse was reported in.
+     */
+    public double x()
+    {
+        return this.pos.x;
+    }
+    
+    /**
+     * Returns the y position of the cursor, in screen coordinates, relative to
+     * the upper-left corner of the content area of the last window the mouse
+     * was reported in.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The y position of the cursor, in screen coordinates, relative to the upper-left corner of the content area of the last window the mouse was reported in.
+     */
+    public double y()
+    {
+        return this.pos.y;
+    }
+    
+    /**
+     * Returns the difference in position of the cursor, in screen coordinates,
+     * relative to the upper-left corner of the content area of the last window
+     * the mouse was reported in since the last time the mouse was updated.
+     * <p>
+     * This will be {@code {0.0, 0.0}} for the majority of the time as the
+     * mouse can update more that once per window frame. It would be better to
+     * subscribe to {@link EventMouseMoved} events to get actual relative
+     * values.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The difference in position of the cursor, in screen coordinates, since the last time the mouse was updated.
+     */
+    public @NotNull Vector2dc rel()
+    {
+        return this.rel;
+    }
+    
+    /**
+     * Returns the difference in x position of the cursor, in screen
+     * coordinates, relative to the upper-left corner of the content area of
+     * the last window the mouse was reported in since the last time the mouse
+     * was updated.
+     * <p>
+     * This will be {@code 0.0} for the majority of the time as the mouse can
+     * update more that once per window frame. It would be better to subscribe
+     * to {@link EventMouseMoved} events to get actual relative values.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The difference in x position of the cursor, in screen coordinates, since the last time the mouse was updated.
+     */
+    public double dx()
+    {
+        return this.rel.x;
+    }
+    
+    /**
+     * Returns the difference in y position of the cursor, in screen
+     * coordinates, relative to the upper-left corner of the content area of
+     * the last window the mouse was reported in since the last time the mouse
+     * was updated.
+     * <p>
+     * This will be {@code 0.0} for the majority of the time as the mouse can
+     * update more that once per window frame. It would be better to subscribe
+     * to {@link EventMouseMoved} events to get actual relative values.
+     * <p>
+     * If the cursor is captured (with {@link #capture(Window)} ) then the
+     * cursor position is unbounded and limited only by the minimum and maximum
+     * values of a <b>{@code double}</b>.
+     * <p>
+     * The coordinates can be converted to their integer equivalents with the
+     * {@link Math#floor} function. Casting directly to an integer type works
+     * for positive coordinates, but fails for negative ones.
+     *
+     * @return The difference in y position of the cursor, in screen coordinates, since the last time the mouse was updated.
+     */
+    public double dy()
+    {
+        return this.rel.y;
+    }
+    
+    /**
+     * Returns the amount that the mouse wheel, or touch-pad, was scrolled in
+     * last window the mouse was reported in since the last time the mouse was
+     * updated.
+     * <p>
+     * This will be {@code {0.0, 0.0}} for the majority of the time as the
+     * mouse can update more that once per window frame. It would be better to
+     * subscribe to {@link EventMouseScrolled} events to get actual scrolled
+     * values.
+     *
+     * @return The amount that the mouse wheel, or touch-pad, was scrolled since the last time the mouse was updated.
+     */
+    public @NotNull Vector2dc scroll()
+    {
+        return this.scroll;
+    }
+    
+    /**
+     * Returns the amount that the mouse wheel, or touch-pad, was scrolled
+     * horizontally in last window the mouse was reported in since the last
+     * time the mouse was updated.
+     * <p>
+     * This will be {@code {0.0, 0.0}} for the majority of the time as the
+     * mouse can update more that once per window frame. It would be better to
+     * subscribe to {@link EventMouseScrolled} events to get actual scrolled
+     * values.
+     *
+     * @return The amount that the mouse wheel, or touch-pad, was scrolled horizontally since the last time the mouse was updated.
+     */
+    public double scrollX()
+    {
+        return this.scroll.x;
+    }
+    
+    /**
+     * Returns the amount that the mouse wheel, or touch-pad, was scrolled
+     * vertically in last window the mouse was reported in since the last time
+     * the mouse was updated.
+     * <p>
+     * This will be {@code {0.0, 0.0}} for the majority of the time as the
+     * mouse can update more that once per window frame. It would be better to
+     * subscribe to {@link EventMouseScrolled} events to get actual scrolled
+     * values.
+     *
+     * @return The amount that the mouse wheel, or touch-pad, was scrolled vertically since the last time the mouse was updated.
+     */
+    public double scrollY()
+    {
+        return this.scroll.y;
+    }
+    
+    /**
      * This method is called by the window it is attached to. This is where
      * events should be posted to when something has changed.
      *
@@ -207,6 +398,7 @@ public class Mouse extends InputDevice
      * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void postEvents(long time, long deltaTime)
     {
         boolean entered = false;
@@ -214,7 +406,6 @@ public class Mouse extends InputDevice
         IPair<Window, Boolean> enteredChange;
         while ((enteredChange = this._enteredChanges.poll()) != null)
         {
-            //noinspection ConstantConditions
             GLFW.EVENT_BUS.post(EventMouseEntered.create(enteredChange.getA(), enteredChange.getB()));
             if (enteredChange.getB())
             {
@@ -239,6 +430,15 @@ public class Mouse extends InputDevice
             this.scroll.set(this._scroll);
             this._scroll.set(0);
             GLFW.EVENT_BUS.post(EventMouseScrolled.create(this._scrollW, this.scroll));
+        }
+        
+        Triple<Window, Button, Integer> buttonStateChange;
+        while ((buttonStateChange = this.buttonStateChanges.poll()) != null)
+        {
+            Mouse.ButtonInput buttonObj = this.buttonMap.get(buttonStateChange.getB());
+            
+            buttonObj._window = buttonStateChange.getA();
+            buttonObj._state = buttonStateChange.getC();
         }
         
         for (Button button : this.buttonMap.keySet())

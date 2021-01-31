@@ -1,6 +1,8 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
+import rutils.group.Triple;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -116,15 +118,13 @@ public abstract class InputDevice
         catch (InterruptedException ignored) { }
     }
     
-    static class Input
+    protected static class Input
     {
         protected int state = -1, _state;
         
         protected boolean held;
         
-        protected long holdTime = Long.MAX_VALUE;
-        
-        protected long pressTime;
+        protected long holdTime = Long.MAX_VALUE, pressTime;
         
         protected Window _window;
         

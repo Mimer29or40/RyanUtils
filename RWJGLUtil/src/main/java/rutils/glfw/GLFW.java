@@ -16,6 +16,7 @@ import rutils.glfw.event.EventJoystickDisconnected;
 import rutils.glfw.event.EventMonitorConnected;
 import rutils.glfw.event.EventMonitorDisconnected;
 import rutils.group.Pair;
+import rutils.group.Triple;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -100,12 +101,12 @@ public final class GLFW
                     try (MemoryStack stack = MemoryStack.stackPush())
                     {
                         GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
-                
+                        
                         if (glfwGetGamepadState(jid, state))
                         {
                             FloatBuffer axes = state.axes();
                             GLFW.JOYSTICK_AXIS_STATES[jid] = new float[axes.remaining()];
-                    
+                            
                             ByteBuffer buttons = state.buttons();
                             GLFW.JOYSTICK_BUTTON_STATES[jid] = new byte[buttons.remaining()];
                         }
@@ -120,11 +121,11 @@ public final class GLFW
                 {
                     FloatBuffer axes = glfwGetJoystickAxes(jid);
                     GLFW.JOYSTICK_AXIS_STATES[jid] = axes != null ? new float[axes.remaining()] : new float[0];
-            
+                    
                     ByteBuffer buttons = glfwGetJoystickButtons(jid);
                     GLFW.JOYSTICK_BUTTON_STATES[jid] = buttons != null ? new byte[buttons.remaining()] : new byte[0];
                 }
-        
+                
                 ByteBuffer hats = glfwGetJoystickHats(jid);
                 GLFW.JOYSTICK_HAT_STATES[jid] = hats != null ? new byte[hats.remaining()] : new byte[0];
             }
@@ -145,19 +146,19 @@ public final class GLFW
         while (GLFW.WINDOWS.size() > 1)
         {
             glfwPollEvents();
-    
+            
             // -------------------- Joystick Callback Emulation -------------------- //
             {
                 for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
                 {
                     int n;
-            
+                    
                     if (glfwJoystickPresent(jid))
                     {
                         FloatBuffer axes    = null;
                         ByteBuffer  buttons = null;
                         ByteBuffer  hats    = glfwGetJoystickHats(jid);
-                
+                        
                         if (!glfwJoystickIsGamepad(jid))
                         {
                             axes    = glfwGetJoystickAxes(jid);
@@ -168,7 +169,7 @@ public final class GLFW
                             try (MemoryStack stack = MemoryStack.stackPush())
                             {
                                 GLFWGamepadState state = GLFWGamepadState.mallocStack(stack);
-                        
+                                
                                 if (glfwGetGamepadState(jid, state))
                                 {
                                     axes    = state.axes();
@@ -176,7 +177,7 @@ public final class GLFW
                                 }
                             }
                         }
-                
+                        
                         if (axes != null)
                         {
                             n = axes.remaining();
@@ -226,7 +227,7 @@ public final class GLFW
                 }
             }
             // -------------------- Joystick Callback Emulation -------------------- //
-    
+            
             GLFW.TASK_DELEGATOR.runTasks();
             
             GLFW.WINDOWS.values().removeIf(window -> !window.isOpen());
@@ -349,7 +350,7 @@ public final class GLFW
     
     public static Joystick getJoystick(int index)
     {
-        return GLFW.JOYSTICKS.getOrDefault(index, null);
+        return GLFW.JOYSTICKS.get(index);
     }
     
     /**
@@ -437,21 +438,21 @@ public final class GLFW
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
-        joystick.axisMap.get(axis)._value = value;
+        joystick.axisStateChanges.offer(new Pair<>(axis, value));
     }
     
     private static void joystickButtonCallback(int jid, int button, int action)
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
-        joystick.buttonMap.get(button)._state = action;
+        joystick.buttonStateChanges.offer(new Pair<>(button, action));
     }
     
     private static void joystickHatCallback(int jid, int hat, int action)
     {
         Joystick joystick = GLFW.JOYSTICKS.get(jid);
         
-        joystick.hatMap.get(hat)._state = action;
+        joystick.hatStateChanges.offer(new Pair<>(hat, action));
     }
     
     private static void windowCloseCallback(long handle)
@@ -557,10 +558,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Mouse.ButtonInput buttonObj = GLFW.MOUSE.buttonMap.get(Mouse.Button.get(button));
-        
-        buttonObj._window = window;
-        buttonObj._state  = action;
+        GLFW.MOUSE.buttonStateChanges.offer(new Triple<>(window, Mouse.Button.get(button), action));
         
         Modifier.updateMods(mods);
     }
@@ -569,10 +567,7 @@ public final class GLFW
     {
         Window window = GLFW.WINDOWS.get(handle);
         
-        Keyboard.Input keyObj = GLFW.KEYBOARD.keyMap.get(Keyboard.Key.get(key, scancode));
-        
-        keyObj._window = window;
-        keyObj._state  = action;
+        GLFW.KEYBOARD.keyStateChanges.offer(new Triple<>(window, Keyboard.Key.get(key, scancode), action));
         
         Modifier.updateMods(mods);
     }

@@ -1,8 +1,11 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
 import rutils.glfw.event.*;
 import rutils.group.IPair;
+import rutils.group.Triple;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -22,7 +25,9 @@ public class Keyboard extends InputDevice
     
     // -------------------- Internal Objects -------------------- //
     
-    final Map<Key, Input> keyMap;
+    protected final Queue<Triple<Window, Key, Integer>> keyStateChanges = new ConcurrentLinkedQueue<>();
+    
+    protected final Map<Key, Input>        keyMap;
     
     Keyboard()
     {
@@ -71,12 +76,22 @@ public class Keyboard extends InputDevice
      * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void postEvents(long time, long deltaTime)
     {
         IPair<Window, String> charChange;
         while ((charChange = this._charChanges.poll()) != null)
         {
             GLFW.EVENT_BUS.post(EventKeyboardTyped.create(charChange.getA(), charChange.getB()));
+        }
+    
+        Triple<Window, Key, Integer> keyStateChange;
+        while ((keyStateChange = this.keyStateChanges.poll()) != null)
+        {
+            Input keyObj = this.keyMap.get(keyStateChange.getB());
+            
+            keyObj._window = keyStateChange.getA();
+            keyObj._state  = keyStateChange.getC();
         }
         
         for (Key key : this.keyMap.keySet())

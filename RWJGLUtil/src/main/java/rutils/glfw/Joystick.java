@@ -3,12 +3,15 @@ package rutils.glfw;
 import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
 import rutils.glfw.event.*;
+import rutils.group.Pair;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -18,14 +21,18 @@ public class Joystick extends InputDevice
     
     protected final int jid;
     
+    private final boolean gamepad;
+    
     private final String name;
     private final String guid;
     
-    private final boolean gamepad;
+    protected final Queue<Pair<Integer, Float>>   axisStateChanges   = new ConcurrentLinkedQueue<>();
+    protected final Queue<Pair<Integer, Integer>> buttonStateChanges = new ConcurrentLinkedQueue<>();
+    protected final Queue<Pair<Integer, Integer>> hatStateChanges    = new ConcurrentLinkedQueue<>();
     
-    final Map<Integer, AxisInput> axisMap;
-    final Map<Integer, Input>     buttonMap;
-    final Map<Integer, Input>     hatMap;
+    protected final Map<Integer, AxisInput> axisMap;
+    protected final Map<Integer, Input>     buttonMap;
+    protected final Map<Integer, Input>     hatMap;
     
     Joystick(int jid, boolean gamepad)
     {
@@ -111,17 +118,31 @@ public class Joystick extends InputDevice
      * @param deltaTime The time in nanoseconds since the last time this method was called.
      */
     @Override
+    @SuppressWarnings("ConstantConditions")
     protected void postEvents(long time, long deltaTime)
     {
-        for (int axis : this.axisMap.keySet())
+        Pair<Integer, Float> axisStateChange;
+        while ((axisStateChange = this.axisStateChanges.poll()) != null)
         {
+            int axis = axisStateChange.getA();
+            
             AxisInput axisObj = this.axisMap.get(axis);
+            
+            axisObj._value = axisStateChange.getB();
             if (Double.compare(axisObj.value, axisObj._value) != 0)
             {
                 double delta = axisObj._value - axisObj.value;
                 axisObj.value = axisObj._value;
                 postAxisEvent(axis, axisObj.value, delta);
             }
+        }
+        
+        Pair<Integer, Integer> buttonStateChange;
+        while ((buttonStateChange = this.buttonStateChanges.poll()) != null)
+        {
+            Input buttonObj = this.buttonMap.get(buttonStateChange.getA());
+            
+            buttonObj._state = buttonStateChange.getB();
         }
         
         for (int button : this.buttonMap.keySet())
@@ -162,10 +183,14 @@ public class Joystick extends InputDevice
             }
         }
         
-        for (int hat : this.hatMap.keySet())
+        Pair<Integer, Integer> hatStateChange;
+        while ((hatStateChange = this.hatStateChanges.poll()) != null)
         {
+            int hat = hatStateChange.getA();
+            
             Input hatObj = this.hatMap.get(hat);
             
+            hatObj._state = hatStateChange.getB();
             if (hatObj.state != hatObj._state)
             {
                 hatObj.state = hatObj._state;
