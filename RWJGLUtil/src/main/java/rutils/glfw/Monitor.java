@@ -12,7 +12,10 @@ import rutils.MemUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -24,7 +27,8 @@ public class Monitor
     protected final int    index;
     protected final String name;
     
-    protected final ArrayList<VideoMode> videoModes = new ArrayList<>();
+    protected final ArrayList<VideoMode> videoModes       = new ArrayList<>();
+    protected final VideoMode            primaryVideoMode;
     
     protected final Vector2i actualSize = new Vector2i();
     
@@ -43,6 +47,7 @@ public class Monitor
         
         GLFWVidMode.Buffer videoModes = glfwGetVideoModes(this.handle);
         if (videoModes != null) for (int i = 0, n = videoModes.limit(); i < n; i++) this.videoModes.add(VideoMode.get(videoModes.get()));
+        this.primaryVideoMode = videoMode();
         
         try (MemoryStack stack = MemoryStack.stackPush())
         {
@@ -92,7 +97,7 @@ public class Monitor
     @Override
     public String toString()
     {
-        return "Monitor{" + "name='"  + this.name + '\'' + ", index=" + this.index+ '}';
+        return "Monitor{" + "name='" + this.name + '\'' + ", index=" + this.index + '}';
     }
     
     /**
@@ -116,7 +121,15 @@ public class Monitor
     }
     
     /**
-     * @return The current video the monitor is in.
+     * @return The primary video mode of the monitor, i.e. the video mode that the monitor was in when GLFW was initialized..
+     */
+    public VideoMode primaryVideoMode()
+    {
+        return this.primaryVideoMode;
+    }
+    
+    /**
+     * @return The current video mode the monitor is in.
      */
     public VideoMode videoMode()
     {

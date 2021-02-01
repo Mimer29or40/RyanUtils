@@ -30,8 +30,7 @@ public class Window
     
     protected Monitor monitor;
     
-    protected boolean   windowed;
-    protected VideoMode prevVideoMode;
+    protected boolean windowed;
     
     protected boolean open;
     
@@ -604,11 +603,10 @@ public class Window
     public void windowed(boolean windowed)
     {
         GLFW.TASK_DELEGATOR.runTask(() -> {
-            if (this.windowed != windowed && !windowed) this.prevVideoMode = this.monitor.videoMode();
             long monitor = (this.windowed = windowed) ? 0L : this.monitor.handle;
             
-            int x = ((this.prevVideoMode.width - this.size.x) >> 1) + this.monitor.x();
-            int y = ((this.prevVideoMode.height - this.size.y) >> 1) + this.monitor.y();
+            int x = ((this.monitor.primaryVideoMode.width - this.size.x) >> 1) + this.monitor.x();
+            int y = ((this.monitor.primaryVideoMode.height - this.size.y) >> 1) + this.monitor.y();
             
             glfwSetWindowMonitor(this.handle, monitor, x, y, this.size.x, this.size.y, this.refreshRate);
         });
