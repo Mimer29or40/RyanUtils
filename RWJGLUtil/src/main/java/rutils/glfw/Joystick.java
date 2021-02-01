@@ -51,11 +51,11 @@ public class Joystick extends InputDevice
         
         this.buttonMap = new LinkedHashMap<>();
         ByteBuffer buttons = Objects.requireNonNull(glfwGetJoystickButtons(this.jid), "Joystick is not connected.");
-        for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input(buttons.get(i)));
+        for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input());
         
         this.hatMap = new LinkedHashMap<>();
         ByteBuffer hats = Objects.requireNonNull(glfwGetJoystickHats(this.jid), "Joystick is not connected.");
-        for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new Input(hats.get(i)));
+        for (int i = 0, n = hats.remaining(); i < n; i++) this.hatMap.put(i, new Input());
         
         if (!this.gamepad) this.threadStart.countDown();
         

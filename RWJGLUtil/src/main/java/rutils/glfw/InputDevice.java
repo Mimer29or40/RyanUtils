@@ -118,17 +118,12 @@ public abstract class InputDevice
     
     protected static class Input
     {
-        protected int state, _state;
+        protected int state = -1, _state = -1;
         
         protected boolean held;
         
         protected long holdTime = Long.MAX_VALUE, pressTime;
         
         protected Window _window;
-        
-        Input(int initial)
-        {
-            this.state = this._state = initial;
-        }
     }
 }

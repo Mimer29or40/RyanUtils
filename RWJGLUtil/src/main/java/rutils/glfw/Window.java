@@ -81,7 +81,7 @@ public class Window
     private final Vector2i deltaI = new Vector2i();
     private final Vector2d deltaD = new Vector2d();
     
-    public Window(final Builder builder)
+    Window(final Builder builder)
     {
         this.name = builder.name;
         
@@ -96,7 +96,7 @@ public class Window
             
             String title   = builder.title != null ? builder.title : this.name != null ? this.name : "Window";
             long   monitor = this.windowed ? 0L : this.monitor.handle;
-            long   window  = GLFW.MAIN_WINDOW != null ? GLFW.MAIN_WINDOW.handle : 0L;
+            long   window  = GLFW.WINDOW != null ? GLFW.WINDOW.handle : 0L;
             
             glfwMakeContextCurrent(0L);
             long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);

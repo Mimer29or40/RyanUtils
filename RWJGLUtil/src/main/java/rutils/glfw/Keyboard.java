@@ -32,7 +32,7 @@ public class Keyboard extends InputDevice
         super("Keyboard");
         
         this.keyMap = new LinkedHashMap<>();
-        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new Input(GLFW_RELEASE));
+        for (Keyboard.Key key : Key.values()) this.keyMap.put(key, new Input());
         
         this.threadStart.countDown();
     }

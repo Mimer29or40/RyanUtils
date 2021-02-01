@@ -32,7 +32,7 @@ public class Gamepad extends Joystick
                 
                 this.buttonMap.clear();
                 ByteBuffer buttons = state.buttons();
-                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input(buttons.get(i)));
+                for (int i = 0, n = buttons.remaining(); i < n; i++) this.buttonMap.put(i, new Input());
             }
             else
             {

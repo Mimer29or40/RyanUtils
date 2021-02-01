@@ -473,11 +473,6 @@ public class Mouse extends InputDevice
     {
         final Vector2d click  = new Vector2d();
         final Vector2d dClick = new Vector2d();
-        
-        private ButtonInput()
-        {
-            super(GLFW_RELEASE);
-        }
     }
     
     public enum Button

@@ -1,5 +1,6 @@
 package rutils.glfw;
 
+import com.sun.tools.javac.Main;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -31,6 +32,8 @@ public final class GLFW
     
     private static final Map<Integer, String> ERROR_CODES = APIUtil.apiClassTokens((field, value) -> 0x10000 < value && value < 0x20000, null, org.lwjgl.glfw.GLFW.class);
     
+    private static boolean initialized = false;
+    
     public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
     
     public static final EventBus EVENT_BUS = new EventBus(true);
@@ -38,8 +41,8 @@ public final class GLFW
     static final Map<Long, Monitor> MONITORS        = new LinkedHashMap<>();
     static       Monitor            PRIMARY_MONITOR = null;
     
-    static final Map<Long, Window> WINDOWS     = new LinkedHashMap<>();
-    static       Window            MAIN_WINDOW = null;
+    static final Map<Long, Window> WINDOWS = new LinkedHashMap<>();
+    static       Window            WINDOW  = null;
     
     static Mouse    MOUSE;
     static Keyboard KEYBOARD;
@@ -66,6 +69,10 @@ public final class GLFW
      */
     public static void init()
     {
+        if (GLFW.initialized) return;
+        
+        GLFW.initialized = true;
+        
         try (MemoryStack stack = MemoryStack.stackPush())
         {
             IntBuffer major = stack.mallocInt(1);
@@ -93,7 +100,7 @@ public final class GLFW
         for (int i = 0, n = monitors.remaining(); i < n; i++) GLFW.MONITORS.put(handle = monitors.get(), new Monitor(handle, i));
         GLFW.PRIMARY_MONITOR = GLFW.MONITORS.get(glfwGetPrimaryMonitor());
         
-        GLFW.MAIN_WINDOW = new WindowMain();
+        GLFW.WINDOW = new WindowMain();
         
         GLFW.MOUSE    = new Mouse();
         GLFW.KEYBOARD = new Keyboard();
@@ -278,16 +285,26 @@ public final class GLFW
      */
     public static void destroy()
     {
+        if (!GLFW.initialized) return;
+        
+        GLFW.initialized = false;
+        
         GLFW.LOGGER.fine("GLFW Destruction");
         
         GLFW.EVENT_BUS.shutdown();
         
+        GLFW.MONITORS.clear();
+        
         GLFW.WINDOWS.values().forEach(Window::destroy);
+        GLFW.WINDOWS.clear();
         
         GLFW.MOUSE.destroy();
         GLFW.KEYBOARD.destroy();
+        GLFW.MOUSE    = null;
+        GLFW.KEYBOARD = null;
         
         GLFW.JOYSTICKS.values().forEach(InputDevice::destroy);
+        GLFW.JOYSTICKS.clear();
         
         Callback[] callbacks = new Callback[] {
                 glfwSetErrorCallback(null),
