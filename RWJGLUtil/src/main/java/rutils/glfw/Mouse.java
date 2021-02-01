@@ -145,8 +145,6 @@ public class Mouse extends InputDevice
         return this.captureWindow == null;
     }
     
-    // TODO - The following can possible be global flags
-    
     /**
      * Sets the raw mouse motion flag. Set {@code true} to enable raw (unscaled
      * and un-accelerated) mouse motion when the cursor is disabled, or

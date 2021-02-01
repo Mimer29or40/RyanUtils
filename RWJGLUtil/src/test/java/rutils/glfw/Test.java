@@ -15,7 +15,7 @@ public class Test
     @SubscribeEvent
     public static void handleEvent(Event event)
     {
-        // LOGGER.info("allEvents", event);
+        LOGGER.info("allEvents", event);
     }
     
     @SubscribeEvent

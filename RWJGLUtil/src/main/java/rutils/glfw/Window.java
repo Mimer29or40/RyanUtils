@@ -88,7 +88,6 @@ public class Window
             if (builder.setPos) builder.visible(false);
             builder.applyHints();
             
-            // TODO - Use the builder to load monitor from config.
             this.monitor = builder.monitor != null ? builder.monitor : GLFW.PRIMARY_MONITOR;
             
             this.windowed = builder.windowed;
@@ -612,13 +611,12 @@ public class Window
      */
     public void windowed(boolean windowed)
     {
-        // TODO - When exiting fullscreen mode, the window is set to the center of the primary monitor and not the monitor that it was fullscreen in.
         GLFW.TASK_DELEGATOR.runTask(() -> {
             if (this.windowed != windowed && !windowed) this.prevVideoMode = this.monitor.videoMode();
             long monitor = (this.windowed = windowed) ? 0L : this.monitor.handle;
     
-            int x = (this.prevVideoMode.width - this.size.x) >> 1 + this.monitor.x();
-            int y = (this.prevVideoMode.height - this.size.y) >> 1 + this.monitor.y();
+            int x = ((this.prevVideoMode.width - this.size.x) >> 1) + this.monitor.x();
+            int y = ((this.prevVideoMode.height - this.size.y) >> 1) + this.monitor.y();
     
             glfwSetWindowMonitor(this.handle, monitor, x, y, this.size.x, this.size.y, this.refreshRate);
         });

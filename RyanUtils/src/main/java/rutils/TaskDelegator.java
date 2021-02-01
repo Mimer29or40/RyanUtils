@@ -12,8 +12,6 @@ import java.util.function.Supplier;
  * This class is used to make another thread preform a task instead of the one calling the function.
  * <p>
  * The calling thread can either wait for the worker thread to finish or not block.
- * <p>
- * // TODO - Clean this up.
  */
 public class TaskDelegator
 {
@@ -72,7 +70,7 @@ public class TaskDelegator
     public void waitRunTask(@NotNull Runnable task)
     {
         TaskDelegator.LOGGER.finest("Passing task to TaskDelegator and waiting for completion");
-    
+        
         if (Thread.currentThread() == this.thread)
         {
             task.run();
@@ -103,7 +101,7 @@ public class TaskDelegator
     public <T> @Nullable T waitReturnTask(@NotNull Supplier<T> task)
     {
         TaskDelegator.LOGGER.finest("Passing task to TaskDelegator and waiting for return");
-    
+        
         if (Thread.currentThread() == this.thread) return task.get();
         
         this.waitReturnTasks.offer((Supplier<Object>) task);
@@ -127,7 +125,7 @@ public class TaskDelegator
     public void runTasks()
     {
         TaskDelegator.LOGGER.finest("Processing tasks");
-    
+        
         assert this.thread == Thread.currentThread();
         
         while (!this.runTasks.isEmpty())
