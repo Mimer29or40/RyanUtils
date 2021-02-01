@@ -67,9 +67,9 @@ public class Test
         {
             switch (event.key())
             {
-                case S -> GLFW.mouse().show(window);
-                case H -> GLFW.mouse().hide(window);
-                case C -> GLFW.mouse().capture(window);
+                case S -> GLFW.mouse().show(event.window());
+                case H -> GLFW.mouse().hide(event.window());
+                case C -> GLFW.mouse().capture(event.window());
                 case F -> window.windowed(!window.windowed());
             }
         }
@@ -91,7 +91,7 @@ public class Test
             GLFW.EVENT_BUS.register(Test.class);
             
             window  = new Window.Builder().name("First").build();
-            // window1 = new Window.Builder().name("Second").build();
+            window1 = new Window.Builder().name("Second").build();
 
             GLFW.eventLoop();
         }

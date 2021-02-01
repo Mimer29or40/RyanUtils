@@ -23,8 +23,6 @@ public class Mouse extends InputDevice
     
     // -------------------- State Objects -------------------- //
     
-    protected Window captureWindow = null;
-    
     // -------------------- Callback Objects -------------------- //
     
     protected final Queue<IPair<Window, Boolean>> _enteredChanges = new ConcurrentLinkedQueue<>();
@@ -69,8 +67,6 @@ public class Mouse extends InputDevice
         return this._enteredW == window;
     }
     
-    // TODO - Query GLFW.WINDOWS to check if any/all window are shown/hidden/captured
-    
     /**
      * Makes the cursor visible and behaving normally.
      */
@@ -79,7 +75,6 @@ public class Mouse extends InputDevice
         GLFW.TASK_DELEGATOR.runTask(() -> {
             if (glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) this._pos.set(this.pos.set(window.width() * 0.5, window.height() * 0.5));
             glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            if (this.captureWindow == window) this.captureWindow = null;
         });
     }
     
@@ -98,10 +93,7 @@ public class Mouse extends InputDevice
      */
     public void hide(Window window)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> {
-            glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-            if (this.captureWindow == window) this.captureWindow = null;
-        });
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN));
     }
     
     /**
@@ -124,7 +116,6 @@ public class Mouse extends InputDevice
         GLFW.TASK_DELEGATOR.runTask(() -> {
             glfwSetCursorPos(window.handle, this._pos.x, this._pos.y);
             glfwSetInputMode(window.handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            this.captureWindow = window;
         });
     }
     
@@ -135,14 +126,6 @@ public class Mouse extends InputDevice
     public boolean isCaptured(Window window)
     {
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetInputMode(window.handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
-    }
-    
-    /**
-     * @return Retrieves if the mouse is captured by any window.
-     */
-    public boolean isCaptured()
-    {
-        return this.captureWindow == null;
     }
     
     /**
@@ -436,7 +419,7 @@ public class Mouse extends InputDevice
             Mouse.ButtonInput buttonObj = this.buttonMap.get(buttonStateChange.getB());
             
             buttonObj._window = buttonStateChange.getA();
-            buttonObj._state = buttonStateChange.getC();
+            buttonObj._state  = buttonStateChange.getC();
         }
         
         for (Button button : this.buttonMap.keySet())
