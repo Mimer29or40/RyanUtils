@@ -6,6 +6,7 @@ import rutils.ClassUtil;
 import rutils.StringUtil;
 import rutils.glfw.EventProperty;
 import rutils.glfw.EventPriority;
+import rutils.glfw.GLFW;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +28,7 @@ abstract class AbstractEvent implements Event
     
     AbstractEvent()
     {
-        this.time = glfwGetTime();
+        this.time = GLFW.getTime();
     }
     
     @Override

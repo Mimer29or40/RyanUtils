@@ -2,6 +2,8 @@ package rutils.glfw;
 
 import rutils.Logger;
 
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+
 class WindowMain extends Window
 {
     private static final Logger LOGGER = new Logger();
@@ -11,33 +13,17 @@ class WindowMain extends Window
     WindowMain()
     {
         super(WindowMain.BUILDER);
+        
+        glfwMakeContextCurrent(this.handle);
+    
+        org.lwjgl.opengl.GL.createCapabilities();
     }
     
     @Override
-    protected void runInThread()
+    public void destroy()
     {
-        try
-        {
-            WindowMain.LOGGER.fine("Opening");
-            
-            this.taskDelegator.setThread();
-            
-            while (!this.close && this.open)
-            {
-                this.taskDelegator.runTasks();
-                
-                Thread.yield();
-            }
-        }
-        catch (Throwable cause)
-        {
-            WindowMain.LOGGER.severe(cause);
-        }
-        finally
-        {
-            WindowMain.LOGGER.fine("Closing");
-            
-            destroy();
-        }
+        org.lwjgl.opengl.GL.destroy();
+    
+        super.destroy();
     }
 }

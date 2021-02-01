@@ -41,8 +41,8 @@ public class Window
     
     protected final Matrix4d viewMatrix = new Matrix4d();
     
-    protected Runnable onWindowInit = null;
-    protected Runnable onWindowDraw = null;
+    protected Runnable     onWindowInit = null;
+    protected OnWindowDraw onWindowDraw = null;
     
     // -------------------- Callback Objects -------------------- //
     protected boolean close;
@@ -98,8 +98,10 @@ public class Window
             long   monitor = this.windowed ? 0L : this.monitor.handle;
             long   window  = GLFW.MAIN_WINDOW != null ? GLFW.MAIN_WINDOW.handle : 0L;
             
+            glfwMakeContextCurrent(0L);
             long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);
             if (handle == 0L) throw new RuntimeException("Failed to create the GLFW window");
+            glfwMakeContextCurrent(window);
             
             this.open = true;
             
@@ -996,11 +998,16 @@ public class Window
     
     // -------------------- GLFW Methods -------------------- //
     
-    public Window start()
+    public Window open()
     {
         this.thread.start();
         
         return this;
+    }
+    
+    public void close()
+    {
+        this._close = true;
     }
     
     public void onWindowInit(Runnable onWindowInit)
@@ -1008,7 +1015,7 @@ public class Window
         this.onWindowInit = onWindowInit;
     }
     
-    public void onWindowDraw(Runnable onWindowDraw)
+    public void onWindowDraw(OnWindowDraw onWindowDraw)
     {
         this.onWindowDraw = onWindowDraw;
     }
@@ -1055,8 +1062,15 @@ public class Window
     
             if (this.onWindowInit != null) this.onWindowInit.run();
             
+            double time, dt;
+            double lastFrame = GLFW.getTime();
+            
             while (!this.close && this.open)
             {
+                time = GLFW.getTime();
+                dt = time - lastFrame;
+                lastFrame = time;
+                
                 boolean updateMonitor = false;
                 
                 this.taskDelegator.runTasks();
@@ -1160,7 +1174,7 @@ public class Window
                     }
                 }
                 
-                if (this.onWindowDraw != null) this.onWindowDraw.run();
+                if (this.onWindowDraw != null) this.onWindowDraw.run(time, dt);
                 
                 Thread.yield();
             }
@@ -1177,6 +1191,11 @@ public class Window
             
             destroy();
         }
+    }
+    
+    public interface OnWindowDraw
+    {
+        void run(double time, double deltaT);
     }
     
     public static final class Builder

@@ -345,6 +345,47 @@ public final class GLFW
     
     // -------------------- Input -------------------- //
     
+    /**
+     * Returns the value of the GLFW timer. Unless the timer has been set using
+     * {@link #setTime(double)}, the timer measures time elapsed since GLFW was
+     * initialized.
+     * <p>
+     * The resolution of the timer is system dependent, but is usually on
+     * the order of a few micro- or nanoseconds. It uses the highest-resolution
+     * monotonic time source on each supported platform.
+     * <p>
+     * This function may be called from any thread. Reading and writing of the
+     * internal timer offset is not atomic, so it needs to be externally
+     * synchronized with calls to {@link #setTime(double)}.
+     *
+     * @return the current value, in seconds, or zero if an error occurred
+     */
+    public static double getTime()
+    {
+        return glfwGetTime();
+    }
+    
+    /**
+     * Sets the value of the GLFW timer. It then continues to count up from
+     * that value. The value must be a positive finite number less than or
+     * equal to 18446744073.0, which is approximately 584.5 years.
+     * <p>
+     * The upper limit of the timer is calculated as
+     * <code>floor((2<sup>64</sup> - 1) / 10<sup>9</sup>)</code> and is due to
+     * implementations storing nanoseconds in 64 bits. The limit may be
+     * increased in the future.
+     * <p>
+     * This function may be called from any thread. Reading and writing of the
+     * internal timer offset is not atomic, so it needs to be externally
+     * synchronized with calls to {@link #getTime()}.
+     *
+     * @param time the new value, in seconds
+     */
+    public static void setTime(double time)
+    {
+        glfwSetTime(time);
+    }
+    
     public static boolean supportRawMouseInput()
     {
         return GLFW.SUPPORT_RAW_MOUSE_MOTION;

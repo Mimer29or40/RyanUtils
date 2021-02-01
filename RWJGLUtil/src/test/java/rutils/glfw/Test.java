@@ -95,16 +95,18 @@ public class Test
             window  = new Window.Builder().name("First").build();
             window.onWindowInit(() -> {
                 glClearColor(0F, 1F, 0F, 1F);
+                
+                glEnable(GL_DEPTH);
             });
-            window.onWindowDraw(() -> {
+            window.onWindowDraw((time, deltaT) -> {
                 glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 
                 window.swap();
             });
-            window.start();
+            window.open();
             
-            window1 = new Window.Builder().name("Second").build().start();
+            window1 = new Window.Builder().name("Second").build().open();
 
             GLFW.eventLoop();
         }
