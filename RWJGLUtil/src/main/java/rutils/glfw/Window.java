@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.glFinish;
 
 public class Window
 {
@@ -1031,6 +1032,7 @@ public class Window
     
     public void swap()
     {
+        glFinish();
         glfwSwapBuffers(this.handle);
     }
     

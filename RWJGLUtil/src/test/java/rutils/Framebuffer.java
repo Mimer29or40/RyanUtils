@@ -5,7 +5,10 @@ import rutils.gl.GL;
 import rutils.gl.GLShader;
 import rutils.gl.GLTexture;
 import rutils.gl.GLVertexArray;
-import rutils.glfw.*;
+import rutils.glfw.GLFW;
+import rutils.glfw.Keyboard;
+import rutils.glfw.SubscribeEvent;
+import rutils.glfw.Window;
 import rutils.glfw.event.EventKeyboardKeyDown;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -36,7 +39,7 @@ public class Framebuffer
         if (event.key() == Keyboard.Key.ESCAPE) window.close();
     }
     
-    public static void main(String[] args)
+    public static void main1(String[] args)
     {
         try
         {
@@ -45,12 +48,12 @@ public class Framebuffer
             GLFW.init();
             
             GLFW.EVENT_BUS.register(Framebuffer.class);
-    
+            
             // build and compile shaders
             // -------------------------
             GLShader shader       = new GLShader().loadFile("shaders/5.1.framebuffers.vert").loadFile("shaders/5.1.framebuffers.frag").validate();
             GLShader screenShader = new GLShader().loadFile("shaders/5.1.framebuffers_screen.vert").loadFile("shaders/5.1.framebuffers_screen.frag").validate();
-    
+            
             // set up vertex data (and buffer(s)) and configure vertex attributes
             // ------------------------------------------------------------------
             GLVertexArray cubeArray = new GLVertexArray().bind().add(new float[] {
@@ -91,7 +94,7 @@ public class Framebuffer
                     -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
                     -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
             }, GL.STATIC_DRAW, 3, 2).unbind();
-    
+            
             // plane VAO
             GLVertexArray planeArray = new GLVertexArray().bind().add(new float[] {
                     5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
@@ -101,7 +104,7 @@ public class Framebuffer
                     -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
                     5.0f, -0.5f, -5.0f, 2.0f, 2.0f
             }, GL.STATIC_DRAW, 3, 2).unbind();
-    
+            
             // screen quad VAO
             GLVertexArray quadArray = new GLVertexArray().bind().add(new float[] {
                     -1.0f, 1.0f, 0.0f, 1.0f,
@@ -109,21 +112,21 @@ public class Framebuffer
                     1.0f, -1.0f, 1.0f, 0.0f,
                     1.0f, 1.0f, 1.0f, 1.0f
             }, GL.STATIC_DRAW, 2, 2).addEBO(new int[] {0, 1, 2, 0, 2, 3}, GL.STATIC_DRAW).unbind();
-    
+            
             // load textures
             // -------------
             GLTexture cubeTexture = GLTexture.loadImage("textures/marble.jpg").bind().wrapMode(GL.REPEAT, GL.REPEAT).unbind();
             // cubeTexture.bind().saveImage("out/marble.png").unbind();
             GLTexture floorTexture = GLTexture.loadImage("textures/metal.png").bind().wrapMode(GL.REPEAT, GL.REPEAT).unbind();
-    
+            
             // shader configuration
             // --------------------
             shader.bind();
             shader.setUniform("texture1", 0);
-    
+            
             screenShader.bind();
             screenShader.setUniform("screenTexture", 0);
-    
+            
             // framebuffer configuration
             // -------------------------
             int framebufferWidth  = SCR_WIDTH / 2;
@@ -134,7 +137,7 @@ public class Framebuffer
             GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, GL.RGB);
             renderTarget.bind();
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget.id(), 0);
-    
+            
             // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
             int rbo = glGenRenderbuffers();
             glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -143,10 +146,12 @@ public class Framebuffer
             // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) System.out.println("ERROR::FRAMEBUFFER:: Framebuffer is not complete! " + GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+            
+            glFinish();
+            
             // draw as wireframe
             // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
+            
             // glfw window creation
             // --------------------
             window = new Window.Builder().name("First")
@@ -157,15 +162,69 @@ public class Framebuffer
                                          .size(SCR_WIDTH, SCR_HEIGHT)
                                          .title("LearnOpenGL")
                                          .build();
-    
+            
             window.onWindowInit(() -> {
                 glClearColor(0F, 1F, 0F, 1F);
                 
                 glEnable(GL_DEPTH_TEST);
             });
             window.onWindowDraw((time, deltaT) -> {
+                // double currentFrame = glfwGetTime();
+                // deltaTime = currentFrame - lastFrame;
+                // lastFrame = currentFrame;
+    
+    
+                // render
+                // ------
+                // bind to framebuffer and draw scene as we normally would to color renderTarget
+                // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(0, 0, window.framebufferWidth() >> 1, window.framebufferHeight() >> 1);
                 glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
+                glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+    
+                // make sure we clear the framebuffer's content
+                glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+                shader.bind();
+                view.identity().lookAt(5 * (float) Math.cos(time), 1, 5 * (float) Math.sin(time), 0, 0, 0, 0, 1, 0);
+                projection.identity().perspective((float) Math.toRadians(90), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+                shader.setUniform("view", view);
+                shader.setUniform("projection", projection);
+    
+                // cubes
+                cubeTexture.bind(0);
+    
+                cubeArray.bind();
+    
+                shader.setUniform("model", model.identity().translate(-1.0f, 0.0f, -1.0f));
+                cubeArray.draw(GL.TRIANGLES);
+    
+                shader.setUniform("model", model.identity().translate(2.0f, 0.0f, 0.0f));
+                cubeArray.draw(GL.TRIANGLES);
+    
+                shader.setUniform("model", model.identity().translate(0.0f, 0.0f, 3.0f));
+                cubeArray.draw(GL.TRIANGLES);
+    
+                cubeArray.unbind();
+    
+                // floor
+                floorTexture.bind(0);
+                shader.setUniform("model", model.identity());
+                planeArray.bind().draw(GL.TRIANGLES).unbind();
+    
+                // // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color renderTarget
+                // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                // glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+                // glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+                // // clear all relevant buffers
+                // glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
+                // glClear(GL_COLOR_BUFFER_BIT);
+                //
+                // screenShader.bind();
+                // renderTarget.bind();    // use the color attachment renderTarget as the renderTarget of the quad plane
+                // quadArray.bind().draw(GL.TRIANGLES).unbind();
                 
                 window.swap();
             });
@@ -180,7 +239,7 @@ public class Framebuffer
         }
     }
     
-    public static void main1(String[] args)
+    public static void main(String[] args)
     {
         // glfw: initialize and configure
         // ------------------------------
@@ -302,7 +361,7 @@ public class Framebuffer
         int framebuffer       = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         // create a color attachment texture
-        GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, GL.RGB);
+        GLTexture renderTarget = new GLTexture(framebufferWidth, framebufferHeight, GL.RGBA);
         renderTarget.bind();
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTarget.id(), 0);
         
