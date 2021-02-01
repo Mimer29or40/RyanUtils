@@ -7,12 +7,10 @@ import rutils.glfw.GLFW;
 import rutils.glfw.Test;
 import rutils.glfw.Window;
 
-import java.util.logging.Level;
-
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
 
-public class LearnOpenGL
+public class LearnOpenGL102
 {
     static Window window;
     
@@ -22,7 +20,7 @@ public class LearnOpenGL
     
     static void init()
     {
-        glClearColor(0F, 1F, 0F, 1F);
+        glClearColor(0.1F, 0.1F, 0.1F, 1F);
         
         glEnable(GL_DEPTH_TEST);
         
@@ -65,13 +63,11 @@ public class LearnOpenGL
     
     public static void main(String[] args)
     {
-        // Logger.setLevel(Level.ALL);
-        
         try
         {
             GLFW.init();
             
-            GLFW.EVENT_BUS.register(LearnOpenGL.class);
+            GLFW.EVENT_BUS.register(LearnOpenGL102.class);
             
             window = new Window.Builder()
                     .name("First")
@@ -81,8 +77,8 @@ public class LearnOpenGL
                     .openglForwardCompat(true)
                     .size(800, 600)
                     .build();
-            window.onWindowInit(LearnOpenGL::init);
-            window.onWindowDraw(LearnOpenGL::draw);
+            window.onWindowInit(LearnOpenGL102::init);
+            window.onWindowDraw(LearnOpenGL102::draw);
             window.open();
             
             GLFW.eventLoop();

@@ -12,9 +12,20 @@ public class GLFrameBuffer
     
     protected final int id;
     
-    public GLFrameBuffer()
+    protected final int width, height;
+    
+    protected final GLTexture color;
+    protected final GLTexture depthStencil;
+    
+    public GLFrameBuffer(int width, int height)
     {
         this.id = glGenFramebuffers();
+        
+        this.width  = width;
+        this.height = height;
+        
+        this.color        = new GLTexture(width, height, GL.RGB).bind().allocate().filterMode(GL.NEAREST, GL.NEAREST).unbind();
+        this.depthStencil = new GLTexture(width, height, GL.DEPTH24_STENCIL8).bind().allocate().filterMode(GL.NEAREST, GL.NEAREST).unbind();
         
         GLFrameBuffer.LOGGER.fine("Generated:", this);
     }
@@ -48,6 +59,42 @@ public class GLFrameBuffer
         return this.id;
     }
     
+    public int width()
+    {
+        return this.width;
+    }
+    
+    public int height()
+    {
+        return this.height;
+    }
+    
+    public GLTexture color()
+    {
+        return this.color;
+    }
+    
+    public GLTexture depthStencil()
+    {
+        return this.depthStencil;
+    }
+    
+    public GLFrameBuffer attach()
+    {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this.color.id(), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, this.depthStencil.id(), 0);
+        
+        return this;
+    }
+    
+    public GLFrameBuffer validate()
+    {
+        GL status = GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        if (status != GL.FRAMEBUFFER_COMPLETE) throw new RuntimeException(this + " not complete:\n! " + status);
+        
+        return this;
+    }
+    
     /**
      * @return The status of the Framebuffer
      */
@@ -64,7 +111,7 @@ public class GLFrameBuffer
     public GLFrameBuffer bind()
     {
         GLFrameBuffer.LOGGER.finest("Binding:", this);
-        
+    
         glBindFramebuffer(GL_FRAMEBUFFER, this.id);
         
         return this;
@@ -96,34 +143,5 @@ public class GLFrameBuffer
         glDeleteFramebuffers(this.id);
         
         return this;
-    }
-    
-    /**
-     * Binds a texture to this framebuffer.
-     *
-     * @param attachment The attachment point of the framebuffer.
-     * @param texture    The texture to bind.
-     * @param level      The mipmap level of the texture.
-     * @return This instance for call chaining.
-     */
-    public GLFrameBuffer bindTexture(GL attachment, GLTexture texture, int level)
-    {
-        GLFrameBuffer.LOGGER.fine("Binding %s to %s", texture, this);
-        
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment.ref(), GL_TEXTURE_2D, texture.id(), level);
-        
-        return this;
-    }
-    
-    /**
-     * Binds a texture to this framebuffer.
-     *
-     * @param attachment The attachment point of the framebuffer.
-     * @param texture    The texture to bind.
-     * @return This instance for call chaining.
-     */
-    public GLFrameBuffer bindTexture(GL attachment, GLTexture texture)
-    {
-        return bindTexture(attachment, texture, 0);
     }
 }

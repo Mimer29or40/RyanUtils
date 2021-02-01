@@ -1,5 +1,6 @@
 package rutils.gl;
 
+import org.jetbrains.annotations.NotNull;
 import org.joml.*;
 import org.lwjgl.system.MemoryStack;
 import rutils.Logger;
@@ -22,8 +23,9 @@ public class GLShader
     
     private final int id;
     
-    private final HashMap<GL, Integer> shaders  = new HashMap<>();
-    private final HashMap<String, Integer>              uniforms = new HashMap<>();
+    private final HashMap<GL, Integer>     shaders  = new HashMap<>();
+    private final HashMap<GL, String>      sources  = new HashMap<>();
+    private final HashMap<String, Integer> uniforms = new HashMap<>();
     
     /**
      * Creates a new shader.
@@ -79,12 +81,26 @@ public class GLShader
         GLShader.LOGGER.fine("%s: Validating", this);
         
         glLinkProgram(this.id);
-        if (glGetProgrami(this.id, GL_LINK_STATUS) != GL_TRUE) throw new RuntimeException("Link failure: \n" + glGetProgramInfoLog(this.id));
+        if (glGetProgrami(this.id, GL_LINK_STATUS) != GL_TRUE) throw new RuntimeException(this + " Link failure: \n" + glGetProgramInfoLog(this.id));
         
         glValidateProgram(this.id);
-        if (glGetProgrami(this.id, GL_VALIDATE_STATUS) != GL_TRUE) throw new RuntimeException("Validation failure: \n" + glGetProgramInfoLog(this.id));
+        if (glGetProgrami(this.id, GL_VALIDATE_STATUS) != GL_TRUE) throw new RuntimeException(this + " Validation failure: \n" + glGetProgramInfoLog(this.id));
         
         return this;
+    }
+    
+    /**
+     * Gets the source that is associated with shader type provided.
+     *
+     * @param shaderType The type to query.
+     * @return The source string.
+     */
+    public @NotNull String source(GL shaderType)
+    {
+        String source = this.sources.get(shaderType);
+        if (source != null) return source;
+        GLShader.LOGGER.warning("%s does not have a shader associated with %s", this, shaderType);
+        return "";
     }
     
     /**
@@ -126,6 +142,7 @@ public class GLShader
         glDeleteProgram(this.id);
         
         this.shaders.clear();
+        this.sources.clear();
         
         return this;
     }
@@ -504,7 +521,9 @@ public class GLShader
     
     private int getUniform(String uniform)
     {
-        return this.uniforms.computeIfAbsent(uniform, u -> glGetUniformLocation(this.id, u));
+        int value = this.uniforms.computeIfAbsent(uniform, u -> glGetUniformLocation(this.id, u));
+        if (value < 0) GLShader.LOGGER.warning("Could not find uniform '%s' in %s", uniform, this);
+        return value;
     }
     
     private GLShader loadImpl(GL shaderType, String source)
@@ -516,6 +535,7 @@ public class GLShader
         int result = glGetShaderi(shader, GL_COMPILE_STATUS);
         if (result != GL_TRUE) throw new RuntimeException(shaderType + " compile failure: " + glGetShaderInfoLog(shader));
         this.shaders.put(shaderType, shader);
+        this.sources.put(shaderType, source);
         glAttachShader(this.id, shader);
         glDeleteShader(shader);
         return this;
