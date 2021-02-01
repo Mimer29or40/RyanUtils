@@ -240,7 +240,7 @@ public class Joystick extends InputDevice
         
         AxisInput(double initial)
         {
-            this._value = initial;
+            this.value = this._value = initial;
         }
     }
     

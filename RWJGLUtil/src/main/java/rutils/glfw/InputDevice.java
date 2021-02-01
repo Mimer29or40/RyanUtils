@@ -120,7 +120,7 @@ public abstract class InputDevice
     
     protected static class Input
     {
-        protected int state = -1, _state;
+        protected int state, _state;
         
         protected boolean held;
         
@@ -130,7 +130,7 @@ public abstract class InputDevice
         
         Input(int initial)
         {
-            this._state = initial;
+            this.state = this._state = initial;
         }
     }
 }

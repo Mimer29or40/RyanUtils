@@ -30,7 +30,7 @@ public class Window
     
     protected Monitor monitor;
     
-    protected boolean windowed;
+    protected boolean   windowed;
     protected VideoMode prevVideoMode;
     
     protected boolean open;
@@ -101,17 +101,13 @@ public class Window
             
             this.open = true;
             
-            this._vsync = builder.vsync;
-            this.vsync  = !this._vsync;
+            this.vsync = this._vsync = builder.vsync;
             
-            this._focused = glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
-            this.focused  = !this._focused;
+            this.focused = this._focused = glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
             
-            this._iconified = glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE;
-            this.iconified  = !this._iconified;
+            this.iconified = this._iconified = glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE;
             
-            this._maximized = glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) == GLFW_TRUE;
-            this.maximized  = !this._maximized;
+            this.maximized = this._maximized = glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) == GLFW_TRUE;
             
             try (MemoryStack stack = MemoryStack.stackPush())
             {
@@ -124,27 +120,23 @@ public class Window
                 if (builder.setPos)
                 {
                     glfwSetWindowPos(handle, builder.x, builder.y);
-                    this.pos.set(-builder.x, -builder.y);
+                    this.pos.set(this._pos.set(builder.x, builder.y));
                     glfwShowWindow(handle);
                 }
                 else
                 {
                     glfwGetWindowPos(handle, x, y);
-                    this._pos.set(x.get(0), y.get(0));
-                    this._pos.negate(this.pos);
+                    this.pos.set(this._pos.set(x.get(0), y.get(0)));
                 }
                 
                 glfwGetWindowSize(handle, x, y);
-                this._size.set(x.get(0), y.get(0));
-                this._size.negate(this.size);
+                this.size.set(this._size.set(x.get(0), y.get(0)));
                 
                 glfwGetWindowContentScale(handle, xf, yf);
-                this._scale.set(xf.get(0), yf.get(0));
-                this._scale.negate(this.scale);
+                this.scale.set(this._scale.set(xf.get(0), yf.get(0)));
                 
                 glfwGetFramebufferSize(handle, x, y);
-                this._fbSize.set(x.get(0), y.get(0));
-                this._fbSize.negate(this.fbSize);
+                this.fbSize.set(this._fbSize.set(x.get(0), y.get(0)));
             }
             
             this.minSize.set(builder.minWidth, builder.minHeight);
@@ -614,10 +606,10 @@ public class Window
         GLFW.TASK_DELEGATOR.runTask(() -> {
             if (this.windowed != windowed && !windowed) this.prevVideoMode = this.monitor.videoMode();
             long monitor = (this.windowed = windowed) ? 0L : this.monitor.handle;
-    
+            
             int x = ((this.prevVideoMode.width - this.size.x) >> 1) + this.monitor.x();
             int y = ((this.prevVideoMode.height - this.size.y) >> 1) + this.monitor.y();
-    
+            
             glfwSetWindowMonitor(this.handle, monitor, x, y, this.size.x, this.size.y, this.refreshRate);
         });
     }
