@@ -18,7 +18,7 @@ class WindowMain extends Window
     {
         try
         {
-            WindowMain.LOGGER.fine("Starting");
+            WindowMain.LOGGER.fine("Opening");
             
             this.taskDelegator.setThread();
             
@@ -35,7 +35,7 @@ class WindowMain extends Window
         }
         finally
         {
-            WindowMain.LOGGER.fine("Stopping");
+            WindowMain.LOGGER.fine("Closing");
             
             destroy();
         }

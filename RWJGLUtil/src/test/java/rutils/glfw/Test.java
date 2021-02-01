@@ -5,6 +5,8 @@ import rutils.glfw.event.*;
 
 import java.util.logging.Level;
 
+import static org.lwjgl.opengl.GL11.*;
+
 public class Test
 {
     private static final Logger LOGGER = new Logger();
@@ -91,7 +93,18 @@ public class Test
             GLFW.EVENT_BUS.register(Test.class);
             
             window  = new Window.Builder().name("First").build();
-            window1 = new Window.Builder().name("Second").build();
+            window.onWindowInit(() -> {
+                glClearColor(0F, 1F, 0F, 1F);
+            });
+            window.onWindowDraw(() -> {
+                glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
+                glClear(GL_COLOR_BUFFER_BIT);
+                
+                window.swap();
+            });
+            window.start();
+            
+            window1 = new Window.Builder().name("Second").build().start();
 
             GLFW.eventLoop();
         }

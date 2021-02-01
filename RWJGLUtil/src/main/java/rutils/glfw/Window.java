@@ -41,6 +41,9 @@ public class Window
     
     protected final Matrix4d viewMatrix = new Matrix4d();
     
+    protected Runnable onWindowInit = null;
+    protected Runnable onWindowDraw = null;
+    
     // -------------------- Callback Objects -------------------- //
     protected boolean close;
     protected boolean _close;
@@ -153,7 +156,6 @@ public class Window
         });
         
         this.thread = new Thread(this::runInThread, "Window-" + (this.name != null ? this.name : this.handle));
-        this.thread.start();
     }
     
     @Override
@@ -994,6 +996,23 @@ public class Window
     
     // -------------------- GLFW Methods -------------------- //
     
+    public Window start()
+    {
+        this.thread.start();
+        
+        return this;
+    }
+    
+    public void onWindowInit(Runnable onWindowInit)
+    {
+        this.onWindowInit = onWindowInit;
+    }
+    
+    public void onWindowDraw(Runnable onWindowDraw)
+    {
+        this.onWindowDraw = onWindowDraw;
+    }
+    
     public void makeCurrent()
     {
         this.taskDelegator.waitRunTask(() -> glfwMakeContextCurrent(this.handle));
@@ -1002,6 +1021,11 @@ public class Window
     public void unmakeCurrent()
     {
         this.taskDelegator.waitRunTask(() -> glfwMakeContextCurrent(0L));
+    }
+    
+    public void swap()
+    {
+        glfwSwapBuffers(this.handle);
     }
     
     public void destroy()
@@ -1028,6 +1052,8 @@ public class Window
             makeCurrent();
             
             org.lwjgl.opengl.GL.createCapabilities();
+    
+            if (this.onWindowInit != null) this.onWindowInit.run();
             
             while (!this.close && this.open)
             {
@@ -1134,9 +1160,7 @@ public class Window
                     }
                 }
                 
-                // TODO - Separate Rendering to on demand.
-                glViewport(0, 0, this.fbSize.x, this.fbSize.y);
-                glfwSwapBuffers(this.handle);
+                if (this.onWindowDraw != null) this.onWindowDraw.run();
                 
                 Thread.yield();
             }
