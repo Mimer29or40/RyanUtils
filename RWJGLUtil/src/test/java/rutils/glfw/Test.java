@@ -117,6 +117,8 @@ public class Test
         finally
         {
             Test.LOGGER.fine("Application Stopping");
+    
+            GLFW.EVENT_BUS.unregister(Test.class);
             
             GLFW.destroy();
         }

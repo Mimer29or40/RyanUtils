@@ -1,7 +1,6 @@
 package rutils.glfw.event;
 
 import rutils.glfw.Joystick;
-import rutils.glfw.EventProperty;
 
 public interface EventJoystickButtonPressed extends EventInputDeviceInputPressed, EventJoystickButton
 {

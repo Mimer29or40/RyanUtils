@@ -3,7 +3,6 @@ package rutils.glfw.event;
 import org.joml.Vector2dc;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
-import rutils.glfw.EventProperty;
 
 public interface EventMouseButtonPressed extends EventInputDeviceInputPressed, EventMouseButton
 {

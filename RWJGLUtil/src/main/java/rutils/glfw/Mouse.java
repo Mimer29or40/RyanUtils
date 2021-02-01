@@ -49,7 +49,7 @@ public class Mouse extends InputDevice
         super("Mouse");
         
         this.buttonMap = new LinkedHashMap<>();
-        for (Button button : Mouse.Button.values()) this.buttonMap.put(button, new ButtonInput(GLFW_RELEASE));
+        for (Button button : Mouse.Button.values()) this.buttonMap.put(button, new ButtonInput());
         
         this.threadStart.countDown();
     }
@@ -474,9 +474,9 @@ public class Mouse extends InputDevice
         final Vector2d click  = new Vector2d();
         final Vector2d dClick = new Vector2d();
         
-        private ButtonInput(int initial)
+        private ButtonInput()
         {
-            super(initial);
+            super(GLFW_RELEASE);
         }
     }
     

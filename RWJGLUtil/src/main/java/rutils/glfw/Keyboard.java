@@ -1,7 +1,5 @@
 package rutils.glfw;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import rutils.Logger;
 import rutils.glfw.event.*;
 import rutils.group.IPair;

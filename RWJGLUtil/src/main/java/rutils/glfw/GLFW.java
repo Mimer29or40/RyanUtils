@@ -140,7 +140,7 @@ public final class GLFW
             if (glfwJoystickPresent(jid))
             {
                 boolean isGamepad = glfwJoystickIsGamepad(jid);
-                GLFW.JOYSTICKS.put(jid, isGamepad ? new Gamepad(jid, true) : new Joystick(jid, false));
+                GLFW.JOYSTICKS.put(jid, isGamepad ? new Gamepad(jid) : new Joystick(jid, false));
             }
         }
         
@@ -519,7 +519,7 @@ public final class GLFW
         switch (event)
         {
             case GLFW_CONNECTED -> {
-                Joystick joystick = glfwJoystickIsGamepad(jid) ? new Gamepad(jid, true) : new Joystick(jid, false);
+                Joystick joystick = glfwJoystickIsGamepad(jid) ? new Gamepad(jid) : new Joystick(jid, false);
                 GLFW.JOYSTICKS.put(jid, joystick);
                 GLFW.EVENT_BUS.post(EventJoystickConnected.create(joystick));
             }

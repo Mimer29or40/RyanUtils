@@ -72,19 +72,9 @@ public final class TrueType extends FontDemo
         // text = "This is a test String";
     }
     
-    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args)
     {
         String filePath = IOUtil.getPath("demo/FiraSans.ttf").toString();
-         if (args.length == 0)
-         {
-             System.out.println("Use 'ant demo -Dclass=org.lwjgl.demo.stb.TrueType -Dargs=<path>' to load a different text file (must be UTF8-encoded).\n");
-             filePath = "doc/README.md";
-         }
-         else
-         {
-             filePath = args[0];
-         }
         
         new TrueType(filePath).run("STB TrueType Demo");
     }

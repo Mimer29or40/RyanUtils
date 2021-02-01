@@ -81,11 +81,6 @@ public class EventBus
         }, "EventBus");
     }
     
-    public EventBus()
-    {
-        this(false);
-    }
-    
     public void start()
     {
         this.shutdown = false;
@@ -94,7 +89,7 @@ public class EventBus
     
     public void shutdown()
     {
-        // EventBus.LOGGER.warning("EventBus %s shutting down - future events will not be posted.\n%s", this.busID, new Exception("stacktrace"));
+        EventBus.LOGGER.fine("EventBus %s shutting down - future events will not be posted.", this.busID);
         this.shutdown = true;
         try
         {

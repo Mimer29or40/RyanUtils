@@ -2,7 +2,6 @@ package rutils.glfw.event;
 
 import rutils.glfw.Keyboard;
 import rutils.glfw.Window;
-import rutils.glfw.EventProperty;
 
 public interface EventKeyboardKeyPressed extends EventInputDeviceInputPressed, EventKeyboardKey
 {

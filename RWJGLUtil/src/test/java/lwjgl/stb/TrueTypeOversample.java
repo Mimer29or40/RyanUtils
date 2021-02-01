@@ -65,7 +65,7 @@ public final class TrueTypeOversample
     
     // ----
     
-    @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
+    @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal", "CanBeFinal"})
     private String title = "STB TrueType Oversample Demo";
     
     private int ww = 1024;

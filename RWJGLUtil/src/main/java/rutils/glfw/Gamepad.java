@@ -14,9 +14,9 @@ public class Gamepad extends Joystick
 {
     protected final String name;
     
-    Gamepad(int jid, boolean gamepad)
+    Gamepad(int jid)
     {
-        super(jid, gamepad);
+        super(jid, true);
         
         this.name = glfwGetGamepadName(this.jid);
         

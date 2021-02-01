@@ -16,8 +16,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
-
 abstract class AbstractEvent implements Event
 {
     private static final Map<Class<? extends Event>, Set<Method>> METHOD_CACHE = new ConcurrentHashMap<>();
@@ -85,6 +83,7 @@ abstract class AbstractEvent implements Event
         return this.time;
     }
     
+    @SuppressWarnings("unused")
     public String timeTransform()
     {
         return String.format("%.3f", time());

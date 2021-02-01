@@ -29,19 +29,9 @@ public final class EasyFont extends FontDemo
         text = "This is a String";
     }
     
-    @SuppressWarnings("SpellCheckingInspection")
     public static void main(String[] args)
     {
         String filePath = IOUtil.getPath("demo/FiraSans.ttf").toString();
-         if (args.length == 0)
-         {
-             System.out.println("Use 'ant demo -Dclass=org.lwjgl.demo.stb.EasyFont -Dargs=<path>' to load a different text file (must be UTF8-encoded).\n");
-             filePath = "doc/README.md";
-         }
-         else
-         {
-             filePath = args[0];
-         }
         
         new EasyFont(filePath).run("STB Easy Font Demo");
     }
