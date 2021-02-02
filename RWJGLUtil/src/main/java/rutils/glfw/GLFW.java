@@ -1,6 +1,5 @@
 package rutils.glfw;
 
-import com.sun.tools.javac.Main;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -34,9 +33,9 @@ public final class GLFW
     
     private static boolean initialized = false;
     
-    public static final TaskDelegator TASK_DELEGATOR = new TaskDelegator();
+    public static TaskDelegator TASK_DELEGATOR;
     
-    public static final EventBus EVENT_BUS = new EventBus(true);
+    public static EventBus EVENT_BUS;
     
     static final Map<Long, Monitor> MONITORS        = new LinkedHashMap<>();
     static       Monitor            PRIMARY_MONITOR = null;
@@ -87,8 +86,10 @@ public final class GLFW
         
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
         
+        GLFW.TASK_DELEGATOR = new TaskDelegator();
         GLFW.TASK_DELEGATOR.setThread();
         
+        GLFW.EVENT_BUS = new EventBus(true);
         GLFW.EVENT_BUS.start();
         
         glfwSetErrorCallback(GLFW::errorCallback);
@@ -292,6 +293,7 @@ public final class GLFW
         GLFW.LOGGER.fine("GLFW Destruction");
         
         GLFW.EVENT_BUS.shutdown();
+        GLFW.EVENT_BUS = null;
         
         GLFW.MONITORS.clear();
         
@@ -312,6 +314,9 @@ public final class GLFW
                 glfwSetJoystickCallback(null)
         };
         for (Callback callback : callbacks) if (callback != null) callback.free();
+    
+        GLFW.TASK_DELEGATOR.runTasks();
+        GLFW.TASK_DELEGATOR = null;
         
         glfwTerminate();
     }
@@ -320,17 +325,21 @@ public final class GLFW
     
     public static Collection<Monitor> monitors()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return Collections.unmodifiableCollection(GLFW.MONITORS.values());
     }
     
     public static Monitor getMonitor(int index)
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
+        if (index < 0) throw new RuntimeException("Monitor Index cannot be < 0");
         for (Monitor monitor : GLFW.MONITORS.values()) if (index-- <= 0) return monitor;
         return GLFW.PRIMARY_MONITOR;
     }
     
     public static Monitor primaryMonitor()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.PRIMARY_MONITOR;
     }
     
@@ -379,6 +388,7 @@ public final class GLFW
      */
     public static double getTime()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return glfwGetTime();
     }
     
@@ -400,11 +410,13 @@ public final class GLFW
      */
     public static void setTime(double time)
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         glfwSetTime(time);
     }
     
     public static boolean supportRawMouseInput()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.SUPPORT_RAW_MOUSE_MOTION;
     }
     
@@ -433,6 +445,7 @@ public final class GLFW
     @SuppressWarnings("ConstantConditions")
     public static boolean loadControllerMapping(String filePath)
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwUpdateGamepadMappings(IOUtil.resourceToByteBuffer(filePath)));
     }
     
@@ -441,6 +454,7 @@ public final class GLFW
      */
     public static Mouse mouse()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.MOUSE;
     }
     
@@ -449,6 +463,7 @@ public final class GLFW
      */
     public static Keyboard keyboard()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.KEYBOARD;
     }
     
@@ -464,6 +479,8 @@ public final class GLFW
      */
     public static Joystick getJoystick(int index)
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
+        if (index < GLFW_JOYSTICK_1 || index > GLFW_JOYSTICK_LAST) throw new RuntimeException("Invalid Joystick index: " + index);
         return GLFW.JOYSTICKS.get(index);
     }
     
@@ -479,6 +496,7 @@ public final class GLFW
     @Nullable
     public static String getClipboardString()
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetClipboardString(0L));
     }
     
@@ -489,6 +507,7 @@ public final class GLFW
      */
     public static void setClipboardString(CharSequence string)
     {
+        if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
         GLFW.TASK_DELEGATOR.runTask(() -> glfwSetClipboardString(0L, string));
     }
     

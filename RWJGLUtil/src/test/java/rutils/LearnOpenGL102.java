@@ -3,22 +3,34 @@ package rutils;
 import rutils.gl.GL;
 import rutils.gl.GLShader;
 import rutils.gl.GLVertexArray;
-import rutils.glfw.GLFW;
-import rutils.glfw.Test;
+import rutils.glfw.GLFWApplicationTest;
 import rutils.glfw.Window;
 
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
 
-public class LearnOpenGL102
+public class LearnOpenGL102 extends GLFWApplicationTest
 {
-    static Window window;
+    GLShader shader;
     
-    static GLShader shader;
+    GLVertexArray vao;
     
-    static GLVertexArray vao;
+    @Override
+    protected Window createWindow()
+    {
+        return new Window.Builder()
+                .name("First")
+                .contextVersionMajor(3)
+                .contextVersionMinor(3)
+                .openglProfile(GLFW_OPENGL_CORE_PROFILE)
+                .openglForwardCompat(true)
+                .size(800, 600)
+                .build();
+    }
     
-    static void init()
+    @Override
+    protected void init()
     {
         glClearColor(0.1F, 0.1F, 0.1F, 1F);
         
@@ -47,11 +59,12 @@ public class LearnOpenGL102
         }, GL.STATIC_DRAW, 3).unbind();
     }
     
-    static void draw(double time, double deltaT)
+    @Override
+    protected void draw(double time, double deltaT)
     {
         glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+        
         shader.bind();
         
         vao.bind().draw(GL.TRIANGLES).unbind();
@@ -61,33 +74,15 @@ public class LearnOpenGL102
         window.swap();
     }
     
+    @Override
+    protected void beforeEventLoop()
+    {
+        System.out.println(GLFW_OPENGL_CORE_PROFILE + " " + window.getAttribute(GLFW_OPENGL_PROFILE));
+    
+    }
+    
     public static void main(String[] args)
     {
-        try
-        {
-            GLFW.init();
-            
-            GLFW.EVENT_BUS.register(LearnOpenGL102.class);
-            
-            window = new Window.Builder()
-                    .name("First")
-                    .contextVersionMajor(3)
-                    .contextVersionMinor(3)
-                    .openglProfile(GLFW_OPENGL_CORE_PROFILE)
-                    .openglForwardCompat(true)
-                    .size(800, 600)
-                    .build();
-            window.onWindowInit(LearnOpenGL102::init);
-            window.onWindowDraw(LearnOpenGL102::draw);
-            window.open();
-            
-            GLFW.eventLoop();
-        }
-        finally
-        {
-            GLFW.EVENT_BUS.unregister(Test.class);
-            
-            GLFW.destroy();
-        }
+        new LearnOpenGL102().run();
     }
 }
