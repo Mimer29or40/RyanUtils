@@ -3,9 +3,8 @@ package rutils.glfw.event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import rutils.ClassUtil;
-import rutils.StringUtil;
-import rutils.glfw.EventProperty;
 import rutils.glfw.EventPriority;
+import rutils.glfw.EventProperty;
 import rutils.glfw.GLFW;
 
 import java.lang.reflect.InvocationTargetException;
@@ -49,20 +48,11 @@ abstract class AbstractEvent implements Event
             if (property.printName()) s.append(method.getName()).append('=');
             try
             {
-                Class<?> declaringClass = method.getDeclaringClass();
-                Method toString = declaringClass.getDeclaredMethod(method.getName() + "Transform");
-                s.append(toString.invoke(this));
+                s.append(String.format(property.format(), method.invoke(this)));
             }
-            catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored)
+            catch (IllegalAccessException | InvocationTargetException ignored)
             {
-                try
-                {
-                    s.append(StringUtil.toString(method.invoke(this)));
-                }
-                catch (IllegalAccessException | InvocationTargetException ignored1)
-                {
-                    s.append(method.getReturnType());
-                }
+                s.append(method.getReturnType());
             }
             
             if (iterator.hasNext())
@@ -81,12 +71,6 @@ abstract class AbstractEvent implements Event
     public double time()
     {
         return this.time;
-    }
-    
-    @SuppressWarnings("unused")
-    public String timeTransform()
-    {
-        return String.format("%.3f", time());
     }
     
     @Override

@@ -7,7 +7,7 @@ import rutils.glfw.EventPriority;
 
 public interface Event
 {
-    @EventProperty
+    @EventProperty(format = "%.3f")
     double time();
     
     @Nullable
