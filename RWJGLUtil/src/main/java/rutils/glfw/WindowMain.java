@@ -1,13 +1,9 @@
 package rutils.glfw;
 
-import rutils.Logger;
-
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 
 class WindowMain extends Window
 {
-    private static final Logger LOGGER = new Logger();
-    
     private static final Builder BUILDER = new Builder().name("Main").visible(false).focused(false).focusOnShow(false);
     
     WindowMain()

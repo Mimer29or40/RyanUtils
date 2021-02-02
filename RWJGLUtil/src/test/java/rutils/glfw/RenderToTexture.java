@@ -1,5 +1,7 @@
-package rutils;
+package rutils.glfw;
 
+import org.joml.Matrix3d;
+import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import rutils.gl.GL;
@@ -9,11 +11,11 @@ import rutils.gl.GLVertexArray;
 
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 
-public class RenderToTexture extends OpenGLDemo
+public class RenderToTexture extends GLFWApplicationTest
 {
     static final String vertexShader =
             "#version 120\n" +
@@ -109,21 +111,26 @@ public class RenderToTexture extends OpenGLDemo
             "................"
     };
     
-    boolean running = true;
-    
     GLShader      shader;
     GLVertexArray vertexArray;
     
     GLTexture texture;
     
-    final Matrix4f view       = new Matrix4f();
-    final Matrix4f projection = new Matrix4f();
+    final Matrix4d view = new Matrix4d();
+    final Matrix4d proj = new Matrix4d();
     
     @Override
-    protected void init(String title)
+    protected Window createWindow()
     {
-        super.init(title);
-        
+        return new Window.Builder()
+                .openglDebugContext(true)
+                .resizable(true)
+                .build();
+    }
+    
+    @Override
+    protected void init()
+    {
         this.shader = new GLShader().load(GL.VERTEX_SHADER, vertexShader).load(GL.FRAGMENT_SHADER, fragmentShader).validate().bind();
         this.shader.setUniform("lightSource.ambient", 0.0f, 0.0f, 0.0f);
         this.shader.setUniform("lightSource.diffuse", 1.0f, 1.0f, 1.0f);
@@ -134,8 +141,7 @@ public class RenderToTexture extends OpenGLDemo
         this.shader.setUniform("material.specular", 1.0f, 1.0f, 1.0f);
         this.shader.setUniform("material.shininess", 10.0f);
         
-        this.vertexArray = new GLVertexArray();
-        this.vertexArray.add(new float[] {
+        this.vertexArray = new GLVertexArray().add(new float[] {
                 1.0f, 1.0f, -1.0f,  // Green
                 -1.0f, 1.0f, -1.0f, // Green
                 -1.0f, 1.0f, 1.0f,  // Green
@@ -160,8 +166,7 @@ public class RenderToTexture extends OpenGLDemo
                 1.0f, 1.0f, 1.0f,   // Magenta
                 1.0f, -1.0f, 1.0f,  // Magenta
                 1.0f, -1.0f, -1.0f  // Magenta
-        }, GL.STATIC_DRAW, 3);
-        this.vertexArray.add(new float[] {
+        }, GL.STATIC_DRAW, 3).add(new float[] {
                 0.0f, 1.0f, 0.0f,  // Green
                 0.0f, 1.0f, 0.0f,  // Green
                 0.0f, 1.0f, 0.0f,  // Green
@@ -186,8 +191,7 @@ public class RenderToTexture extends OpenGLDemo
                 1.0f, 0.0f, 0.0f,  // Magenta
                 1.0f, 0.0f, 0.0f,  // Magenta
                 1.0f, 0.0f, 0.0f,  // Magenta
-        }, GL.STATIC_DRAW, 3);
-        this.vertexArray.add(new float[] {
+        }, GL.STATIC_DRAW, 3).add(new float[] {
                 0.0f, 1.0f, 0.0f, // Green
                 0.0f, 1.0f, 0.0f, // Green
                 0.0f, 1.0f, 0.0f, // Green
@@ -212,8 +216,7 @@ public class RenderToTexture extends OpenGLDemo
                 1.0f, 0.0f, 1.0f, // Magenta
                 1.0f, 0.0f, 1.0f, // Magenta
                 1.0f, 0.0f, 1.0f, // Magenta
-        }, GL.STATIC_DRAW, 3);
-        this.vertexArray.add(new float[] {
+        }, GL.STATIC_DRAW, 3).add(new float[] {
                 0.0f, 0.0f, // Green
                 0.0f, 1.0f, // Green
                 1.0f, 1.0f, // Green
@@ -282,30 +285,40 @@ public class RenderToTexture extends OpenGLDemo
                 }
             }
         }
-        this.texture.bind().upload(data.clear()).applyTextureSettings().saveImage("out/renderToTexture.png");
+        this.texture.bind().upload(data.clear()).applyTextureSettings();
         
         glClearColor(.5f, .5f, .5f, 1.f);
     }
     
     @Override
-    protected void loop()
+    protected void draw(double time, double deltaT)
     {
-        while (this.running)
-        {
-            glfwPollEvents();
-            
-            glfwSwapBuffers(this.window);
-        }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
+    
+        proj.identity().perspective(Math.toRadians(90), window.aspectRatio(), 0.1, 100.0);
+        view.identity().lookAt(5 * Math.cos(time), 1, 5 * Math.sin(time), 0, 0, 0, 0, 1, 0);
+    
+        shader.bind();
+        shader.setUniform("projectionMatrix", proj);
+        shader.setUniform("modelViewMatrix", view);
+        shader.setUniform("normalMatrix", view.normal(new Matrix3d()));
+        
+        texture.bind(0);
+    
+        vertexArray.bind().draw(GL.TRIANGLES);
+        
+        window.swap();
     }
     
     @Override
-    protected void windowCloseCallback(long window)
+    protected void beforeEventLoop()
     {
-        this.running = false;
+    
     }
     
     public static void main(String[] args)
     {
-        new RenderToTexture().run("Render to Texture");
+        new RenderToTexture().run();
     }
 }
