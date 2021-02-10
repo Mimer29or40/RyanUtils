@@ -459,11 +459,13 @@ public class Mouse extends InputDevice
                 }
                 case GLFW_REPEAT -> GLFW.EVENT_BUS.post(EventMouseButtonRepeated.create(input._window, button, this.pos));
             }
-            if (input.held && time - input.holdTime >= InputDevice.holdFrequency)
+            if (input.held)
             {
-                input.holdTime += InputDevice.holdFrequency;
-                GLFW.EVENT_BUS.post(EventMouseButtonHeld.create(input._window, button, this.pos));
-                
+                if (time - input.holdTime >= InputDevice.holdFrequency)
+                {
+                    input.holdTime += InputDevice.holdFrequency;
+                    GLFW.EVENT_BUS.post(EventMouseButtonHeld.create(input._window, button, this.pos));
+                }
                 if (this.rel.x != 0 || this.rel.y != 0) GLFW.EVENT_BUS.post(EventMouseButtonDragged.create(input._window, button, this.pos, this.rel, input.click));
             }
         }

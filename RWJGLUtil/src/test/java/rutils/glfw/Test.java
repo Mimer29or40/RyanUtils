@@ -17,7 +17,7 @@ public class Test
     @SubscribeEvent
     public static void handleEvent(Event event)
     {
-        LOGGER.info("allEvents", event);
+        // LOGGER.info("allEvents", event);
     }
     
     @SubscribeEvent
@@ -41,13 +41,19 @@ public class Test
     @SubscribeEvent
     public static void handleEvent(EventInputDeviceInputDown event)
     {
-        LOGGER.info("EventInputDeviceInputDown", event);
+        // LOGGER.info("EventInputDeviceInputDown", event);
     }
     
     @SubscribeEvent
     public static void handleEvent(EventMouse event)
     {
         // LOGGER.info("EventMouse", event);
+    }
+    
+    @SubscribeEvent
+    public static void handleEvent(EventMouseButtonDragged event)
+    {
+        LOGGER.info("EventMouseButtonDragged", event);
     }
     
     @SubscribeEvent
