@@ -321,7 +321,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector2d} with {@code double}'s [{@code 0} - {@code bound}].
      */
-    public Vector2d nextVector2d(Vector2d vector, float bound)
+    public Vector2d nextVector2d(Vector2d vector, double bound)
     {
         return vector.set(nextDouble(bound), nextDouble(bound));
     }
@@ -329,7 +329,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector2d} with {@code double}'s [{@code 0} - {@code bound}].
      */
-    public Vector2d nextVector2d(float bound)
+    public Vector2d nextVector2d(double bound)
     {
         return nextVector2d(new Vector2d(), bound);
     }
@@ -337,7 +337,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector2d} with {@code double}'s [{@code origin} - {@code bound}].
      */
-    public Vector2d nextVector2d(Vector2d vector, float origin, float bound)
+    public Vector2d nextVector2d(Vector2d vector, double origin, double bound)
     {
         return vector.set(nextDouble(origin, bound), nextDouble(origin, bound));
     }
@@ -345,7 +345,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector2d} with {@code double}'s [{@code origin} - {@code bound}].
      */
-    public Vector2d nextVector2d(float origin, float bound)
+    public Vector2d nextVector2d(double origin, double bound)
     {
         return nextVector2d(new Vector2d() ,origin, bound);
     }
@@ -369,7 +369,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector3d} with {@code double}'s [{@code 0} - {@code bound}].
      */
-    public Vector3d nextVector3d(Vector3d vector, float bound)
+    public Vector3d nextVector3d(Vector3d vector, double bound)
     {
         return vector.set(nextDouble(bound), nextDouble(bound), nextDouble(bound));
     }
@@ -377,7 +377,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector3d} with {@code double}'s [{@code 0} - {@code bound}].
      */
-    public Vector3d nextVector3d(float bound)
+    public Vector3d nextVector3d(double bound)
     {
         return nextVector3d(new Vector3d(), bound);
     }
@@ -385,7 +385,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector3d} with {@code double}'s [{@code origin} - {@code bound}].
      */
-    public Vector3d nextVector3d(Vector3d vector, float origin, float bound)
+    public Vector3d nextVector3d(Vector3d vector, double origin, double bound)
     {
         return vector.set(nextDouble(origin, bound), nextDouble(origin, bound), nextDouble(origin, bound));
     }
@@ -393,7 +393,7 @@ public class Random extends rutils.Random
     /**
      * @return A random {@link Vector3d} with {@code double}'s [{@code origin} - {@code bound}].
      */
-    public Vector3d nextVector3d(float origin, float bound)
+    public Vector3d nextVector3d(double origin, double bound)
     {
         return nextVector3d(new Vector3d(), origin, bound);
     }
