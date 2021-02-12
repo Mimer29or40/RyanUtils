@@ -174,7 +174,7 @@ public class StringUtil
     }
     
     /**
-     * Prints the object to the {@link java.io.PrintStream}  followed by a new
+     * Prints the object to the {@link java.io.PrintStream} followed by a new
      * line.
      * <p>
      * The object will be printed with {@link StringUtil#toString(Object)} to
@@ -236,6 +236,83 @@ public class StringUtil
             for (int i = 1; i < n; i++) result.append(' ').append(toString(objects[i]));
         }
         stream.println(result.toString());
+    }
+    
+    /**
+     * Prints the object to {@link System#out}.
+     * <p>
+     * The object will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * object. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to print.
+     */
+    public static void print(@Nullable Object object)
+    {
+        printToStream(System.out, object);
+    }
+    
+    /**
+     * Prints the objects to {@link System#out} separated by a space.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to print.
+     */
+    public static void print(@Nullable Object... objects)
+    {
+        printToStream(System.out, objects);
+    }
+    
+    /**
+     * Prints the object to {@link System#out} followed by a new line.
+     * <p>
+     * The object will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * object. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param object The object to print.
+     */
+    public static void println(@Nullable Object object)
+    {
+        printlnToStream(System.out, object);
+    }
+    
+    /**
+     * Prints the objects to {@link System#out} separated by a space followed
+     * by a new line.
+     * <p>
+     * The objects will be printed with {@link StringUtil#toString(Object)} to
+     * expand arrays and print the stacktrace for
+     * {@link Throwable Throwable's}.
+     * <p>
+     * If the first object is a string that contains
+     * {@link java.util.Formatter} codes, then it will be used to format the
+     * objects. Arrays will be converted to strings with
+     * {@link StringUtil#toString(Object)} before being formatted.
+     *
+     * @param objects The objects to print.
+     */
+    public static void println(@Nullable Object... objects)
+    {
+        printlnToStream(System.out, objects);
     }
     
     /**
@@ -336,7 +413,7 @@ public class StringUtil
      * @param suffix    The string that will be after each value.
      * @return The joined String.
      */
-    public static String join(@NotNull Object[] array, @NotNull String separator, @NotNull String prefix, @NotNull String suffix)
+    public static @NotNull String join(@NotNull Object[] array, @NotNull String separator, @NotNull String prefix, @NotNull String suffix)
     {
         int n = array.length;
         if (array.length == 0) return prefix + suffix;
@@ -364,7 +441,7 @@ public class StringUtil
      * @param separator The string that will be in between each value.
      * @return The joined String.
      */
-    public static String join(@NotNull Object[] array, @NotNull String separator)
+    public static @NotNull String join(@NotNull Object[] array, @NotNull String separator)
     {
         return join(array, separator, "", "");
     }
@@ -387,7 +464,7 @@ public class StringUtil
      * @param array The iterable to join in to a string.
      * @return The joined String.
      */
-    public static String join(@NotNull Object[] array)
+    public static @NotNull String join(@NotNull Object[] array)
     {
         return join(array, ", ", "", "");
     }

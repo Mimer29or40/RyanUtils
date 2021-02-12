@@ -1,10 +1,9 @@
 package rutils;
 
-// FastNoise.java
-//
 // MIT License
 //
-// Copyright(c) 2017 Jordan Peck
+// Copyright(c) 2020 Jordan Peck (jordan.me2@gmail.com)
+// Copyright(c) 2020 Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -24,2453 +23,2426 @@ package rutils;
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// The developer's email is jorzixdan.me2@gzixmail.com (for great email, take
-// off every 'zix'.)
+// .'',;:cldxkO00KKXXNNWWWNNXKOkxdollcc::::::;:::ccllloooolllllllllooollc:,'...        ...........',;cldxkO000Okxdlc::;;;,,;;;::cclllllll
+// ..',;:ldxO0KXXNNNNNNNNXXK0kxdolcc::::::;;;,,,,,,;;;;;;;;;;:::cclllllc:;'....       ...........',;:ldxO0KXXXK0Okxdolc::;;;;::cllodddddo
+// ...',:loxO0KXNNNNNXXKK0Okxdolc::;::::::::;;;,,'''''.....''',;:clllllc:;,'............''''''''',;:loxO0KXNNNNNXK0Okxdollccccllodxxxxxxd
+// ....';:ldkO0KXXXKK00Okxdolcc:;;;;;::cclllcc:;;,''..... ....',;clooddolcc:;;;;,,;;;;;::::;;;;;;:cloxk0KXNWWWWWWNXKK0Okxddoooddxxkkkkkxx
+// .....';:ldxkOOOOOkxxdolcc:;;;,,,;;:cllooooolcc:;'...      ..,:codxkkkxddooollloooooooollcc:::::clodkO0KXNWWWWWWNNXK00Okxxxxxxxxkkkkxxx
+// . ....';:cloddddo___________,,,,;;:clooddddoolc:,...      ..,:ldx__00OOOkkk___kkkkkkxxdollc::::cclodkO0KXXNNNNNNXXK0OOkxxxxxxxxxxxxddd
+// .......',;:cccc:|           |,,,;;:cclooddddoll:;'..     ..';cox|  \KKK000|   |KK00OOkxdocc___;::clldxxkO0KKKKK00Okkxdddddddddddddddoo
+// .......'',,,,,''|   ________|',,;;::cclloooooolc:;'......___:ldk|   \KK000|   |XKKK0Okxolc|   |;;::cclodxxkkkkxxdoolllcclllooodddooooo
+// ''......''''....|   |  ....'',,,,;;;::cclloooollc:;,''.'|   |oxk|    \OOO0|   |KKK00Oxdoll|___|;;;;;::ccllllllcc::;;,,;;;:cclloooooooo
+// ;;,''.......... |   |_____',,;;;____:___cllo________.___|   |___|     \xkk|   |KK_______ool___:::;________;;;_______...'',;;:ccclllloo
+// c:;,''......... |         |:::/     '   |lo/        |           |      \dx|   |0/       \d|   |cc/        |'/       \......',,;;:ccllo
+// ol:;,'..........|    _____|ll/    __    |o/   ______|____    ___|   |   \o|   |/   ___   \|   |o/   ______|/   ___   \ .......'',;:clo
+// dlc;,...........|   |::clooo|    /  |   |x\___   \KXKKK0|   |dol|   |\   \|   |   |   |   |   |d\___   \..|   |  /   /       ....',:cl
+// xoc;'...  .....'|   |llodddd|    \__|   |_____\   \KKK0O|   |lc:|   |'\       |   |___|   |   |_____\   \.|   |_/___/...      ...',;:c
+// dlc;'... ....',;|   |oddddddo\          |          |Okkx|   |::;|   |..\      |\         /|   |          | \         |...    ....',;:c
+// ol:,'.......',:c|___|xxxddollc\_____,___|_________/ddoll|___|,,,|___|...\_____|:\ ______/l|___|_________/...\________|'........',;::cc
+// c:;'.......';:codxxkkkkxxolc::;::clodxkOO0OOkkxdollc::;;,,''''',,,,''''''''''',,'''''',;:loxkkOOkxol:;,'''',,;:ccllcc:;,'''''',;::ccll
+// ;,'.......',:codxkOO0OOkxdlc:;,,;;:cldxxkkxxdolc:;;,,''.....'',;;:::;;,,,'''''........,;cldkO0KK0Okdoc::;;::cloodddoolc:;;;;;::ccllooo
+// .........',;:lodxOO0000Okdoc:,,',,;:clloddoolc:;,''.......'',;:clooollc:;;,,''.......',:ldkOKXNNXX0Oxdolllloddxxxxxxdolccccccllooodddd
+// .    .....';:cldxkO0000Okxol:;,''',,;::cccc:;,,'.......'',;:cldxxkkxxdolc:;;,'.......';coxOKXNWWWNXKOkxddddxxkkkkkkxdoollllooddxxxxkkk
+//       ....',;:codxkO000OOxdoc:;,''',,,;;;;,''.......',,;:clodkO00000Okxolc::;,,''..',;:ldxOKXNWWWNNK0OkkkkkkkkkkkxxddooooodxxkOOOOO000
+//       ....',;;clodxkkOOOkkdolc:;,,,,,,,,'..........,;:clodxkO0KKXKK0Okxdolcc::;;,,,;;:codkO0XXNNNNXKK0OOOOOkkkkxxdoollloodxkO0KKKXXXXX
 //
+// VERSION: 1.0.1
+// https://github.com/Auburn/FastNoise
 
-import rutils.group.PairF;
-import rutils.group.TripleF;
+// To switch between using floats or doubles for input position,
+// perform a file-wide replace on the following strings (including /*FNLfloat*/)
+// /*FNLfloat*/ float
+// /*FNLfloat*/ double
 
-@SuppressWarnings("ALL")
+import rutils.interpolator.Interpolator;
+
 public class FastNoise
 {
     public enum NoiseType
-    {Value, ValueFractal, Perlin, PerlinFractal, Simplex, SimplexFractal, Cellular, WhiteNoise, Cubic, CubicFractal}
+    {
+        OpenSimplex2,
+        OpenSimplex2S,
+        Cellular,
+        Perlin,
+        ValueCubic,
+        Value
+    }
     
-    public enum Interp
-    {Linear, Hermite, Quintic}
+    public enum RotationType3D
+    {
+        None,
+        ImproveXYPlanes,
+        ImproveXZPlanes
+    }
     
     public enum FractalType
-    {FBM, Billow, RigidMulti}
+    {
+        None,
+        FBm,
+        Ridged,
+        PingPong,
+        DomainWarpProgressive,
+        DomainWarpIndependent
+    }
     
     public enum CellularDistanceFunction
-    {Euclidean, Manhattan, Natural}
+    {
+        Euclidean,
+        EuclideanSq,
+        Manhattan,
+        Hybrid
+    }
     
     public enum CellularReturnType
-    {CellValue, NoiseLookup, Distance, Distance2, Distance2Add, Distance2Sub, Distance2Mul, Distance2Div}
-    
-    private int       m_seed;
-    private float     m_frequency = (float) 0.01;
-    private Interp    m_interp    = Interp.Quintic;
-    private NoiseType m_noiseType = NoiseType.Simplex;
-    
-    private int         m_octaves     = 3;
-    private float       m_lacunarity  = (float) 2.0;
-    private float       m_gain        = (float) 0.5;
-    private FractalType m_fractalType = FractalType.FBM;
-    
-    private float m_fractalBounding;
-    
-    private CellularDistanceFunction m_cellularDistanceFunction = CellularDistanceFunction.Euclidean;
-    private CellularReturnType       m_cellularReturnType       = CellularReturnType.CellValue;
-    private FastNoise                m_cellularNoiseLookup      = null;
-    
-    private float m_gradientPerturbAmp = (float) (1.0 / 0.45);
-    
-    public FastNoise()
     {
-        this(1337);
+        CellValue,
+        Distance,
+        Distance2,
+        Distance2Add,
+        Distance2Sub,
+        Distance2Mul,
+        Distance2Div
     }
     
+    public enum DomainWarpType
+    {
+        OpenSimplex2,
+        OpenSimplex2Reduced,
+        BasicGrid
+    }
+    
+    private enum TransformType3D
+    {
+        None,
+        ImproveXYPlanes,
+        ImproveXZPlanes,
+        DefaultOpenSimplex2
+    }
+    
+    private int             mSeed            = 1337;
+    private double          mFrequency       = 0.01f;
+    private NoiseType       mNoiseType       = NoiseType.OpenSimplex2;
+    private RotationType3D  mRotationType3D  = RotationType3D.None;
+    private TransformType3D mTransformType3D = TransformType3D.DefaultOpenSimplex2;
+    
+    private FractalType mFractalType      = FractalType.None;
+    private int         mOctaves          = 3;
+    private double      mLacunarity       = 2.0f;
+    private double      mGain             = 0.5f;
+    private double      mWeightedStrength = 0.0f;
+    private double      mPingPongStrength = 2.0f;
+    
+    private double mFractalBounding = 1 / 1.75f;
+    
+    private CellularDistanceFunction mCellularDistanceFunction = CellularDistanceFunction.EuclideanSq;
+    private CellularReturnType       mCellularReturnType       = CellularReturnType.Distance;
+    private double                   mCellularJitterModifier   = 1.0f;
+    
+    private DomainWarpType  mDomainWarpType      = DomainWarpType.OpenSimplex2;
+    private TransformType3D mWarpTransformType3D = TransformType3D.DefaultOpenSimplex2;
+    private double          mDomainWarpAmp       = 1.0f;
+    
+    /**
+     * Create new FastNoise object with default seed
+     */
+    public FastNoise() { }
+    
+    /**
+     * Create new FastNoise object with specified seed
+     */
     public FastNoise(int seed)
     {
-        m_seed = seed;
-        CalculateFractalBounding();
+        setSeed(seed);
     }
     
-    // Returns a 0 float/double
-    public static float GetDecimalType()
+    /**
+     * Sets seed used for all noise types
+     * <p>
+     * Default: 1337
+     */
+    public void setSeed(int seed)
     {
-        return 0;
+        this.mSeed = seed;
     }
     
-    // Returns the seed used by this object
-    public int GetSeed()
+    /**
+     * Sets frequency for all noise types
+     * <p>
+     * Default: 0.01
+     */
+    public void setFrequency(double frequency)
     {
-        return m_seed;
+        this.mFrequency = frequency;
     }
     
-    // Sets seed used for all noise types
-    // Default: 1337
-    public void SetSeed(int seed)
+    /**
+     * Sets noise algorithm used for GetNoise(...)
+     * <p>
+     * Default: {@link NoiseType#OpenSimplex2 OpenSimplex2}
+     */
+    public void setNoiseType(NoiseType noiseType)
     {
-        m_seed = seed;
+        this.mNoiseType = noiseType;
+        updateTransformType3D();
     }
     
-    // Sets frequency for all noise types
-    // Default: 0.01
-    public void SetFrequency(float frequency)
+    /**
+     * Sets domain rotation type for 3D Noise and 3D DomainWarp.
+     * Can aid in reducing directional artifacts when sampling a 2D plane in 3D
+     * <p>
+     * Default: {@link RotationType3D#None None}
+     */
+    public void setRotationType3D(RotationType3D rotationType3D)
     {
-        m_frequency = frequency;
+        this.mRotationType3D = rotationType3D;
+        updateTransformType3D();
+        updateWarpTransformType3D();
     }
     
-    // Changes the interpolation method used to smooth between noise values
-    // Possible interpolation methods (lowest to highest quality) :
-    // - Linear
-    // - Hermite
-    // - Quintic
-    // Used in Value, Gradient Noise and Position Perturbing
-    // Default: Quintic
-    public void SetInterp(Interp interp)
+    /**
+     * Sets method for combining octaves in all fractal noise types
+     * <p>
+     * Note: Fractal.DomainWarp... only affects DomainWarp(...)
+     * <p>
+     * Default: {@link FractalType#None None}
+     */
+    public void setFractalType(FractalType fractalType)
     {
-        m_interp = interp;
+        this.mFractalType = fractalType;
     }
     
-    // Sets noise return type of GetNoise(...)
-    // Default: Simplex
-    public void SetNoiseType(NoiseType noiseType)
+    /**
+     * Sets octave count for all fractal noise types
+     * <p>
+     * Default: 3
+     */
+    public void setFractalOctaves(int octaves)
     {
-        m_noiseType = noiseType;
+        this.mOctaves = octaves;
+        calculateFractalBounding();
     }
     
-    // Sets octave count for all fractal noise types
-    // Default: 3
-    public void SetFractalOctaves(int octaves)
+    /**
+     * Sets octave lacunarity for all fractal noise types
+     * <p>
+     * Default: 2.0
+     */
+    public void setFractalLacunarity(double lacunarity)
     {
-        m_octaves = octaves;
-        CalculateFractalBounding();
+        this.mLacunarity = lacunarity;
     }
     
-    // Sets octave lacunarity for all fractal noise types
-    // Default: 2.0
-    public void SetFractalLacunarity(float lacunarity)
+    /**
+     * Sets octave gain for all fractal noise types
+     * <p>
+     * Default: 0.5
+     */
+    public void setFractalGain(double gain)
     {
-        m_lacunarity = lacunarity;
+        this.mGain = gain;
+        calculateFractalBounding();
     }
     
-    // Sets octave gain for all fractal noise types
-    // Default: 0.5
-    public void SetFractalGain(float gain)
+    /**
+     * Sets octave weighting for all none DomainWarp fractal types
+     * <p>
+     * Note: Keep between 0...1 to maintain -1...1 output bounding
+     * <p>
+     * Default: 0.0
+     */
+    public void setFractalWeightedStrength(double weightedStrength)
     {
-        m_gain = gain;
-        CalculateFractalBounding();
+        this.mWeightedStrength = weightedStrength;
     }
     
-    // Sets method for combining octaves in all fractal noise types
-    // Default: FBM
-    public void SetFractalType(FractalType fractalType)
+    /**
+     * Sets strength of the fractal ping pong effect
+     * <p>
+     * Default: 2.0
+     */
+    public void setFractalPingPongStrength(double pingPongStrength)
     {
-        m_fractalType = fractalType;
+        this.mPingPongStrength = pingPongStrength;
     }
     
-    // Sets return type from cellular noise calculations
-    // Note: NoiseLookup requires another FastNoise object be set with SetCellularNoiseLookup() to function
-    // Default: CellValue
-    public void SetCellularDistanceFunction(CellularDistanceFunction cellularDistanceFunction)
+    /**
+     * Sets distance function used in cellular noise calculations
+     * <p>
+     * Default: {@link CellularDistanceFunction#EuclideanSq EuclideanSq}
+     */
+    public void setCellularDistanceFunction(CellularDistanceFunction cellularDistanceFunction)
     {
-        m_cellularDistanceFunction = cellularDistanceFunction;
+        this.mCellularDistanceFunction = cellularDistanceFunction;
     }
     
-    // Sets distance function used in cellular noise calculations
-    // Default: Euclidean
-    public void SetCellularReturnType(CellularReturnType cellularReturnType)
+    /**
+     * Sets return type from cellular noise calculations
+     * <p>
+     * Default: {@link CellularReturnType#Distance Distance}
+     */
+    public void setCellularReturnType(CellularReturnType cellularReturnType)
     {
-        m_cellularReturnType = cellularReturnType;
+        this.mCellularReturnType = cellularReturnType;
     }
     
-    // Noise used to calculate a cell value if cellular return type is NoiseLookup
-    // The lookup value is acquired through GetNoise() so ensure you SetNoiseType() on the noise lookup, value, gradient or simplex is recommended
-    public void SetCellularNoiseLookup(FastNoise noise)
+    /**
+     * Sets the maximum distance a cellular point can move from it's grid position
+     * <p>
+     * Note: Setting this higher than 1 will cause artifacts
+     * <p>
+     * Default: 1.0
+     */
+    public void setCellularJitter(double cellularJitter)
     {
-        m_cellularNoiseLookup = noise;
+        this.mCellularJitterModifier = cellularJitter;
     }
     
-    // Sets the maximum perturb distance from original location when using GradientPerturb{Fractal}(...)
-    // Default: 1.0
-    public void SetGradientPerturbAmp(float gradientPerturbAmp)
+    /**
+     * Sets the warp algorithm when using DomainWarp(...)
+     * <p>
+     * Default: {@link DomainWarpType#OpenSimplex2 OpenSimplex2}
+     */
+    public void setDomainWarpType(DomainWarpType domainWarpType)
     {
-        m_gradientPerturbAmp = gradientPerturbAmp / (float) 0.45;
+        this.mDomainWarpType = domainWarpType;
+        updateWarpTransformType3D();
     }
     
-    private static class Float2
+    /**
+     * Sets the maximum warp distance from original position when using DomainWarp(...)
+     * <p>
+     * Default: 1.0
+     */
+    public void setDomainWarpAmp(double domainWarpAmp)
     {
-        public final float x, y;
+        this.mDomainWarpAmp = domainWarpAmp;
+    }
+    
+    /**
+     * 2D noise at given position using current settings
+     *
+     * @return Noise output bounded between -1...1
+     */
+    public double getNoise(double x, double y)
+    {
+        x *= this.mFrequency;
+        y *= this.mFrequency;
         
-        public Float2(float x, float y)
+        switch (this.mNoiseType)
+        {
+            case OpenSimplex2, OpenSimplex2S -> {
+                final double SQRT3 = 1.7320508075688772935274463415059;
+                final double F2    = 0.5 * (SQRT3 - 1);
+                double       t     = (x + y) * F2;
+                x += t;
+                y += t;
+            }
+        }
+        
+        return switch (this.mFractalType)
+                {
+                    default -> genNoiseSingle(this.mSeed, x, y);
+                    case FBm -> genFractalFBm(x, y);
+                    case Ridged -> genFractalRidged(x, y);
+                    case PingPong -> genFractalPingPong(x, y);
+                };
+    }
+    
+    /**
+     * 3D noise at given position using current settings
+     *
+     * @return Noise output bounded between -1...1
+     */
+    public double getNoise(double x, double y, double z)
+    {
+        x *= this.mFrequency;
+        y *= this.mFrequency;
+        z *= this.mFrequency;
+        
+        switch (this.mTransformType3D)
+        {
+            case ImproveXYPlanes -> {
+                double xy = x + y;
+                double s2 = xy * -0.211324865405187;
+                z *= 0.577350269189626;
+                x += s2 - z;
+                y = y + s2 - z;
+                z += xy * 0.577350269189626;
+            }
+            case ImproveXZPlanes -> {
+                double xz = x + z;
+                double s2 = xz * -0.211324865405187;
+                y *= 0.577350269189626;
+                x += s2 - y;
+                z += s2 - y;
+                y += xz * 0.577350269189626;
+            }
+            case DefaultOpenSimplex2 -> {
+                final double R3 = 2.0 / 3.0;
+                double       r  = (x + y + z) * R3; // Rotation, not skew
+                x = r - x;
+                y = r - y;
+                z = r - z;
+            }
+        }
+        
+        return switch (this.mFractalType)
+                {
+                    default -> genNoiseSingle(this.mSeed, x, y, z);
+                    case FBm -> genFractalFBm(x, y, z);
+                    case Ridged -> genFractalRidged(x, y, z);
+                    case PingPong -> genFractalPingPong(x, y, z);
+                };
+    }
+    
+    /**
+     * 2D warps the input position using current domain warp settings
+     * <p>
+     * Example usage with GetNoise
+     * <code>DomainWarp(coord);
+     * noise = getNoise(x, y);</code>
+     */
+    public void domainWarp(Vector2 coord)
+    {
+        switch (this.mFractalType)
+        {
+            default -> domainWarpSingle(coord);
+            case DomainWarpProgressive -> domainWarpFractalProgressive(coord);
+            case DomainWarpIndependent -> domainWarpFractalIndependent(coord);
+        }
+    }
+    
+    /**
+     * 3D warps the input position using current domain warp settings
+     * <p>
+     * Example usage with GetNoise
+     * <code>DomainWarp(coord);
+     * noise = getNoise(x, y, z);</code>
+     */
+    public void domainWarp(Vector3 coord)
+    {
+        switch (mFractalType)
+        {
+            default -> domainWarpSingle(coord);
+            case DomainWarpProgressive -> domainWarpFractalProgressive(coord);
+            case DomainWarpIndependent -> domainWarpFractalIndependent(coord);
+        }
+    }
+    
+    private static final double[] GRAD2 = {
+            +0.130526192220052, +0.991444861373810, +0.382683432365090, +0.923879532511287, +0.608761429008721, +0.793353340291235, +0.793353340291235, +0.608761429008721,
+            +0.923879532511287, +0.382683432365090, +0.991444861373810, +0.130526192220051, +0.991444861373810, -0.130526192220051, +0.923879532511287, -0.382683432365090,
+            +0.793353340291235, -0.608761429008720, +0.608761429008721, -0.793353340291235, +0.382683432365090, -0.923879532511287, +0.130526192220052, -0.991444861373810,
+            -0.130526192220052, -0.991444861373810, -0.382683432365090, -0.923879532511287, -0.608761429008721, -0.793353340291235, -0.793353340291235, -0.608761429008721,
+            -0.923879532511287, -0.382683432365090, -0.991444861373810, -0.130526192220052, -0.991444861373810, +0.130526192220051, -0.923879532511287, +0.382683432365090,
+            -0.793353340291235, +0.608761429008721, -0.608761429008721, +0.793353340291235, -0.382683432365090, +0.923879532511287, -0.130526192220052, +0.991444861373810,
+            +0.130526192220052, +0.991444861373810, +0.382683432365090, +0.923879532511287, +0.608761429008721, +0.793353340291235, +0.793353340291235, +0.608761429008721,
+            +0.923879532511287, +0.382683432365090, +0.991444861373810, +0.130526192220051, +0.991444861373810, -0.130526192220051, +0.923879532511287, -0.382683432365090,
+            +0.793353340291235, -0.608761429008720, +0.608761429008721, -0.793353340291235, +0.382683432365090, -0.923879532511287, +0.130526192220052, -0.991444861373810,
+            -0.130526192220052, -0.991444861373810, -0.382683432365090, -0.923879532511287, -0.608761429008721, -0.793353340291235, -0.793353340291235, -0.608761429008721,
+            -0.923879532511287, -0.382683432365090, -0.991444861373810, -0.130526192220052, -0.991444861373810, +0.130526192220051, -0.923879532511287, +0.382683432365090,
+            -0.793353340291235, +0.608761429008721, -0.608761429008721, +0.793353340291235, -0.382683432365090, +0.923879532511287, -0.130526192220052, +0.991444861373810,
+            +0.130526192220052, +0.991444861373810, +0.382683432365090, +0.923879532511287, +0.608761429008721, +0.793353340291235, +0.793353340291235, +0.608761429008721,
+            +0.923879532511287, +0.382683432365090, +0.991444861373810, +0.130526192220051, +0.991444861373810, -0.130526192220051, +0.923879532511287, -0.382683432365090,
+            +0.793353340291235, -0.608761429008720, +0.608761429008721, -0.793353340291235, +0.382683432365090, -0.923879532511287, +0.130526192220052, -0.991444861373810,
+            -0.130526192220052, -0.991444861373810, -0.382683432365090, -0.923879532511287, -0.608761429008721, -0.793353340291235, -0.793353340291235, -0.608761429008721,
+            -0.923879532511287, -0.382683432365090, -0.991444861373810, -0.130526192220052, -0.991444861373810, +0.130526192220051, -0.923879532511287, +0.382683432365090,
+            -0.793353340291235, +0.608761429008721, -0.608761429008721, +0.793353340291235, -0.382683432365090, +0.923879532511287, -0.130526192220052, +0.991444861373810,
+            +0.130526192220052, +0.991444861373810, +0.382683432365090, +0.923879532511287, +0.608761429008721, +0.793353340291235, +0.793353340291235, +0.608761429008721,
+            +0.923879532511287, +0.382683432365090, +0.991444861373810, +0.130526192220051, +0.991444861373810, -0.130526192220051, +0.923879532511287, -0.382683432365090,
+            +0.793353340291235, -0.608761429008720, +0.608761429008721, -0.793353340291235, +0.382683432365090, -0.923879532511287, +0.130526192220052, -0.991444861373810,
+            -0.130526192220052, -0.991444861373810, -0.382683432365090, -0.923879532511287, -0.608761429008721, -0.793353340291235, -0.793353340291235, -0.608761429008721,
+            -0.923879532511287, -0.382683432365090, -0.991444861373810, -0.130526192220052, -0.991444861373810, +0.130526192220051, -0.923879532511287, +0.382683432365090,
+            -0.793353340291235, +0.608761429008721, -0.608761429008721, +0.793353340291235, -0.382683432365090, +0.923879532511287, -0.130526192220052, +0.991444861373810,
+            +0.130526192220052, +0.991444861373810, +0.382683432365090, +0.923879532511287, +0.608761429008721, +0.793353340291235, +0.793353340291235, +0.608761429008721,
+            +0.923879532511287, +0.382683432365090, +0.991444861373810, +0.130526192220051, +0.991444861373810, -0.130526192220051, +0.923879532511287, -0.382683432365090,
+            +0.793353340291235, -0.608761429008720, +0.608761429008721, -0.793353340291235, +0.382683432365090, -0.923879532511287, +0.130526192220052, -0.991444861373810,
+            -0.130526192220052, -0.991444861373810, -0.382683432365090, -0.923879532511287, -0.608761429008721, -0.793353340291235, -0.793353340291235, -0.608761429008721,
+            -0.923879532511287, -0.382683432365090, -0.991444861373810, -0.130526192220052, -0.991444861373810, +0.130526192220051, -0.923879532511287, +0.382683432365090,
+            -0.793353340291235, +0.608761429008721, -0.608761429008721, +0.793353340291235, -0.382683432365090, +0.923879532511287, -0.130526192220052, +0.991444861373810,
+            +0.382683432365090, +0.923879532511287, +0.923879532511287, +0.382683432365090, +0.923879532511287, -0.382683432365090, +0.382683432365090, -0.923879532511287,
+            -0.382683432365090, -0.923879532511287, -0.923879532511287, -0.382683432365090, -0.923879532511287, +0.382683432365090, -0.382683432365090, +0.923879532511287
+    };
+    
+    private static final double[] VEC2 = {
+            -0.2700222198, -0.9628540911, +0.3863092627, -0.9223693152, +0.0444485900, -0.9990116730, -0.5992523158, -0.8005602176, -0.7819280288, +0.6233687174, +0.9464672271, +0.3227999196, -0.6514146797, -0.7587218957, +0.9378472289, +0.3470483760,
+            -0.8497875957, -0.5271252623, -0.8790425920, +0.4767432447, -0.8923002880, -0.4514423508, -0.3798444340, -0.9250503802, -0.9951650832, +0.0982163789, +0.7724397808, -0.6350880136, +0.7573283322, -0.6530343002, -0.9928004525, -0.1197800550,
+            -0.0532665713, +0.9985803285, +0.9754253726, -0.2203300762, -0.7665018163, +0.6422421394, +0.9916367060, +0.1290606184, -0.9946968380, +0.1028503788, -0.5379205513, -0.8429955400, +0.5022815471, -0.8647041387, +0.4559821461, -0.8899889226,
+            -0.8659131224, -0.5001944266, +0.0879458407, -0.9961252577, -0.5051684983, +0.8630207346, +0.7753185226, -0.6315704146, -0.6921944612, +0.7217110418, -0.5191659449, -0.8546734591, +0.8978622882, -0.4402764035, -0.1706774107, +0.9853269617,
+            -0.9353430106, -0.3537420705, -0.9992404798, +0.0389674679, -0.2882064021, -0.9575683108, -0.9663811329, +0.2571137995, -0.8759714238, -0.4823630009, -0.8303123018, -0.5572983775, +0.0511013375, -0.9986934731, -0.8558373281, -0.5172450752,
+            +0.0988702528, +0.9951003332, +0.9189016087, +0.3944867976, -0.2439375892, -0.9697909324, -0.8121409387, -0.5834613061, -0.9910431363, +0.1335421355, +0.8492423985, -0.5280031709, -0.9717838994, -0.2358729591, +0.9949457207, +0.1004142068,
+            +0.6241065508, -0.7813392434, +0.6629103070, +0.7486988212, -0.7197418176, +0.6942418282, -0.8143370775, -0.5803922158, +0.1045210540, -0.9945226741, -0.1065926113, -0.9943027784, +0.4457996840, -0.8951327509, +0.1055474060, +0.9944142724,
+            -0.9927902670, +0.1198644477, -0.8334366408, +0.5526150250, +0.9115561563, -0.4111755999, +0.8285544909, -0.5599084351, +0.7217097654, -0.6921957921, +0.4940492677, -0.8694339084, -0.3652321272, -0.9309164803, -0.9696606758, +0.2444548501,
+            +0.0892550973, -0.9960087990, +0.5354071276, -0.8445941083, -0.1053576186, +0.9944343981, -0.9890284586, +0.1477251101, +0.0048561049, +0.9999882091, +0.9885598478, +0.1508291331, +0.9286129562, -0.3710498316, -0.5832393863, -0.8123003252,
+            +0.3015207509, +0.9534596146, -0.9575110528, +0.2883965738, +0.9715802154, -0.2367105511, +0.2299817920, +0.9731949318, +0.9557638160, -0.2941352207, +0.7409561160, +0.6715534485, -0.9971513787, -0.0754263076, +0.6905710663, -0.7232645452,
+            -0.2907137030, -0.9568100872, +0.5912777791, -0.8064679708, -0.9454592212, -0.3257404810, +0.6664455681, +0.7455536900, +0.6236134912, +0.7817328275, +0.9126993851, -0.4086316587, -0.8191762011, +0.5735419353, -0.8812745759, -0.4726046147,
+            +0.9953313627, +0.0965167265, +0.9855650846, -0.1692969699, -0.8495980887, +0.5274306472, +0.6174853946, -0.7865823463, +0.8508156371, +0.5254643200, +0.9985032451, -0.0546924992, +0.1971371563, -0.9803759185, +0.6607855748, -0.7505747292,
+            -0.0309749406, +0.9995201614, -0.6731660801, +0.7394913310, -0.7195018362, -0.6944905383, +0.9727511689, +0.2318515979, +0.9997059088, -0.0242506907, +0.4421787429, -0.8969269532, +0.9981350961, -0.0610436730, -0.9173660799, -0.3980445648,
+            -0.8150056635, -0.5794529907, -0.8789331304, +0.4769450202, +0.0158605829, +0.9998742130, -0.8095464474, +0.5870558317, -0.9165898907, -0.3998286786, -0.8023542565, +0.5968480938, -0.5176737917, +0.8555780767, -0.8154407307, -0.5788405779,
+            +0.4022010347, -0.9155513791, -0.9052556868, -0.4248672045, +0.7317445619, +0.6815789728, -0.5647632201, -0.8252529947, -0.8403276335, -0.5420788397, -0.9314281527, +0.3639252620, +0.5238198472, +0.8518290719, +0.7432803869, -0.6689800195,
+            -0.9853715610, -0.1704197369, +0.4601468731, +0.8878428100, +0.8258554040, +0.5638819483, +0.6182366099, +0.7859920446, +0.8331502863, -0.5530466530, +0.1500307506, +0.9886813308, -0.6623303690, -0.7492119075, -0.6685986640, +0.7436234440,
+            +0.7025606278, +0.7116238924, -0.5419389763, -0.8404178401, -0.3388616456, +0.9408362159, +0.8331530315, +0.5530425174, -0.2989720662, -0.9542618632, +0.2638522993, +0.9645630949, +0.1241087390, -0.9922686234, -0.7282649308, -0.6852956957,
+            +0.6962500149, +0.7177993569, -0.9183535368, +0.3957610156, -0.6326102274, -0.7744703352, -0.9331891859, -0.3593855080, -0.1153779357, -0.9933216659, +0.9514974788, -0.3076565421, -0.0898797744, -0.9959526224, +0.6678496916, +0.7442961705,
+            +0.7952400393, -0.6062947138, -0.6462007402, -0.7631674805, -0.2733598753, +0.9619118351, +0.9669590226, -0.2549318510, -0.9792894595, +0.2024651934, -0.5369502995, -0.8436138784, -0.2700364710, -0.9628500944, -0.6400277131, +0.7683518247,
+            -0.7854537493, -0.6189203566, +0.0600590538, -0.9981948257, -0.0245577037, +0.9996984141, -0.6598362300, +0.7514094420, -0.6253894466, -0.7803127835, -0.6210408851, -0.7837781695, +0.8348888491, +0.5504185768, -0.1592275245, +0.9872419133,
+            +0.8367622488, +0.5475663786, -0.8675753916, -0.4973056806, -0.2022662628, -0.9793305667, +0.9399189937, +0.3413975472, +0.9877404807, -0.1561049093, -0.9034455656, +0.4287028224, +0.1269804218, -0.9919052235, -0.3819600854, +0.9241788210,
+            +0.9754625894, +0.2201652486, -0.3204015856, -0.9472818081, -0.9874760884, +0.1577687387, +0.0253534847, -0.9996785487, +0.4835130794, -0.8753371362, -0.2850799925, -0.9585037287, -0.0680551600, -0.9976815600, -0.7885244045, -0.6150034663,
+            +0.3185392127, -0.9479096845, +0.8880043089, +0.4598351306, +0.6476921488, -0.7619021462, +0.9820241299, +0.1887554194, +0.9357275128, -0.3527237187, -0.8894895414, +0.4569555293, +0.7922791302, +0.6101588153, +0.7483818261, +0.6632681526,
+            -0.7288929755, -0.6846276581, +0.8729032783, -0.4878932944, +0.8288345784, +0.5594937369, +0.0807456707, +0.9967347374, +0.9799148216, -0.1994165048, -0.5807306730, -0.8140957471, -0.4700049791, -0.8826637636, +0.2409492979, +0.9705377045,
+            +0.9437816757, -0.3305694308, -0.8927998638, -0.4504535528, -0.8069622304, +0.5906030467, +0.0625897316, +0.9980393407, -0.9312597469, +0.3643559849, +0.5777449785, +0.8162173362, -0.3360095855, -0.9418585660, +0.6979320750, -0.7161639607,
+            -0.0020081572, -0.9999979837, -0.1827294312, -0.9831632392, -0.6523911722, +0.7578824173, -0.4302626911, -0.9027037258, -0.9985126289, -0.0545209125, -0.0102810217, -0.9999471489, -0.4946071129, +0.8691166802, -0.2999350194, +0.9539596344,
+            +0.8165471961, +0.5772786819, +0.2697460475, +0.9629314980, -0.7306287391, -0.6827749597, -0.7590952064, -0.6509796216, -0.9070538530, +0.4210146171, -0.5104861064, -0.8598860013, +0.8613350597, +0.5080373165, +0.5007881595, -0.8655698812,
+            -0.6541581520, +0.7563577938, -0.8382755311, -0.5452468560, +0.6940070834, +0.7199681717, +0.0695093603, +0.9975812994, +0.1702942185, -0.9853932612, +0.2695973274, +0.9629731466, +0.5519612192, -0.8338697815, +0.2256574870, -0.9742067022,
+            +0.4215262855, -0.9068161835, +0.4881873305, -0.8727388672, -0.3683854996, -0.9296731273, -0.9825390578, +0.1860564427, +0.8125647100, +0.5828709909, +0.3196460933, -0.9475370046, +0.9570913859, +0.2897862643, -0.6876655497, -0.7260276109,
+            -0.9988770922, -0.0473767310, -0.1250179027, +0.9921544860, -0.8280133617, +0.5607083670, +0.9324863769, -0.3612051451, +0.6394653183, +0.7688199442, -0.0162384706, -0.9998681473, -0.9955014666, -0.0947461345, -0.8145331500, +0.5801170120,
+            +0.4037327978, -0.9148769469, +0.9944263371, +0.1054336766, -0.1624711654, +0.9867132919, -0.9949487814, -0.1003838750, -0.6995302564, +0.7146029809, +0.5263414922, -0.8502732700, -0.5395221479, +0.8419714080, +0.6579370318, +0.7530729462,
+            +0.0142675884, -0.9998982128, -0.6734383991, +0.7392433447, +0.6394120980, -0.7688642071, +0.9211571421, +0.3891908523, -0.1466372140, -0.9891903394, -0.7823180980, +0.6228791163, -0.5039610839, -0.8637263605, -0.7743120191, -0.6328039957
+    };
+    
+    private static final double[] GRAD3 = {
+            +0, +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0,
+            +1, +0, +1, +0, -1, +0, +1, +0, +1, +0, -1, +0, -1, +0, -1, +0,
+            +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0, +0,
+            +0, +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0,
+            +1, +0, +1, +0, -1, +0, +1, +0, +1, +0, -1, +0, -1, +0, -1, +0,
+            +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0, +0,
+            +0, +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0,
+            +1, +0, +1, +0, -1, +0, +1, +0, +1, +0, -1, +0, -1, +0, -1, +0,
+            +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0, +0,
+            +0, +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0,
+            +1, +0, +1, +0, -1, +0, +1, +0, +1, +0, -1, +0, -1, +0, -1, +0,
+            +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0, +0,
+            +0, +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0,
+            +1, +0, +1, +0, -1, +0, +1, +0, +1, +0, -1, +0, -1, +0, -1, +0,
+            +1, +1, +0, +0, -1, +1, +0, +0, +1, -1, +0, +0, -1, -1, +0, +0,
+            +1, +1, +0, +0, +0, -1, +1, +0, -1, +1, +0, +0, +0, -1, -1, +0
+    };
+    
+    private static final double[] VEC3 = {
+            -0.7292736885, -0.6618439697, +0.1735581948, +0, +0.7902920810, -0.5480887466, -0.2739291014, +0, +0.7217578935, +0.6226212466, -0.3023380997, +0, +0.5656831370, -0.8208298145, -0.0790000257, +0,
+            +0.7600490340, -0.5555979497, -0.3370999617, +0, +0.3713945616, +0.5011264475, +0.7816254623, +0, -0.1277062463, -0.4254438999, -0.8959289049, +0, -0.2881560924, -0.5815838982, +0.7607405838, +0,
+            +0.5849561111, -0.6628202390, -0.4674352136, +0, +0.3307171170, +0.0391653737, +0.9429168900, +0, +0.8712121778, -0.4113374369, -0.2679381538, +0, +0.5809810150, +0.7021915846, +0.4115677815, +0,
+            +0.5037568730, +0.6330056931, -0.5878203852, +0, +0.4493712205, +0.6013901950, +0.6606022552, +0, -0.6878403724, +0.0901889080, -0.7202371714, +0, -0.5958956522, -0.6469350577, +0.4757976490, +0,
+            -0.5127052122, +0.1946921978, -0.8361987284, +0, -0.9911507140, -0.0541027646, -0.1212153153, +0, -0.2149721042, +0.9720882117, -0.0939760774, +0, -0.7518650936, -0.5428057603, +0.3742469607, +0,
+            +0.5237068895, +0.8516377189, -0.0210781783, +0, +0.6333504779, +0.1926167129, -0.7495104896, +0, -0.0678824160, +0.3998305789, +0.9140719259, +0, -0.5538628599, -0.4729896695, -0.6852128902, +0,
+            -0.7261455366, -0.5911990757, +0.3509933228, +0, -0.9229274730, -0.1782808786, +0.3412049336, +0, -0.6968815002, +0.6511274338, +0.3006480328, +0, +0.9608044783, -0.2098363234, -0.1811724921, +0,
+            +0.0681714606, -0.9743405129, +0.2145069156, +0, -0.3577285196, -0.6697087264, -0.6507845481, +0, -0.1868621131, +0.7648617052, -0.6164974636, +0, -0.6541697588, +0.3967914832, +0.6439087246, +0,
+            +0.6993340405, -0.6164538506, +0.3618239211, +0, -0.1546665730, +0.6291283928, +0.7617583057, +0, -0.6841612949, -0.2580482182, -0.6821542638, +0, +0.5383980957, +0.4258654885, +0.7271630328, +0,
+            -0.5026987823, -0.7939832935, -0.3418836993, +0, +0.3202971715, +0.2834415347, +0.9039195862, +0, +0.8683227101, -0.0003762656, -0.4959995258, +0, +0.7911200310, -0.0851104574, +0.6057105799, +0,
+            -0.0401101605, -0.4397248749, +0.8972364289, +0, +0.9145119870, +0.3579346169, -0.1885487608, +0, -0.9612039066, -0.2756484276, +0.0102466692, +0, +0.6510361721, -0.2877799159, -0.7023778346, +0,
+            -0.2041786351, +0.7365237271, +0.6448595850, +0, -0.7718263711, +0.3790626912, +0.5104855816, +0, -0.3060082741, -0.7692987727, +0.5608371729, +0, +0.4540073410, -0.5024843065, +0.7357899537, +0,
+            +0.4816795475, +0.6021208291, -0.6367380315, +0, +0.6961980360, -0.3222197429, +0.6414691970, +0, -0.6532160499, -0.6781148932, +0.3368515753, +0, +0.5089301236, -0.6154662304, -0.6018234363, +0,
+            -0.1635919754, -0.9133604627, -0.3728408920, +0, +0.5240801900, -0.8437664109, +0.1157505864, +0, +0.5902587356, +0.4983817807, -0.6349883666, +0, +0.5863227872, +0.4947647450, +0.6414307729, +0,
+            +0.6779335087, +0.2341345225, +0.6968408593, +0, +0.7177054540, -0.6858979348, +0.1201786310, +0, -0.5328819713, -0.5205125012, +0.6671608058, +0, -0.8654874251, -0.0700727088, -0.4960053754, +0,
+            -0.2861810166, +0.7952089234, +0.5345495242, +0, -0.0484952963, +0.9810836427, -0.1874115585, +0, -0.6358521667, +0.6058348682, +0.4781800233, +0, +0.6254794696, -0.2861619734, +0.7258696564, +0,
+            -0.2585259868, +0.5061949264, -0.8227581726, +0, +0.0213630670, +0.5064016808, -0.8620330371, +0, +0.2001117730, +0.8599263484, +0.4695550591, +0, +0.4743561372, +0.6014985084, -0.6427953014, +0,
+            +0.6622993731, -0.5202474575, -0.5391679918, +0, +0.0808497281, -0.6532720452, +0.7527940996, +0, -0.6893687501, +0.0592860349, +0.7219805347, +0, -0.1121887082, -0.9673185067, +0.2273952515, +0,
+            +0.7344116094, +0.5979668656, -0.3210532909, +0, +0.5789393460, -0.2488849713, +0.7764570201, +0, +0.6988182827, +0.3557169806, -0.6205791146, +0, -0.8636845529, -0.2748771249, -0.4224826141, +0,
+            -0.4247027957, -0.4640880967, +0.7773350460, +0, +0.5257722489, -0.8427017621, +0.1158329937, +0, +0.9343830603, +0.3163024720, -0.1639543925, +0, -0.1016836419, -0.8057303073, -0.5834887393, +0,
+            -0.6529238969, +0.5060212600, -0.5635892736, +0, -0.2465286160, -0.9668205684, -0.0669449749, +0, -0.9776897119, -0.2099250524, -0.0073688253, +0, +0.7736893337, +0.5734244712, +0.2694238123, +0,
+            -0.6095087895, +0.4995678998, +0.6155736747, +0, +0.5794535482, +0.7434546771, +0.3339292269, +0, -0.8226211154, +0.0814258185, +0.5627293636, +0, -0.5103854830, +0.4703667658, +0.7199039967, +0,
+            -0.5764971849, -0.0723165627, -0.8138926898, +0, +0.7250628870, +0.3949971505, -0.5641463116, +0, -0.1525424005, +0.4860840828, -0.8604958341, +0, -0.5550976208, -0.4957820792, +0.6678822960, +0,
+            -0.1883614327, +0.9145869398, +0.3578417250, +0, +0.7625556724, -0.5414408243, -0.3540489801, +0, -0.5870231946, -0.3226498013, -0.7424963803, +0, +0.3051124198, +0.2262544068, -0.9250488391, +0,
+            +0.6379576059, +0.5772424240, -0.5097070502, +0, -0.5966775790, +0.1454852398, -0.7891830656, +0, -0.6583305730, +0.6555487542, -0.3699414651, +0, +0.7434892426, +0.2351084581, +0.6260573129, +0,
+            +0.5562114096, +0.8264360377, -0.0873632843, +0, -0.3028940016, -0.8251527185, +0.4768419182, +0, +0.1129343818, -0.9858884390, -0.1235710781, +0, +0.5937652891, -0.5896813806, +0.5474656618, +0,
+            +0.6757964092, -0.5835758614, -0.4502648413, +0, +0.7242302600, -0.1152719764, +0.6798550586, +0, -0.9511914166, +0.0753623979, -0.2992580792, +0, +0.2539470961, -0.1886339355, +0.9486454084, +0,
+            +0.5714336210, -0.1679450851, -0.8032795685, +0, -0.0677823497, +0.3978269256, +0.9149531629, +0, +0.6074972649, +0.7330600240, -0.3058922593, +0, -0.5435478392, +0.1675822484, +0.8224791405, +0,
+            -0.5876678086, -0.3380045064, -0.7351186982, +0, -0.7967562400, +0.0409782270, -0.6029098428, +0, -0.1996350917, +0.8706294745, +0.4496111079, +0, -0.0278766033, -0.9106232682, -0.4122962022, +0,
+            -0.7797625996, -0.6257634692, +0.0197577558, +0, -0.5211232846, +0.7401644346, -0.4249554471, +0, +0.8575424857, +0.4053272873, -0.3167501783, +0, +0.1045223322, +0.8390195772, -0.5339674439, +0,
+            +0.3501822831, +0.9242524096, -0.1520850155, +0, +0.1987849850, +0.0764761326, +0.9770547224, +0, +0.7845996363, +0.6066256811, -0.1280964233, +0, +0.0900673743, -0.9750989929, -0.2026569073, +0,
+            -0.8274343547, -0.5422995590, +0.1458203587, +0, -0.3485797732, -0.4158022770, +0.8400003620, +0, -0.2471778936, -0.7304819962, -0.6366310879, +0, -0.3700154943, +0.8577948156, +0.3567584454, +0,
+            +0.5913394901, -0.5483119670, -0.5913303597, +0, +0.1204873510, -0.7626472379, -0.6354935001, +0, +0.6169592650, +0.0307964792, +0.7863922953, +0, +0.1258156836, -0.6640829889, -0.7369967419, +0,
+            -0.6477565124, -0.1740147258, -0.7417077429, +0, +0.6217889313, -0.7804430448, -0.0654765507, +0, +0.6589943422, -0.6096987708, +0.4404473475, +0, -0.2689837504, -0.6732403169, -0.6887635427, +0,
+            -0.3849775103, +0.5676542638, +0.7277093879, +0, +0.5754444400, +0.8110471154, -0.1051963504, +0, +0.9141593684, +0.3832947817, +0.1319005670, +0, -0.1079253190, +0.9245493968, +0.3654593525, +0,
+            +0.3779770890, +0.3043148782, +0.8743716458, +0, -0.2142885215, -0.8259286236, +0.5214617324, +0, +0.5802544474, +0.4148098596, -0.7008834116, +0, -0.1982660881, +0.8567161266, -0.4761596756, +0,
+            -0.0338155370, +0.3773180787, -0.9254661404, +0, -0.6867922840, -0.6656597827, +0.2919133642, +0, +0.7731742607, -0.2875793547, -0.5652430251, +0, -0.0965594192, +0.9193708367, -0.3813575004, +0,
+            +0.2715702457, -0.9577909544, -0.0942660558, +0, +0.2451015704, -0.6917998565, -0.6792188003, +0, +0.9777007820, -0.1753855374, +0.1155036542, +0, -0.5224739938, +0.8521606816, +0.0290361594, +0,
+            -0.7734880599, -0.5261292347, +0.3534179531, +0, -0.7134492440, -0.2695472430, +0.6467878011, +0, +0.1644037271, +0.5105846203, -0.8439637196, +0, +0.6494635788, +0.0558561129, +0.7583384168, +0,
+            -0.4711970882, +0.5017280509, -0.7254255765, +0, -0.6335764307, -0.2381686273, -0.7361091029, +0, -0.9021533097, -0.2709478030, -0.3357181763, +0, -0.3793711033, +0.8722581170, +0.3086152025, +0,
+            -0.6855598966, -0.3250143309, +0.6514394162, +0, +0.2900942210, -0.7799057743, -0.5546100667, +0, -0.2098319339, +0.8503707300, +0.4825351604, +0, -0.4592603758, +0.6598504336, -0.5947077538, +0,
+            +0.8715945488, +0.0961636540, -0.4807031248, +0, -0.6776666319, +0.7118504878, -0.1844907016, +0, +0.7044377633, +0.3124275970, +0.6373040360, +0, -0.7052318886, -0.2401093292, -0.6670798253, +0,
+            +0.0819210070, -0.7207336136, -0.6883545647, +0, -0.6993680900, -0.5875763221, -0.4069869034, +0, -0.1281454481, +0.6419895885, +0.7559286424, +0, -0.6337388239, -0.6785471501, -0.3714146849, +0,
+            +0.5565051903, -0.2168887573, -0.8020356851, +0, -0.5791554484, +0.7244372011, -0.3738578718, +0, +0.1175779076, -0.7096451073, +0.6946792478, +0, -0.6134619607, +0.1323631078, +0.7785527795, +0,
+            +0.6984635305, -0.0298051623, -0.7150247190, +0, +0.8318082960, -0.3930171956, +0.3919597455, +0, +0.1469576422, +0.0554165171, -0.9875892167, +0, +0.7088685750, -0.2690503865, +0.6520101478, +0,
+            +0.2726053183, +0.6736976600, -0.6868899500, +0, -0.6591295371, +0.3035458599, -0.6880466294, +0, +0.4815131379, -0.7528270071, +0.4487723203, +0, +0.9430009463, +0.1675647412, -0.2875261255, +0,
+            +0.4348029570, +0.7695304522, -0.4677277752, +0, +0.3931996180, +0.5944736250, +0.7014236729, +0, +0.7254336655, -0.6039256540, +0.3301814672, +0, +0.7590235227, -0.6506083235, +0.0243331320, +0,
+            -0.8552768592, -0.3430042733, +0.3883935666, +0, -0.6139746835, +0.6981725247, +0.3682257648, +0, -0.7465905486, -0.5752009504, +0.3342849376, +0, +0.5730065677, +0.8105555370, -0.1210916791, +0,
+            -0.9225877367, -0.3475211012, -0.1675140360, +0, -0.7105816780, -0.4719692027, -0.5218416899, +0, -0.0856460971, +0.3583001386, +0.9296697030, +0, -0.8279697606, -0.2043157126, +0.5222271202, +0,
+            +0.4279440230, +0.2781659940, +0.8599346446, +0, +0.5399079671, -0.7857120652, -0.3019204161, +0, +0.5678404253, -0.5495413974, -0.6128307303, +0, -0.9896071041, +0.1365639107, -0.0450341842, +0,
+            -0.6154342638, -0.6440875597, +0.4543037336, +0, +0.1074204360, -0.7946340692, +0.5975094525, +0, -0.3595449969, -0.8885529948, +0.2849578400, +0, -0.2180405296, +0.1529888965, +0.9638738118, +0,
+            -0.7277432317, -0.6164050508, -0.3007234646, +0, +0.7249729114, -0.0066971948, +0.6887448187, +0, -0.5553659455, -0.5336586252, +0.6377908264, +0, +0.5137558015, +0.7976208196, -0.3160000073, +0,
+            -0.3794024848, +0.9245608561, -0.0352275149, +0, +0.8229248650, +0.2745365933, -0.4974176556, +0, -0.5404114394, +0.6091141441, +0.5804613989, +0, +0.8036581901, -0.2703029469, +0.5301601931, +0,
+            +0.6044318879, +0.6832968393, +0.4095943388, +0, +0.0638998881, +0.9658208605, -0.2512108074, +0, +0.1087113286, +0.7402471173, -0.6634877936, +0, -0.7134277120, -0.6926784018, +0.1059128479, +0,
+            +0.6458897819, -0.5724548511, -0.5050958653, +0, -0.6553931410, +0.7381471625, +0.1599956150, +0, +0.3910961323, +0.9188871375, -0.0518675599, +0, -0.4879022471, -0.5904376907, +0.6429111375, +0,
+            +0.6014790094, +0.7707441366, -0.2101820095, +0, -0.5677173047, +0.7511360995, +0.3368851762, +0, +0.7858573506, +0.2266746650, +0.5753666838, +0, -0.4520345543, -0.6042226860, -0.6561857263, +0,
+            +0.0022721163, +0.4132844051, -0.9105991643, +0, -0.5815751410, -0.5162925989, +0.6286591339, +0, -0.0370370478, +0.8273785755, +0.5604221175, +0, -0.5119692504, +0.7953543429, -0.3244980058, +0,
+            -0.2682417366, -0.9572290247, -0.1084387619, +0, -0.2322482736, -0.9679131102, -0.0959424332, +0, +0.3554328906, -0.8881505545, +0.2913006227, +0, +0.7346520519, -0.4371373164, +0.5188422971, +0,
+            +0.9985120116, +0.0465901116, -0.0283394457, +0, -0.3727687490, -0.9082481361, +0.1900757285, +0, +0.9173737700, -0.3483642108, +0.1925298489, +0, +0.2714911074, +0.4147529736, -0.8684886582, +0,
+            +0.5131763485, -0.7116334161, +0.4798207128, +0, -0.8737353606, +0.1888699200, -0.4482350644, +0, +0.8460043821, -0.3725217914, +0.3814499973, +0, +0.8978727456, -0.1780209141, -0.4026575304, +0,
+            +0.2178065647, -0.9698322841, -0.1094789531, +0, -0.1518031300, -0.7788918132, -0.6085091231, +0, -0.2600384876, -0.4755398075, -0.8403819825, +0, +0.5723135090, -0.7474340931, -0.3373418503, +0,
+            -0.7174141009, +0.1699017182, -0.6756111411, +0, -0.6841807840, +0.0214570759, -0.7289967412, +0, -0.2007447902, +0.0655560578, -0.9774476623, +0, -0.1148803697, -0.8044887315, +0.5827524187, +0,
+            -0.7870349638, +0.0344748923, +0.6159443543, +0, -0.2015596420, +0.6859872284, +0.6991389226, +0, -0.0858108251, -0.1092083600, -0.9903080513, +0, +0.5532693395, +0.7325250401, -0.3966107710, +0,
+            -0.1842489331, -0.9777375055, -0.1004076743, +0, +0.0775473789, -0.9111505856, +0.4047110257, +0, +0.1399838409, +0.7601631212, -0.6344734459, +0, +0.4484419361, -0.8452892480, +0.2904925424, +0
+    };
+    
+    private static double fastMin(double a, double b)
+    {
+        return Math.min(a, b);
+    }
+    
+    private static double fastMax(double a, double b)
+    {
+        return Math.max(a, b);
+    }
+    
+    private static double fastAbs(double f)
+    {
+        return f < 0 ? -f : f;
+    }
+    
+    private static double fastSqrt(double f)
+    {
+        return Math.sqrt(f);
+    }
+    
+    private static int fastFloor(double f)
+    {
+        return f >= 0 ? (int) f : (int) f - 1;
+    }
+    
+    private static int fastRound(double f)
+    {
+        return f >= 0 ? (int) (f + 0.5) : (int) (f - 0.5);
+    }
+    
+    private static double lerp(double a, double b, double t)
+    {
+        return a + t * (b - a);
+    }
+    
+    private static double hermite(double t)
+    {
+        return t * t * (3 - 2 * t);
+    }
+    
+    private static double quintic(double t)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+    
+    private static double lerpCubic(double a, double b, double c, double d, double t)
+    {
+        double p = (d - c) - (a - b);
+        return t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b;
+    }
+    
+    private static double pingPong(double t)
+    {
+        t -= (int) (t * 0.5) * 2;
+        return t < 1 ? t : 2 - t;
+    }
+    
+    private void calculateFractalBounding()
+    {
+        double gain       = fastAbs(this.mGain);
+        double amp        = gain;
+        double ampFractal = 1.0;
+        for (int i = 1; i < this.mOctaves; i++)
+        {
+            ampFractal += amp;
+            amp *= gain;
+        }
+        this.mFractalBounding = 1 / ampFractal;
+    }
+    
+    // Hashing
+    private static final int PRIME_X = 501125321;
+    private static final int PRIME_Y = 1136930381;
+    private static final int PRIME_Z = 1720413743;
+    
+    private static final int    PRIME_MUL = 0x27D4EB2D;
+    private static final double VAL_MUL   = 1.0 / 2147483648.0;
+    
+    private static int hash(int seed, int xPrimed, int yPrimed)
+    {
+        return (seed ^ xPrimed ^ yPrimed) * FastNoise.PRIME_MUL;
+    }
+    
+    private static int hash(int seed, int xPrimed, int yPrimed, int zPrimed)
+    {
+        return (seed ^ xPrimed ^ yPrimed ^ zPrimed) * FastNoise.PRIME_MUL;
+    }
+    
+    private static double valCoord(int seed, int xPrimed, int yPrimed)
+    {
+        int hash = hash(seed, xPrimed, yPrimed);
+        hash *= hash;
+        return (hash ^ (hash << 19)) * FastNoise.VAL_MUL;
+    }
+    
+    private static double valCoord(int seed, int xPrimed, int yPrimed, int zPrimed)
+    {
+        int hash = hash(seed, xPrimed, yPrimed, zPrimed);
+        hash *= hash;
+        return (hash ^ (hash << 19)) * FastNoise.VAL_MUL;
+    }
+    
+    private static double gradCoord(int seed, int xPrimed, int yPrimed, double xd, double yd)
+    {
+        int hash = hash(seed, xPrimed, yPrimed);
+        hash ^= hash >> 15;
+        hash &= 0xFE;
+        
+        double xg = FastNoise.GRAD2[hash];
+        double yg = FastNoise.GRAD2[hash | 1];
+        
+        return xd * xg + yd * yg;
+    }
+    
+    private static double gradCoord(int seed, int xPrimed, int yPrimed, int zPrimed, double xd, double yd, double zd)
+    {
+        int hash = hash(seed, xPrimed, yPrimed, zPrimed);
+        hash ^= hash >> 15;
+        hash &= 0xFC;
+        
+        double xg = FastNoise.GRAD3[hash];
+        double yg = FastNoise.GRAD3[hash | 1];
+        double zg = FastNoise.GRAD3[hash | 2];
+        
+        return xd * xg + yd * yg + zd * zg;
+    }
+    
+    // Generic noise gen
+    
+    private double genNoiseSingle(int seed, double x, double y)
+    {
+        return switch (this.mNoiseType)
+                {
+                    case OpenSimplex2 -> singleSimplex(seed, x, y);
+                    case OpenSimplex2S -> singleOpenSimplex2S(seed, x, y);
+                    case Cellular -> singleCellular(seed, x, y);
+                    case Perlin -> singlePerlin(seed, x, y);
+                    case ValueCubic -> singleValueCubic(seed, x, y);
+                    case Value -> singleValue(seed, x, y);
+                };
+    }
+    
+    private double genNoiseSingle(int seed, double x, double y, double z)
+    {
+        return switch (this.mNoiseType)
+                {
+                    case OpenSimplex2 -> singleOpenSimplex2(seed, x, y, z);
+                    case OpenSimplex2S -> singleOpenSimplex2S(seed, x, y, z);
+                    case Cellular -> singleCellular(seed, x, y, z);
+                    case Perlin -> singlePerlin(seed, x, y, z);
+                    case ValueCubic -> singleValueCubic(seed, x, y, z);
+                    case Value -> singleValue(seed, x, y, z);
+                };
+    }
+    
+    // Noise Coordinate Transforms (frequency, and possible skew or rotation)
+    
+    private void updateTransformType3D()
+    {
+        this.mTransformType3D = switch (this.mRotationType3D)
+                {
+                    case ImproveXYPlanes -> TransformType3D.ImproveXYPlanes;
+                    case ImproveXZPlanes -> TransformType3D.ImproveXZPlanes;
+                    default -> switch (this.mNoiseType)
+                            {
+                                case OpenSimplex2, OpenSimplex2S -> TransformType3D.DefaultOpenSimplex2;
+                                default -> TransformType3D.None;
+                            };
+                };
+    }
+    
+    private void updateWarpTransformType3D()
+    {
+        this.mWarpTransformType3D = switch (this.mRotationType3D)
+                {
+                    case ImproveXYPlanes -> TransformType3D.ImproveXYPlanes;
+                    case ImproveXZPlanes -> TransformType3D.ImproveXZPlanes;
+                    default -> switch (this.mDomainWarpType)
+                            {
+                                case OpenSimplex2, OpenSimplex2Reduced -> TransformType3D.DefaultOpenSimplex2;
+                                default -> TransformType3D.None;
+                            };
+                };
+    }
+    
+    // Fractal FBm
+    
+    private double genFractalFBm(double x, double y)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = genNoiseSingle(seed++, x, y);
+            sum += noise * amp;
+            amp *= lerp(1.0f, fastMin(noise + 1, 2) * 0.5f, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    private double genFractalFBm(double x, double y, double z)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = genNoiseSingle(seed++, x, y, z);
+            sum += noise * amp;
+            amp *= lerp(1.0f, (noise + 1) * 0.5f, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            z *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    // Fractal Ridged
+    
+    private double genFractalRidged(double x, double y)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = fastAbs(genNoiseSingle(seed++, x, y));
+            sum += (noise * -2 + 1) * amp;
+            amp *= lerp(1.0f, 1 - noise, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    private double genFractalRidged(double x, double y, double z)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = fastAbs(genNoiseSingle(seed++, x, y, z));
+            sum += (noise * -2 + 1) * amp;
+            amp *= lerp(1.0f, 1 - noise, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            z *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    // Fractal PingPong
+    
+    private double genFractalPingPong(double x, double y)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = pingPong((genNoiseSingle(seed++, x, y) + 1) * this.mPingPongStrength);
+            sum += (noise - 0.5f) * 2 * amp;
+            amp *= lerp(1.0f, noise, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    private double genFractalPingPong(double x, double y, double z)
+    {
+        int    seed = this.mSeed;
+        double sum  = 0;
+        double amp  = this.mFractalBounding;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double noise = pingPong((genNoiseSingle(seed++, x, y, z) + 1) * this.mPingPongStrength);
+            sum += (noise - 0.5f) * 2 * amp;
+            amp *= lerp(1.0f, noise, this.mWeightedStrength);
+            
+            x *= this.mLacunarity;
+            y *= this.mLacunarity;
+            z *= this.mLacunarity;
+            amp *= this.mGain;
+        }
+        
+        return sum;
+    }
+    
+    // Simplex/OpenSimplex2 Noise
+    
+    private double singleSimplex(int seed, double x, double y)
+    {
+        // 2D OpenSimplex2 case uses the same algorithm as ordinary Simplex.
+        
+        final double SQRT3 = 1.7320508075688772935274463415059f;
+        final double G2    = (3 - SQRT3) / 6;
+        
+        /*
+         * --- Skew moved to switch statements before fractal evaluation ---
+         * final FNLfloat F2 = 0.5* (SQRT3 - 1);
+         * FNLfloat s = (x + y) * F2;
+         * x += s; y += s;
+         */
+        
+        int    i  = fastFloor(x);
+        int    j  = fastFloor(y);
+        double xi = x - i;
+        double yi = y - j;
+        
+        double t  = (xi + yi) * G2;
+        double x0 = xi - t;
+        double y0 = yi - t;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        
+        double n0, n1, n2;
+        
+        double a = 0.5 - x0 * x0 - y0 * y0;
+        n0 = a <= 0 ? 0 : (a * a) * (a * a) * gradCoord(seed, i, j, x0, y0);
+        
+        double c = 2 * (1 - 2 * G2) * (1 / G2 - 2) * t + ((-2 * (1 - 2 * G2) * (1 - 2 * G2)) + a);
+        n2 = c <= 0 ? 0 : (c * c) * (c * c) * gradCoord(seed, i + PRIME_X, j + PRIME_Y, x0 + (2 * G2 - 1), y0 + (2 * G2 - 1));
+        
+        if (y0 > x0)
+        {
+            double x1 = x0 + G2;
+            double y1 = y0 + (G2 - 1);
+            double b  = 0.5 - x1 * x1 - y1 * y1;
+            n1 = b <= 0 ? 0 : (b * b) * (b * b) * gradCoord(seed, i, j + PRIME_Y, x1, y1);
+        }
+        else
+        {
+            double x1 = x0 + (G2 - 1);
+            double y1 = y0 + G2;
+            double b  = 0.5 - x1 * x1 - y1 * y1;
+            n1 = b <= 0 ? 0 : (b * b) * (b * b) * gradCoord(seed, i + PRIME_X, j, x1, y1);
+        }
+        
+        return (n0 + n1 + n2) * 99.83685446303647;
+    }
+    
+    private double singleOpenSimplex2(int seed, double x, double y, double z)
+    {
+        // 3D OpenSimplex2 case uses two offset rotated cube grids.
+        
+        /*
+         * --- Rotation moved to switch statements before fractal evaluation ---
+         * final FNLfloat R3 = (FNLfloat)(2.0 / 3.0);
+         * FNLfloat r = (x + y + z) * R3; // Rotation, not skew
+         * x = r - x; y = r - y; z = r - z;
+         */
+        
+        int    i  = fastRound(x);
+        int    j  = fastRound(y);
+        int    k  = fastRound(z);
+        double x0 = x - i;
+        double y0 = y - j;
+        double z0 = z - k;
+        
+        int xNSign = (int) (-1.0 - x0) | 1;
+        int yNSign = (int) (-1.0 - y0) | 1;
+        int zNSign = (int) (-1.0 - z0) | 1;
+        
+        double ax0 = xNSign * -x0;
+        double ay0 = yNSign * -y0;
+        double az0 = zNSign * -z0;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        k *= PRIME_Z;
+        
+        double value = 0;
+        double a     = (0.6 - x0 * x0) - (y0 * y0 + z0 * z0);
+        
+        for (int l = 0; ; l++)
+        {
+            if (a > 0) value += (a * a) * (a * a) * gradCoord(seed, i, j, k, x0, y0, z0);
+            
+            if (ax0 >= ay0 && ax0 >= az0)
+            {
+                double b = a + ax0 + ax0;
+                if (b > 1)
+                {
+                    b -= 1;
+                    value += (b * b) * (b * b) * gradCoord(seed, i - xNSign * PRIME_X, j, k, x0 + xNSign, y0, z0);
+                }
+            }
+            else if (ay0 > ax0 && ay0 >= az0)
+            {
+                double b = a + ay0 + ay0;
+                if (b > 1)
+                {
+                    b -= 1;
+                    value += (b * b) * (b * b) * gradCoord(seed, i, j - yNSign * PRIME_Y, k, x0, y0 + yNSign, z0);
+                }
+            }
+            else
+            {
+                double b = a + az0 + az0;
+                if (b > 1)
+                {
+                    b -= 1;
+                    value += (b * b) * (b * b) * gradCoord(seed, i, j, k - zNSign * PRIME_Z, x0, y0, z0 + zNSign);
+                }
+            }
+            
+            if (l == 1) break;
+            
+            ax0 = 0.5 - ax0;
+            ay0 = 0.5 - ay0;
+            az0 = 0.5 - az0;
+            
+            x0 = xNSign * ax0;
+            y0 = yNSign * ay0;
+            z0 = zNSign * az0;
+            
+            a += (0.75 - ax0) - (ay0 + az0);
+            
+            i += (xNSign >> 1) & PRIME_X;
+            j += (yNSign >> 1) & PRIME_Y;
+            k += (zNSign >> 1) & PRIME_Z;
+            
+            xNSign = -xNSign;
+            yNSign = -yNSign;
+            zNSign = -zNSign;
+            
+            seed = ~seed;
+        }
+        
+        return value * 32.69428253173828125;
+    }
+    
+    // OpenSimplex2S Noise
+    
+    private double singleOpenSimplex2S(int seed, double x, double y)
+    {
+        // 2D OpenSimplex2S case is a modified 2D simplex noise.
+        
+        final double SQRT3 = 1.7320508075688772935274463415059;
+        final double G2    = (3 - SQRT3) / 6;
+        
+        /*
+         * --- Skew moved to TransformNoiseCoordinate method ---
+         * final FNLfloat F2 = 0.5* (SQRT3 - 1);
+         * FNLfloat s = (x + y) * F2;
+         * x += s; y += s;
+         */
+        
+        int    i  = fastFloor(x);
+        int    j  = fastFloor(y);
+        double xi = x - i;
+        double yi = y - j;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        int i1 = i + PRIME_X;
+        int j1 = j + PRIME_Y;
+        
+        double t  = (xi + yi) * G2;
+        double x0 = xi - t;
+        double y0 = yi - t;
+        
+        double a0    = (2.0 / 3.0) - x0 * x0 - y0 * y0;
+        double value = (a0 * a0) * (a0 * a0) * gradCoord(seed, i, j, x0, y0);
+        
+        double a1 = 2 * (1 - 2 * G2) * (1 / G2 - 2) * t + ((-2 * (1 - 2 * G2) * (1 - 2 * G2)) + a0);
+        double x1 = x0 - (1 - 2 * G2);
+        double y1 = y0 - (1 - 2 * G2);
+        value += (a1 * a1) * (a1 * a1) * gradCoord(seed, i1, j1, x1, y1);
+        
+        // Nested conditionals were faster than compact bit logic/arithmetic.
+        double xmyi = xi - yi;
+        if (t > G2)
+        {
+            if (xi + xmyi > 1)
+            {
+                double x2 = x0 + (3 * G2 - 2);
+                double y2 = y0 + (3 * G2 - 1);
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i + (PRIME_X << 1), j + PRIME_Y, x2, y2);
+            }
+            else
+            {
+                double x2 = x0 + G2;
+                double y2 = y0 + (G2 - 1);
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i, j + PRIME_Y, x2, y2);
+            }
+            
+            if (yi - xmyi > 1)
+            {
+                double x3 = x0 + (3 * G2 - 1);
+                double y3 = y0 + (3 * G2 - 2);
+                double a3 = (2.0 / 3.0) - x3 * x3 - y3 * y3;
+                if (a3 > 0) value += (a3 * a3) * (a3 * a3) * gradCoord(seed, i + PRIME_X, j + (PRIME_Y << 1), x3, y3);
+            }
+            else
+            {
+                double x3 = x0 + (G2 - 1);
+                double y3 = y0 + G2;
+                double a3 = (2.0 / 3.0) - x3 * x3 - y3 * y3;
+                if (a3 > 0) value += (a3 * a3) * (a3 * a3) * gradCoord(seed, i + PRIME_X, j, x3, y3);
+            }
+        }
+        else
+        {
+            if (xi + xmyi < 0)
+            {
+                double x2 = x0 + (1 - G2);
+                double y2 = y0 - G2;
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i - PRIME_X, j, x2, y2);
+            }
+            else
+            {
+                double x2 = x0 + (G2 - 1);
+                double y2 = y0 + G2;
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i + PRIME_X, j, x2, y2);
+            }
+            
+            if (yi < xmyi)
+            {
+                double x2 = x0 - G2;
+                double y2 = y0 - (G2 - 1);
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i, j - PRIME_Y, x2, y2);
+            }
+            else
+            {
+                double x2 = x0 + G2;
+                double y2 = y0 + (G2 - 1);
+                double a2 = (2.0 / 3.0) - x2 * x2 - y2 * y2;
+                if (a2 > 0) value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i, j + PRIME_Y, x2, y2);
+            }
+        }
+        
+        return value * 18.24196194486065;
+    }
+    
+    private double singleOpenSimplex2S(int seed, double x, double y, double z)
+    {
+        // 3D OpenSimplex2S case uses two offset rotated cube grids.
+        
+        /*
+         * --- Rotation moved to TransformNoiseCoordinate method ---
+         * final FNLfloat R3 = (FNLfloat)(2.0 / 3.0);
+         * FNLfloat r = (x + y + z) * R3; // Rotation, not skew
+         * x = r - x; y = r - y; z = r - z;
+         */
+        
+        int    i  = fastFloor(x);
+        int    j  = fastFloor(y);
+        int    k  = fastFloor(z);
+        double xi = x - i;
+        double yi = y - j;
+        double zi = z - k;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        k *= PRIME_Z;
+        int seed2 = seed + 1293373;
+        
+        int xNMask = (int) (-0.5 - xi);
+        int yNMask = (int) (-0.5 - yi);
+        int zNMask = (int) (-0.5 - zi);
+        
+        double x0    = xi + xNMask;
+        double y0    = yi + yNMask;
+        double z0    = zi + zNMask;
+        double a0    = 0.75 - x0 * x0 - y0 * y0 - z0 * z0;
+        double value = (a0 * a0) * (a0 * a0) * gradCoord(seed, i + (xNMask & PRIME_X), j + (yNMask & PRIME_Y), k + (zNMask & PRIME_Z), x0, y0, z0);
+        
+        double x1 = xi - 0.5;
+        double y1 = yi - 0.5;
+        double z1 = zi - 0.5;
+        double a1 = 0.75 - x1 * x1 - y1 * y1 - z1 * z1;
+        value += (a1 * a1) * (a1 * a1) * gradCoord(seed2, i + PRIME_X, j + PRIME_Y, k + PRIME_Z, x1, y1, z1);
+        
+        double xAFlipMask0 = ((xNMask | 1) << 1) * x1;
+        double yAFlipMask0 = ((yNMask | 1) << 1) * y1;
+        double zAFlipMask0 = ((zNMask | 1) << 1) * z1;
+        double xAFlipMask1 = (-2 - (xNMask << 2)) * x1 - 1.0;
+        double yAFlipMask1 = (-2 - (yNMask << 2)) * y1 - 1.0;
+        double zAFlipMask1 = (-2 - (zNMask << 2)) * z1 - 1.0;
+        
+        boolean skip5 = false;
+        double  a2    = xAFlipMask0 + a0;
+        if (a2 > 0)
+        {
+            double x2 = x0 - (xNMask | 1);
+            double y2 = y0;
+            double z2 = z0;
+            value += (a2 * a2) * (a2 * a2) * gradCoord(seed, i + (~xNMask & PRIME_X), j + (yNMask & PRIME_Y), k + (zNMask & PRIME_Z), x2, y2, z2);
+        }
+        else
+        {
+            double a3 = yAFlipMask0 + zAFlipMask0 + a0;
+            if (a3 > 0)
+            {
+                double x3 = x0;
+                double y3 = y0 - (yNMask | 1);
+                double z3 = z0 - (zNMask | 1);
+                value += (a3 * a3) * (a3 * a3) * gradCoord(seed, i + (xNMask & PRIME_X), j + (~yNMask & PRIME_Y), k + (~zNMask & PRIME_Z), x3, y3, z3);
+            }
+            
+            double a4 = xAFlipMask1 + a1;
+            if (a4 > 0)
+            {
+                double x4 = (xNMask | 1) + x1;
+                double y4 = y1;
+                double z4 = z1;
+                value += (a4 * a4) * (a4 * a4) * gradCoord(seed2, i + (xNMask & (PRIME_X * 2)), j + PRIME_Y, k + PRIME_Z, x4, y4, z4);
+                skip5 = true;
+            }
+        }
+        
+        boolean skip9 = false;
+        double  a6    = yAFlipMask0 + a0;
+        if (a6 > 0)
+        {
+            double x6 = x0;
+            double y6 = y0 - (yNMask | 1);
+            double z6 = z0;
+            value += (a6 * a6) * (a6 * a6) * gradCoord(seed, i + (xNMask & PRIME_X), j + (~yNMask & PRIME_Y), k + (zNMask & PRIME_Z), x6, y6, z6);
+        }
+        else
+        {
+            double a7 = xAFlipMask0 + zAFlipMask0 + a0;
+            if (a7 > 0)
+            {
+                double x7 = x0 - (xNMask | 1);
+                double y7 = y0;
+                double z7 = z0 - (zNMask | 1);
+                value += (a7 * a7) * (a7 * a7) * gradCoord(seed, i + (~xNMask & PRIME_X), j + (yNMask & PRIME_Y), k + (~zNMask & PRIME_Z), x7, y7, z7);
+            }
+            
+            double a8 = yAFlipMask1 + a1;
+            if (a8 > 0)
+            {
+                double x8 = x1;
+                double y8 = (yNMask | 1) + y1;
+                double z8 = z1;
+                value += (a8 * a8) * (a8 * a8) * gradCoord(seed2, i + PRIME_X, j + (yNMask & (PRIME_Y << 1)), k + PRIME_Z, x8, y8, z8);
+                skip9 = true;
+            }
+        }
+        
+        boolean skipD = false;
+        double  aA    = zAFlipMask0 + a0;
+        if (aA > 0)
+        {
+            double xA = x0;
+            double yA = y0;
+            double zA = z0 - (zNMask | 1);
+            value += (aA * aA) * (aA * aA) * gradCoord(seed, i + (xNMask & PRIME_X), j + (yNMask & PRIME_Y), k + (~zNMask & PRIME_Z), xA, yA, zA);
+        }
+        else
+        {
+            double aB = xAFlipMask0 + yAFlipMask0 + a0;
+            if (aB > 0)
+            {
+                double xB = x0 - (xNMask | 1);
+                double yB = y0 - (yNMask | 1);
+                double zB = z0;
+                value += (aB * aB) * (aB * aB) * gradCoord(seed, i + (~xNMask & PRIME_X), j + (~yNMask & PRIME_Y), k + (zNMask & PRIME_Z), xB, yB, zB);
+            }
+            
+            double aC = zAFlipMask1 + a1;
+            if (aC > 0)
+            {
+                double xC = x1;
+                double yC = y1;
+                double zC = (zNMask | 1) + z1;
+                value += (aC * aC) * (aC * aC) * gradCoord(seed2, i + PRIME_X, j + PRIME_Y, k + (zNMask & (PRIME_Z << 1)), xC, yC, zC);
+                skipD = true;
+            }
+        }
+        
+        if (!skip5)
+        {
+            double a5 = yAFlipMask1 + zAFlipMask1 + a1;
+            if (a5 > 0)
+            {
+                double x5 = x1;
+                double y5 = (yNMask | 1) + y1;
+                double z5 = (zNMask | 1) + z1;
+                value += (a5 * a5) * (a5 * a5) * gradCoord(seed2, i + PRIME_X, j + (yNMask & (PRIME_Y << 1)), k + (zNMask & (PRIME_Z << 1)), x5, y5, z5);
+            }
+        }
+        
+        if (!skip9)
+        {
+            double a9 = xAFlipMask1 + zAFlipMask1 + a1;
+            if (a9 > 0)
+            {
+                double x9 = (xNMask | 1) + x1;
+                double y9 = y1;
+                double z9 = (zNMask | 1) + z1;
+                value += (a9 * a9) * (a9 * a9) * gradCoord(seed2, i + (xNMask & (PRIME_X * 2)), j + PRIME_Y, k + (zNMask & (PRIME_Z << 1)), x9, y9, z9);
+            }
+        }
+        
+        if (!skipD)
+        {
+            double aD = xAFlipMask1 + yAFlipMask1 + a1;
+            if (aD > 0)
+            {
+                double xD = (xNMask | 1) + x1;
+                double yD = (yNMask | 1) + y1;
+                double zD = z1;
+                value += (aD * aD) * (aD * aD) * gradCoord(seed2, i + (xNMask & (PRIME_X << 1)), j + (yNMask & (PRIME_Y << 1)), k + PRIME_Z, xD, yD, zD);
+            }
+        }
+        
+        return value * 9.046026385208288;
+    }
+    
+    // Cellular Noise
+    
+    private double singleCellular(int seed, double x, double y)
+    {
+        int xr = fastRound(x);
+        int yr = fastRound(y);
+        
+        double distance0   = Double.MAX_VALUE;
+        double distance1   = Double.MAX_VALUE;
+        int    closestHash = 0;
+        
+        double cellularJitter = 0.43701595 * this.mCellularJitterModifier;
+        
+        int xPrimed     = (xr - 1) * PRIME_X;
+        int yPrimedBase = (yr - 1) * PRIME_Y;
+        
+        switch (this.mCellularDistanceFunction)
+        {
+            case Euclidean, EuclideanSq -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int hash = hash(seed, xPrimed, yPrimed);
+                        int idx  = hash & (255 << 1);
+                        
+                        double vecX = (xi - x) + VEC2[idx] * cellularJitter;
+                        double vecY = (yi - y) + VEC2[idx | 1] * cellularJitter;
+                        
+                        double newDistance = vecX * vecX + vecY * vecY;
+                        
+                        distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                        if (newDistance < distance0)
+                        {
+                            distance0   = newDistance;
+                            closestHash = hash;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+            case Manhattan -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int hash = hash(seed, xPrimed, yPrimed);
+                        int idx  = hash & (255 << 1);
+                        
+                        double vecX = (xi - x) + VEC2[idx] * cellularJitter;
+                        double vecY = (yi - y) + VEC2[idx | 1] * cellularJitter;
+                        
+                        double newDistance = fastAbs(vecX) + fastAbs(vecY);
+                        
+                        distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                        if (newDistance < distance0)
+                        {
+                            distance0   = newDistance;
+                            closestHash = hash;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+            case Hybrid -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int hash = hash(seed, xPrimed, yPrimed);
+                        int idx  = hash & (255 << 1);
+                        
+                        double vecX = (xi - x) + VEC2[idx] * cellularJitter;
+                        double vecY = (yi - y) + VEC2[idx | 1] * cellularJitter;
+                        
+                        double newDistance = (fastAbs(vecX) + fastAbs(vecY)) + (vecX * vecX + vecY * vecY);
+                        
+                        distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                        if (newDistance < distance0)
+                        {
+                            distance0   = newDistance;
+                            closestHash = hash;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+        }
+        
+        if (this.mCellularDistanceFunction == CellularDistanceFunction.Euclidean && this.mCellularReturnType != CellularReturnType.CellValue)
+        {
+            distance0 = fastSqrt(distance0);
+            distance1 = fastSqrt(distance1);
+        }
+        
+        return switch (this.mCellularReturnType)
+                {
+                    case CellValue -> closestHash * (1 / 2147483648.0);
+                    case Distance -> distance0 - 1;
+                    case Distance2 -> distance1 - 1;
+                    case Distance2Add -> (distance1 + distance0) * 0.5 - 1;
+                    case Distance2Sub -> distance1 - distance0 - 1;
+                    case Distance2Mul -> distance1 * distance0 * 0.5 - 1;
+                    case Distance2Div -> distance0 / distance1 - 1;
+                };
+    }
+    
+    private double singleCellular(int seed, double x, double y, double z)
+    {
+        int xr = fastRound(x);
+        int yr = fastRound(y);
+        int zr = fastRound(z);
+        
+        double distance0   = Double.MAX_VALUE;
+        double distance1   = Double.MAX_VALUE;
+        int    closestHash = 0;
+        
+        double cellularJitter = 0.39614353 * this.mCellularJitterModifier;
+        
+        int xPrimed     = (xr - 1) * PRIME_X;
+        int yPrimedBase = (yr - 1) * PRIME_Y;
+        int zPrimedBase = (zr - 1) * PRIME_Z;
+        
+        switch (this.mCellularDistanceFunction)
+        {
+            case Euclidean, EuclideanSq -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int zPrimed = zPrimedBase;
+                        
+                        for (int zi = zr - 1; zi <= zr + 1; zi++)
+                        {
+                            int hash = hash(seed, xPrimed, yPrimed, zPrimed);
+                            int idx  = hash & (255 << 2);
+                            
+                            double vecX = (xi - x) + VEC3[idx] * cellularJitter;
+                            double vecY = (yi - y) + VEC3[idx | 1] * cellularJitter;
+                            double vecZ = (zi - z) + VEC3[idx | 2] * cellularJitter;
+                            
+                            double newDistance = vecX * vecX + vecY * vecY + vecZ * vecZ;
+                            
+                            distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                            if (newDistance < distance0)
+                            {
+                                distance0   = newDistance;
+                                closestHash = hash;
+                            }
+                            zPrimed += PRIME_Z;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+            case Manhattan -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int zPrimed = zPrimedBase;
+                        
+                        for (int zi = zr - 1; zi <= zr + 1; zi++)
+                        {
+                            int hash = hash(seed, xPrimed, yPrimed, zPrimed);
+                            int idx  = hash & (255 << 2);
+                            
+                            double vecX = (xi - x) + VEC3[idx] * cellularJitter;
+                            double vecY = (yi - y) + VEC3[idx | 1] * cellularJitter;
+                            double vecZ = (zi - z) + VEC3[idx | 2] * cellularJitter;
+                            
+                            double newDistance = fastAbs(vecX) + fastAbs(vecY) + fastAbs(vecZ);
+                            
+                            distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                            if (newDistance < distance0)
+                            {
+                                distance0   = newDistance;
+                                closestHash = hash;
+                            }
+                            zPrimed += PRIME_Z;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+            case Hybrid -> {
+                for (int xi = xr - 1; xi <= xr + 1; xi++)
+                {
+                    int yPrimed = yPrimedBase;
+                    
+                    for (int yi = yr - 1; yi <= yr + 1; yi++)
+                    {
+                        int zPrimed = zPrimedBase;
+                        
+                        for (int zi = zr - 1; zi <= zr + 1; zi++)
+                        {
+                            int hash = hash(seed, xPrimed, yPrimed, zPrimed);
+                            int idx  = hash & (255 << 2);
+                            
+                            double vecX = (xi - x) + VEC3[idx] * cellularJitter;
+                            double vecY = (yi - y) + VEC3[idx | 1] * cellularJitter;
+                            double vecZ = (zi - z) + VEC3[idx | 2] * cellularJitter;
+                            
+                            double newDistance = (fastAbs(vecX) + fastAbs(vecY) + fastAbs(vecZ)) + (vecX * vecX + vecY * vecY + vecZ * vecZ);
+                            
+                            distance1 = fastMax(fastMin(distance1, newDistance), distance0);
+                            if (newDistance < distance0)
+                            {
+                                distance0   = newDistance;
+                                closestHash = hash;
+                            }
+                            zPrimed += PRIME_Z;
+                        }
+                        yPrimed += PRIME_Y;
+                    }
+                    xPrimed += PRIME_X;
+                }
+            }
+        }
+        
+        if (this.mCellularDistanceFunction == CellularDistanceFunction.Euclidean && this.mCellularReturnType != CellularReturnType.CellValue)
+        {
+            distance0 = fastSqrt(distance0);
+            distance1 = fastSqrt(distance1);
+        }
+        
+        return switch (this.mCellularReturnType)
+                {
+                    case CellValue -> closestHash * (1 / 2147483648.0);
+                    case Distance -> distance0 - 1;
+                    case Distance2 -> distance1 - 1;
+                    case Distance2Add -> (distance1 + distance0) * 0.5 - 1;
+                    case Distance2Sub -> distance1 - distance0 - 1;
+                    case Distance2Mul -> distance1 * distance0 * 0.5 - 1;
+                    case Distance2Div -> distance0 / distance1 - 1;
+                };
+    }
+    
+    // Perlin Noise
+    
+    private double singlePerlin(int seed, double x, double y)
+    {
+        int x0 = fastFloor(x);
+        int y0 = fastFloor(y);
+        
+        double xd0 = x - x0;
+        double yd0 = y - y0;
+        double xd1 = xd0 - 1;
+        double yd1 = yd0 - 1;
+        
+        double xs = quintic(xd0);
+        double ys = quintic(yd0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        
+        double xf0 = lerp(gradCoord(seed, x0, y0, xd0, yd0), gradCoord(seed, x1, y0, xd1, yd0), xs);
+        double xf1 = lerp(gradCoord(seed, x0, y1, xd0, yd1), gradCoord(seed, x1, y1, xd1, yd1), xs);
+        
+        return lerp(xf0, xf1, ys) * 1.4247691104677813;
+    }
+    
+    private double singlePerlin(int seed, double x, double y, double z)
+    {
+        int x0 = fastFloor(x);
+        int y0 = fastFloor(y);
+        int z0 = fastFloor(z);
+        
+        double xd0 = x - x0;
+        double yd0 = y - y0;
+        double zd0 = z - z0;
+        double xd1 = xd0 - 1;
+        double yd1 = yd0 - 1;
+        double zd1 = zd0 - 1;
+        
+        double xs = quintic(xd0);
+        double ys = quintic(yd0);
+        double zs = quintic(zd0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        z0 *= PRIME_Z;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        int z1 = z0 + PRIME_Z;
+        
+        double xf00 = lerp(gradCoord(seed, x0, y0, z0, xd0, yd0, zd0), gradCoord(seed, x1, y0, z0, xd1, yd0, zd0), xs);
+        double xf10 = lerp(gradCoord(seed, x0, y1, z0, xd0, yd1, zd0), gradCoord(seed, x1, y1, z0, xd1, yd1, zd0), xs);
+        double xf01 = lerp(gradCoord(seed, x0, y0, z1, xd0, yd0, zd1), gradCoord(seed, x1, y0, z1, xd1, yd0, zd1), xs);
+        double xf11 = lerp(gradCoord(seed, x0, y1, z1, xd0, yd1, zd1), gradCoord(seed, x1, y1, z1, xd1, yd1, zd1), xs);
+        
+        double yf0 = lerp(xf00, xf10, ys);
+        double yf1 = lerp(xf01, xf11, ys);
+        
+        return lerp(yf0, yf1, zs) * 0.964921414852142333984375;
+    }
+    
+    // Value Cubic Noise
+    
+    private double singleValueCubic(int seed, double x, double y)
+    {
+        int x1 = fastFloor(x);
+        int y1 = fastFloor(y);
+        
+        double xs = x - x1;
+        double ys = y - y1;
+        
+        x1 *= PRIME_X;
+        y1 *= PRIME_Y;
+        int x0 = x1 - PRIME_X;
+        int y0 = y1 - PRIME_Y;
+        int x2 = x1 + PRIME_X;
+        int y2 = y1 + PRIME_Y;
+        int x3 = x1 + (PRIME_X << 1);
+        int y3 = y1 + (PRIME_Y << 1);
+        
+        return lerpCubic(
+                lerpCubic(valCoord(seed, x0, y0), valCoord(seed, x1, y0), valCoord(seed, x2, y0), valCoord(seed, x3, y0), xs),
+                lerpCubic(valCoord(seed, x0, y1), valCoord(seed, x1, y1), valCoord(seed, x2, y1), valCoord(seed, x3, y1), xs),
+                lerpCubic(valCoord(seed, x0, y2), valCoord(seed, x1, y2), valCoord(seed, x2, y2), valCoord(seed, x3, y2), xs),
+                lerpCubic(valCoord(seed, x0, y3), valCoord(seed, x1, y3), valCoord(seed, x2, y3), valCoord(seed, x3, y3), xs),
+                ys) * (1 / (1.5 * 1.5));
+    }
+    
+    private double singleValueCubic(int seed, double x, double y, double z)
+    {
+        int x1 = fastFloor(x);
+        int y1 = fastFloor(y);
+        int z1 = fastFloor(z);
+        
+        double xs = x - x1;
+        double ys = y - y1;
+        double zs = z - z1;
+        
+        x1 *= PRIME_X;
+        y1 *= PRIME_Y;
+        z1 *= PRIME_Z;
+        
+        int x0 = x1 - PRIME_X;
+        int y0 = y1 - PRIME_Y;
+        int z0 = z1 - PRIME_Z;
+        int x2 = x1 + PRIME_X;
+        int y2 = y1 + PRIME_Y;
+        int z2 = z1 + PRIME_Z;
+        int x3 = x1 + (PRIME_X << 1);
+        int y3 = y1 + (PRIME_Y << 1);
+        int z3 = z1 + (PRIME_Z << 1);
+        
+        
+        return lerpCubic(
+                lerpCubic(
+                        lerpCubic(valCoord(seed, x0, y0, z0), valCoord(seed, x1, y0, z0), valCoord(seed, x2, y0, z0), valCoord(seed, x3, y0, z0), xs),
+                        lerpCubic(valCoord(seed, x0, y1, z0), valCoord(seed, x1, y1, z0), valCoord(seed, x2, y1, z0), valCoord(seed, x3, y1, z0), xs),
+                        lerpCubic(valCoord(seed, x0, y2, z0), valCoord(seed, x1, y2, z0), valCoord(seed, x2, y2, z0), valCoord(seed, x3, y2, z0), xs),
+                        lerpCubic(valCoord(seed, x0, y3, z0), valCoord(seed, x1, y3, z0), valCoord(seed, x2, y3, z0), valCoord(seed, x3, y3, z0), xs),
+                        ys),
+                lerpCubic(
+                        lerpCubic(valCoord(seed, x0, y0, z1), valCoord(seed, x1, y0, z1), valCoord(seed, x2, y0, z1), valCoord(seed, x3, y0, z1), xs),
+                        lerpCubic(valCoord(seed, x0, y1, z1), valCoord(seed, x1, y1, z1), valCoord(seed, x2, y1, z1), valCoord(seed, x3, y1, z1), xs),
+                        lerpCubic(valCoord(seed, x0, y2, z1), valCoord(seed, x1, y2, z1), valCoord(seed, x2, y2, z1), valCoord(seed, x3, y2, z1), xs),
+                        lerpCubic(valCoord(seed, x0, y3, z1), valCoord(seed, x1, y3, z1), valCoord(seed, x2, y3, z1), valCoord(seed, x3, y3, z1), xs),
+                        ys),
+                lerpCubic(
+                        lerpCubic(valCoord(seed, x0, y0, z2), valCoord(seed, x1, y0, z2), valCoord(seed, x2, y0, z2), valCoord(seed, x3, y0, z2), xs),
+                        lerpCubic(valCoord(seed, x0, y1, z2), valCoord(seed, x1, y1, z2), valCoord(seed, x2, y1, z2), valCoord(seed, x3, y1, z2), xs),
+                        lerpCubic(valCoord(seed, x0, y2, z2), valCoord(seed, x1, y2, z2), valCoord(seed, x2, y2, z2), valCoord(seed, x3, y2, z2), xs),
+                        lerpCubic(valCoord(seed, x0, y3, z2), valCoord(seed, x1, y3, z2), valCoord(seed, x2, y3, z2), valCoord(seed, x3, y3, z2), xs),
+                        ys),
+                lerpCubic(
+                        lerpCubic(valCoord(seed, x0, y0, z3), valCoord(seed, x1, y0, z3), valCoord(seed, x2, y0, z3), valCoord(seed, x3, y0, z3), xs),
+                        lerpCubic(valCoord(seed, x0, y1, z3), valCoord(seed, x1, y1, z3), valCoord(seed, x2, y1, z3), valCoord(seed, x3, y1, z3), xs),
+                        lerpCubic(valCoord(seed, x0, y2, z3), valCoord(seed, x1, y2, z3), valCoord(seed, x2, y2, z3), valCoord(seed, x3, y2, z3), xs),
+                        lerpCubic(valCoord(seed, x0, y3, z3), valCoord(seed, x1, y3, z3), valCoord(seed, x2, y3, z3), valCoord(seed, x3, y3, z3), xs),
+                        ys),
+                zs) * (1 / (1.5 * 1.5 * 1.5));
+    }
+    
+    // Value Noise
+    
+    private double singleValue(int seed, double x, double y)
+    {
+        int x0 = fastFloor(x);
+        int y0 = fastFloor(y);
+        
+        double xs = hermite(x - x0);
+        double ys = hermite(y - y0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        
+        return lerp(
+                lerp(valCoord(seed, x0, y0), valCoord(seed, x1, y0), xs),
+                lerp(valCoord(seed, x0, y1), valCoord(seed, x1, y1), xs),
+                ys);
+    }
+    
+    private double singleValue(int seed, double x, double y, double z)
+    {
+        int x0 = fastFloor(x);
+        int y0 = fastFloor(y);
+        int z0 = fastFloor(z);
+        
+        double xs = hermite(x - x0);
+        double ys = hermite(y - y0);
+        double zs = hermite(z - z0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        z0 *= PRIME_Z;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        int z1 = z0 + PRIME_Z;
+        
+        return lerp(
+                lerp(
+                        lerp(valCoord(seed, x0, y0, z0), valCoord(seed, x1, y0, z0), xs),
+                        lerp(valCoord(seed, x0, y1, z0), valCoord(seed, x1, y1, z0), xs),
+                        ys),
+                lerp(
+                        lerp(valCoord(seed, x0, y0, z1), valCoord(seed, x1, y0, z1), xs),
+                        lerp(valCoord(seed, x0, y1, z1), valCoord(seed, x1, y1, z1), xs),
+                        ys),
+                zs);
+    }
+    
+    // Domain Warp
+    
+    private void doSingleDomainWarp(int seed, double amp, double freq, double x, double y, Vector2 coord)
+    {
+        switch (this.mDomainWarpType)
+        {
+            case OpenSimplex2 -> singleDomainWarpSimplexGradient(seed, amp * 38.283687591552734375, freq, x, y, coord, false);
+            case OpenSimplex2Reduced -> singleDomainWarpSimplexGradient(seed, amp * 16.0, freq, x, y, coord, true);
+            case BasicGrid -> singleDomainWarpBasicGrid(seed, amp, freq, x, y, coord);
+        }
+    }
+    
+    private void doSingleDomainWarp(int seed, double amp, double freq, double x, double y, double z, Vector3 coord)
+    {
+        switch (this.mDomainWarpType)
+        {
+            case OpenSimplex2 -> singleDomainWarpOpenSimplex2Gradient(seed, amp * 32.69428253173828125, freq, x, y, z, coord, false);
+            case OpenSimplex2Reduced -> singleDomainWarpOpenSimplex2Gradient(seed, amp * 7.71604938271605, freq, x, y, z, coord, true);
+            case BasicGrid -> singleDomainWarpBasicGrid(seed, amp, freq, x, y, z, coord);
+        }
+    }
+    
+    // Domain Warp Single Wrapper
+    
+    private void domainWarpSingle(Vector2 coord)
+    {
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        double xs = coord.x;
+        double ys = coord.y;
+        switch (this.mDomainWarpType)
+        {
+            case OpenSimplex2, OpenSimplex2Reduced -> {
+                final double SQRT3 = 1.7320508075688772935274463415059;
+                final double F2    = 0.5 * (SQRT3 - 1);
+                double t = (xs + ys) * F2;
+                xs += t;
+                ys += t;
+            }
+        }
+        
+        doSingleDomainWarp(seed, amp, freq, xs, ys, coord);
+    }
+    
+    private void domainWarpSingle(Vector3 coord)
+    {
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        double xs = coord.x;
+        double ys = coord.y;
+        double zs = coord.z;
+        switch (this.mWarpTransformType3D)
+        {
+            case ImproveXYPlanes -> {
+                double xy = xs + ys;
+                double s2 = xy * -(double) 0.211324865405187;
+                zs *= 0.577350269189626;
+                xs += s2 - zs;
+                ys = ys + s2 - zs;
+                zs += xy * 0.577350269189626;
+            }
+            case ImproveXZPlanes -> {
+                double xz = xs + zs;
+                double s2 = xz * -(double) 0.211324865405187;
+                ys *= 0.577350269189626;
+                xs += s2 - ys;
+                zs += s2 - ys;
+                ys += xz * 0.577350269189626;
+            }
+            case DefaultOpenSimplex2 -> {
+                final double R3 = 2.0 / 3.0;
+                double r = (xs + ys + zs) * R3; // Rotation, not skew
+                xs = r - xs;
+                ys = r - ys;
+                zs = r - zs;
+            }
+        }
+        
+        doSingleDomainWarp(seed, amp, freq, xs, ys, zs, coord);
+    }
+    
+    // Domain Warp Fractal Progressive
+    
+    private void domainWarpFractalProgressive(Vector2 coord)
+    {
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double xs = coord.x;
+            double ys = coord.y;
+            switch (this.mDomainWarpType)
+            {
+                case OpenSimplex2, OpenSimplex2Reduced -> {
+                    final double SQRT3 = 1.7320508075688772935274463415059;
+                    final double F2    = 0.5 * (SQRT3 - 1);
+                    double t = (xs + ys) * F2;
+                    xs += t;
+                    ys += t;
+                }
+            }
+            
+            doSingleDomainWarp(seed, amp, freq, xs, ys, coord);
+            
+            seed++;
+            amp *= this.mGain;
+            freq *= this.mLacunarity;
+        }
+    }
+    
+    private void domainWarpFractalProgressive(Vector3 coord)
+    {
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            double xs = coord.x;
+            double ys = coord.y;
+            double zs = coord.z;
+            switch (this.mWarpTransformType3D)
+            {
+                case ImproveXYPlanes -> {
+                    double xy = xs + ys;
+                    double s2 = xy * -(double) 0.211324865405187;
+                    zs *= 0.577350269189626;
+                    xs += s2 - zs;
+                    ys = ys + s2 - zs;
+                    zs += xy * 0.577350269189626;
+                }
+                case ImproveXZPlanes -> {
+                    double xz = xs + zs;
+                    double s2 = xz * -(double) 0.211324865405187;
+                    ys *= 0.577350269189626;
+                    xs += s2 - ys;
+                    zs += s2 - ys;
+                    ys += xz * 0.577350269189626;
+                }
+                case DefaultOpenSimplex2 -> {
+                    final double R3 = 2.0 / 3.0;
+                    double r = (xs + ys + zs) * R3; // Rotation, not skew
+                    xs = r - xs;
+                    ys = r - ys;
+                    zs = r - zs;
+                }
+            }
+            
+            doSingleDomainWarp(seed, amp, freq, xs, ys, zs, coord);
+            
+            seed++;
+            amp *= this.mGain;
+            freq *= this.mLacunarity;
+        }
+    }
+    
+    // Domain Warp Fractal Independent
+    private void domainWarpFractalIndependent(Vector2 coord)
+    {
+        double xs = coord.x;
+        double ys = coord.y;
+        switch (this.mDomainWarpType)
+        {
+            case OpenSimplex2, OpenSimplex2Reduced -> {
+                final double SQRT3 = 1.7320508075688772935274463415059;
+                final double F2    = 0.5 * (SQRT3 - 1);
+                double t = (xs + ys) * F2;
+                xs += t;
+                ys += t;
+            }
+        }
+        
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            doSingleDomainWarp(seed, amp, freq, xs, ys, coord);
+            
+            seed++;
+            amp *= this.mGain;
+            freq *= this.mLacunarity;
+        }
+    }
+    
+    private void domainWarpFractalIndependent(Vector3 coord)
+    {
+        double xs = coord.x;
+        double ys = coord.y;
+        double zs = coord.z;
+        switch (this.mWarpTransformType3D)
+        {
+            case ImproveXYPlanes -> {
+                double xy = xs + ys;
+                double s2 = xy * -(double) 0.211324865405187;
+                zs *= 0.577350269189626;
+                xs += s2 - zs;
+                ys = ys + s2 - zs;
+                zs += xy * 0.577350269189626;
+            }
+            case ImproveXZPlanes -> {
+                double xz = xs + zs;
+                double s2 = xz * -(double) 0.211324865405187;
+                ys *= 0.577350269189626;
+                xs += s2 - ys;
+                zs += s2 - ys;
+                ys += xz * 0.577350269189626;
+            }
+            case DefaultOpenSimplex2 -> {
+                final double R3 = 2.0 / 3.0;
+                double r = (xs + ys + zs) * R3; // Rotation, not skew
+                xs = r - xs;
+                ys = r - ys;
+                zs = r - zs;
+            }
+        }
+        
+        int    seed = this.mSeed;
+        double amp  = this.mDomainWarpAmp * this.mFractalBounding;
+        double freq = this.mFrequency;
+        
+        for (int i = 0; i < this.mOctaves; i++)
+        {
+            doSingleDomainWarp(seed, amp, freq, xs, ys, zs, coord);
+            
+            seed++;
+            amp *= this.mGain;
+            freq *= this.mLacunarity;
+        }
+    }
+    
+    // Domain Warp Basic Grid
+    
+    private void singleDomainWarpBasicGrid(int seed, double warpAmp, double frequency, double x, double y, Vector2 coord)
+    {
+        double xf = x * frequency;
+        double yf = y * frequency;
+        
+        int x0 = fastFloor(xf);
+        int y0 = fastFloor(yf);
+        
+        double xs = hermite(xf - x0);
+        double ys = hermite(yf - y0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        
+        int hash0 = hash(seed, x0, y0) & (255 << 1);
+        int hash1 = hash(seed, x1, y0) & (255 << 1);
+        
+        double lx0x = lerp(VEC2[hash0], VEC2[hash1], xs);
+        double ly0x = lerp(VEC2[hash0 | 1], VEC2[hash1 | 1], xs);
+        
+        hash0 = hash(seed, x0, y1) & (255 << 1);
+        hash1 = hash(seed, x1, y1) & (255 << 1);
+        
+        double lx1x = lerp(VEC2[hash0], VEC2[hash1], xs);
+        double ly1x = lerp(VEC2[hash0 | 1], VEC2[hash1 | 1], xs);
+        
+        coord.x += lerp(lx0x, lx1x, ys) * warpAmp;
+        coord.y += lerp(ly0x, ly1x, ys) * warpAmp;
+    }
+    
+    private void singleDomainWarpBasicGrid(int seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord)
+    {
+        double xf = x * frequency;
+        double yf = y * frequency;
+        double zf = z * frequency;
+        
+        int x0 = fastFloor(xf);
+        int y0 = fastFloor(yf);
+        int z0 = fastFloor(zf);
+        
+        double xs = hermite(xf - x0);
+        double ys = hermite(yf - y0);
+        double zs = hermite(zf - z0);
+        
+        x0 *= PRIME_X;
+        y0 *= PRIME_Y;
+        z0 *= PRIME_Z;
+        int x1 = x0 + PRIME_X;
+        int y1 = y0 + PRIME_Y;
+        int z1 = z0 + PRIME_Z;
+        
+        int hash0 = hash(seed, x0, y0, z0) & (255 << 2);
+        int hash1 = hash(seed, x1, y0, z0) & (255 << 2);
+        
+        double lx0x = lerp(VEC3[hash0], VEC3[hash1], xs);
+        double ly0x = lerp(VEC3[hash0 | 1], VEC3[hash1 | 1], xs);
+        double lz0x = lerp(VEC3[hash0 | 2], VEC3[hash1 | 2], xs);
+        
+        hash0 = hash(seed, x0, y1, z0) & (255 << 2);
+        hash1 = hash(seed, x1, y1, z0) & (255 << 2);
+        
+        double lx1x = lerp(VEC3[hash0], VEC3[hash1], xs);
+        double ly1x = lerp(VEC3[hash0 | 1], VEC3[hash1 | 1], xs);
+        double lz1x = lerp(VEC3[hash0 | 2], VEC3[hash1 | 2], xs);
+        
+        double lx0y = lerp(lx0x, lx1x, ys);
+        double ly0y = lerp(ly0x, ly1x, ys);
+        double lz0y = lerp(lz0x, lz1x, ys);
+        
+        hash0 = hash(seed, x0, y0, z1) & (255 << 2);
+        hash1 = hash(seed, x1, y0, z1) & (255 << 2);
+        
+        lx0x = lerp(VEC3[hash0], VEC3[hash1], xs);
+        ly0x = lerp(VEC3[hash0 | 1], VEC3[hash1 | 1], xs);
+        lz0x = lerp(VEC3[hash0 | 2], VEC3[hash1 | 2], xs);
+        
+        hash0 = hash(seed, x0, y1, z1) & (255 << 2);
+        hash1 = hash(seed, x1, y1, z1) & (255 << 2);
+        
+        lx1x = lerp(VEC3[hash0], VEC3[hash1], xs);
+        ly1x = lerp(VEC3[hash0 | 1], VEC3[hash1 | 1], xs);
+        lz1x = lerp(VEC3[hash0 | 2], VEC3[hash1 | 2], xs);
+        
+        coord.x += lerp(lx0y, lerp(lx0x, lx1x, ys), zs) * warpAmp;
+        coord.y += lerp(ly0y, lerp(ly0x, ly1x, ys), zs) * warpAmp;
+        coord.z += lerp(lz0y, lerp(lz0x, lz1x, ys), zs) * warpAmp;
+    }
+    
+    // Domain Warp Simplex/OpenSimplex2
+    private void singleDomainWarpSimplexGradient(int seed, double warpAmp, double frequency, double x, double y, Vector2 coord, boolean outGradOnly)
+    {
+        final double SQRT3 = 1.7320508075688772935274463415059;
+        final double G2    = (3 - SQRT3) / 6;
+        
+        x *= frequency;
+        y *= frequency;
+        
+        /*
+         * --- Skew moved to switch statements before fractal evaluation  ---
+         * final FNLfloat F2 = 0.5 * (SQRT3 - 1);
+         * FNLfloat s = (x + y) * F2;
+         * x += s; y += s;
+         */
+        
+        int    i  = fastFloor(x);
+        int    j  = fastFloor(y);
+        double xi = x - i;
+        double yi = y - j;
+        
+        double t  = (xi + yi) * G2;
+        double x0 = xi - t;
+        double y0 = yi - t;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        
+        double vx, vy;
+        vx = vy = 0;
+        
+        double a = 0.5 - x0 * x0 - y0 * y0;
+        if (a > 0)
+        {
+            double aaaa = (a * a) * (a * a);
+            double xo, yo;
+            if (outGradOnly)
+            {
+                int hash = hash(seed, i, j) & (255 << 1);
+                xo = VEC2[hash];
+                yo = VEC2[hash | 1];
+            }
+            else
+            {
+                int    hash   = hash(seed, i, j);
+                int    index1 = hash & (127 << 1);
+                int    index2 = (hash >> 7) & (255 << 1);
+                double xg     = GRAD2[index1];
+                double yg     = GRAD2[index1 | 1];
+                double value  = x0 * xg + y0 * yg;
+                double xgo    = VEC2[index2];
+                double ygo    = VEC2[index2 | 1];
+                xo = value * xgo;
+                yo = value * ygo;
+            }
+            vx += aaaa * xo;
+            vy += aaaa * yo;
+        }
+        
+        double c = 2 * (1 - 2 * G2) * (1 / G2 - 2) * t + ((-2 * (1 - 2 * G2) * (1 - 2 * G2)) + a);
+        if (c > 0)
+        {
+            double x2   = x0 + (2 * G2 - 1);
+            double y2   = y0 + (2 * G2 - 1);
+            double cccc = (c * c) * (c * c);
+            double xo, yo;
+            if (outGradOnly)
+            {
+                int hash = hash(seed, i + PRIME_X, j + PRIME_Y) & (255 << 1);
+                xo = VEC2[hash];
+                yo = VEC2[hash | 1];
+            }
+            else
+            {
+                int    hash   = hash(seed, i + PRIME_X, j + PRIME_Y);
+                int    index1 = hash & (127 << 1);
+                int    index2 = (hash >> 7) & (255 << 1);
+                double xg     = GRAD2[index1];
+                double yg     = GRAD2[index1 | 1];
+                double value  = x2 * xg + y2 * yg;
+                double xgo    = VEC2[index2];
+                double ygo    = VEC2[index2 | 1];
+                xo = value * xgo;
+                yo = value * ygo;
+            }
+            vx += cccc * xo;
+            vy += cccc * yo;
+        }
+        
+        if (y0 > x0)
+        {
+            double x1 = x0 + G2;
+            double y1 = y0 + (G2 - 1);
+            double b  = 0.5 - x1 * x1 - y1 * y1;
+            if (b > 0)
+            {
+                double bbbb = (b * b) * (b * b);
+                double xo, yo;
+                if (outGradOnly)
+                {
+                    int hash = hash(seed, i, j + PRIME_Y) & (255 << 1);
+                    xo = VEC2[hash];
+                    yo = VEC2[hash | 1];
+                }
+                else
+                {
+                    int    hash   = hash(seed, i, j + PRIME_Y);
+                    int    index1 = hash & (127 << 1);
+                    int    index2 = (hash >> 7) & (255 << 1);
+                    double xg     = GRAD2[index1];
+                    double yg     = GRAD2[index1 | 1];
+                    double value  = x1 * xg + y1 * yg;
+                    double xgo    = VEC2[index2];
+                    double ygo    = VEC2[index2 | 1];
+                    xo = value * xgo;
+                    yo = value * ygo;
+                }
+                vx += bbbb * xo;
+                vy += bbbb * yo;
+            }
+        }
+        else
+        {
+            double x1 = x0 + (G2 - 1);
+            double y1 = y0 + G2;
+            double b  = 0.5 - x1 * x1 - y1 * y1;
+            if (b > 0)
+            {
+                double bbbb = (b * b) * (b * b);
+                double xo, yo;
+                if (outGradOnly)
+                {
+                    int hash = hash(seed, i + PRIME_X, j) & (255 << 1);
+                    xo = VEC2[hash];
+                    yo = VEC2[hash | 1];
+                }
+                else
+                {
+                    int    hash   = hash(seed, i + PRIME_X, j);
+                    int    index1 = hash & (127 << 1);
+                    int    index2 = (hash >> 7) & (255 << 1);
+                    double xg     = GRAD2[index1];
+                    double yg     = GRAD2[index1 | 1];
+                    double value  = x1 * xg + y1 * yg;
+                    double xgo    = VEC2[index2];
+                    double ygo    = VEC2[index2 | 1];
+                    xo = value * xgo;
+                    yo = value * ygo;
+                }
+                vx += bbbb * xo;
+                vy += bbbb * yo;
+            }
+        }
+        
+        coord.x += vx * warpAmp;
+        coord.y += vy * warpAmp;
+    }
+    
+    private void singleDomainWarpOpenSimplex2Gradient(int seed, double warpAmp, double frequency, double x, double y, double z, Vector3 coord, boolean outGradOnly)
+    {
+        x *= frequency;
+        y *= frequency;
+        z *= frequency;
+        
+        /*
+         * --- Rotation moved to switch statements before fractal evaluation ---
+         * final FNLfloat R3 = (FNLfloat)(2.0 / 3.0);
+         * FNLfloat r = (x + y + z) * R3; // Rotation, not skew
+         * x = r - x; y = r - y; z = r - z;
+         */
+        
+        int    i  = fastRound(x);
+        int    j  = fastRound(y);
+        int    k  = fastRound(z);
+        double x0 = x - i;
+        double y0 = y - j;
+        double z0 = z - k;
+        
+        int xNSign = (int) (-x0 - 1.0) | 1;
+        int yNSign = (int) (-y0 - 1.0) | 1;
+        int zNSign = (int) (-z0 - 1.0) | 1;
+        
+        double ax0 = xNSign * -x0;
+        double ay0 = yNSign * -y0;
+        double az0 = zNSign * -z0;
+        
+        i *= PRIME_X;
+        j *= PRIME_Y;
+        k *= PRIME_Z;
+        
+        double vx, vy, vz;
+        vx = vy = vz = 0;
+        
+        double a = (0.6 - x0 * x0) - (y0 * y0 + z0 * z0);
+        for (int l = 0; ; l++)
+        {
+            if (a > 0)
+            {
+                double aaaa = (a * a) * (a * a);
+                double xo, yo, zo;
+                if (outGradOnly)
+                {
+                    int hash = hash(seed, i, j, k) & (255 << 2);
+                    xo = VEC3[hash];
+                    yo = VEC3[hash | 1];
+                    zo = VEC3[hash | 2];
+                }
+                else
+                {
+                    int    hash   = hash(seed, i, j, k);
+                    int    index1 = hash & (63 << 2);
+                    int    index2 = (hash >> 6) & (255 << 2);
+                    double xg     = GRAD3[index1];
+                    double yg     = GRAD3[index1 | 1];
+                    double zg     = GRAD3[index1 | 2];
+                    double value  = x0 * xg + y0 * yg + z0 * zg;
+                    double xgo    = VEC3[index2];
+                    double ygo    = VEC3[index2 | 1];
+                    double zgo    = VEC3[index2 | 2];
+                    xo = value * xgo;
+                    yo = value * ygo;
+                    zo = value * zgo;
+                }
+                vx += aaaa * xo;
+                vy += aaaa * yo;
+                vz += aaaa * zo;
+            }
+            
+            double b  = a;
+            int    i1 = i;
+            int    j1 = j;
+            int    k1 = k;
+            double x1 = x0;
+            double y1 = y0;
+            double z1 = z0;
+            
+            if (ax0 >= ay0 && ax0 >= az0)
+            {
+                x1 += xNSign;
+                b = b + ax0 + ax0;
+                i1 -= xNSign * PRIME_X;
+            }
+            else if (ay0 > ax0 && ay0 >= az0)
+            {
+                y1 += yNSign;
+                b = b + ay0 + ay0;
+                j1 -= yNSign * PRIME_Y;
+            }
+            else
+            {
+                z1 += zNSign;
+                b = b + az0 + az0;
+                k1 -= zNSign * PRIME_Z;
+            }
+            
+            if (b > 1)
+            {
+                b -= 1;
+                double bbbb = (b * b) * (b * b);
+                double xo, yo, zo;
+                if (outGradOnly)
+                {
+                    int hash = hash(seed, i1, j1, k1) & (255 << 2);
+                    xo = VEC3[hash];
+                    yo = VEC3[hash | 1];
+                    zo = VEC3[hash | 2];
+                }
+                else
+                {
+                    int    hash   = hash(seed, i1, j1, k1);
+                    int    index1 = hash & (63 << 2);
+                    int    index2 = (hash >> 6) & (255 << 2);
+                    double xg     = GRAD3[index1];
+                    double yg     = GRAD3[index1 | 1];
+                    double zg     = GRAD3[index1 | 2];
+                    double value  = x1 * xg + y1 * yg + z1 * zg;
+                    double xgo    = VEC3[index2];
+                    double ygo    = VEC3[index2 | 1];
+                    double zgo    = VEC3[index2 | 2];
+                    xo = value * xgo;
+                    yo = value * ygo;
+                    zo = value * zgo;
+                }
+                vx += bbbb * xo;
+                vy += bbbb * yo;
+                vz += bbbb * zo;
+            }
+            
+            if (l == 1) break;
+            
+            ax0 = 0.5 - ax0;
+            ay0 = 0.5 - ay0;
+            az0 = 0.5 - az0;
+            
+            x0 = xNSign * ax0;
+            y0 = yNSign * ay0;
+            z0 = zNSign * az0;
+            
+            a += (0.75 - ax0) - (ay0 + az0);
+            
+            i += (xNSign >> 1) & PRIME_X;
+            j += (yNSign >> 1) & PRIME_Y;
+            k += (zNSign >> 1) & PRIME_Z;
+            
+            xNSign = -xNSign;
+            yNSign = -yNSign;
+            zNSign = -zNSign;
+            
+            seed += 1293373;
+        }
+        
+        coord.x += vx * warpAmp;
+        coord.y += vy * warpAmp;
+        coord.z += vz * warpAmp;
+    }
+    
+    public static class Vector2
+    {
+        public double x;
+        public double y;
+        
+        public Vector2(double x, double y)
         {
             this.x = x;
             this.y = y;
         }
     }
     
-    private static class Float3
+    public static class Vector3
     {
-        public final float x, y, z;
+        public double x;
+        public double y;
+        public double z;
         
-        public Float3(float x, float y, float z)
+        public Vector3(double x, double y, double z)
         {
             this.x = x;
             this.y = y;
             this.z = z;
         }
-    }
-    
-    private static final Float2[] GRAD_2D = {
-            new Float2(-1, -1), new Float2(1, -1), new Float2(-1, 1), new Float2(1, 1),
-            new Float2(0, -1), new Float2(-1, 0), new Float2(0, 1), new Float2(1, 0),
-            };
-    
-    private static final Float3[] GRAD_3D = {
-            new Float3(1, 1, 0), new Float3(-1, 1, 0), new Float3(1, -1, 0), new Float3(-1, -1, 0),
-            new Float3(1, 0, 1), new Float3(-1, 0, 1), new Float3(1, 0, -1), new Float3(-1, 0, -1),
-            new Float3(0, 1, 1), new Float3(0, -1, 1), new Float3(0, 1, -1), new Float3(0, -1, -1),
-            new Float3(1, 1, 0), new Float3(0, -1, 1), new Float3(-1, 1, 0), new Float3(0, -1, -1),
-            };
-    
-    private static final Float2[] CELL_2D =
-            {
-                    new Float2(-0.4313539279f, 0.1281943404f), new Float2(-0.1733316799f, 0.415278375f), new Float2(-0.2821957395f, -0.3505218461f), new Float2(-0.2806473808f, 0.3517627718f), new Float2(0.3125508975f, -0.3237467165f), new Float2(0.3383018443f, -0.2967353402f), new Float2(-0.4393982022f, -0.09710417025f), new Float2(-0.4460443703f, -0.05953502905f),
-                    new Float2(-0.302223039f, 0.3334085102f), new Float2(-0.212681052f, -0.3965687458f), new Float2(-0.2991156529f, 0.3361990872f), new Float2(0.2293323691f, 0.3871778202f), new Float2(0.4475439151f, -0.04695150755f), new Float2(0.1777518f, 0.41340573f), new Float2(0.1688522499f, -0.4171197882f), new Float2(-0.0976597166f, 0.4392750616f),
-                    new Float2(0.08450188373f, 0.4419948321f), new Float2(-0.4098760448f, -0.1857461384f), new Float2(0.3476585782f, -0.2857157906f), new Float2(-0.3350670039f, -0.30038326f), new Float2(0.2298190031f, -0.3868891648f), new Float2(-0.01069924099f, 0.449872789f), new Float2(-0.4460141246f, -0.05976119672f), new Float2(0.3650293864f, 0.2631606867f),
-                    new Float2(-0.349479423f, 0.2834856838f), new Float2(-0.4122720642f, 0.1803655873f), new Float2(-0.267327811f, 0.3619887311f), new Float2(0.322124041f, -0.3142230135f), new Float2(0.2880445931f, -0.3457315612f), new Float2(0.3892170926f, -0.2258540565f), new Float2(0.4492085018f, -0.02667811596f), new Float2(-0.4497724772f, 0.01430799601f),
-                    new Float2(0.1278175387f, -0.4314657307f), new Float2(-0.03572100503f, 0.4485799926f), new Float2(-0.4297407068f, -0.1335025276f), new Float2(-0.3217817723f, 0.3145735065f), new Float2(-0.3057158873f, 0.3302087162f), new Float2(-0.414503978f, 0.1751754899f), new Float2(-0.3738139881f, 0.2505256519f), new Float2(0.2236891408f, -0.3904653228f),
-                    new Float2(0.002967775577f, -0.4499902136f), new Float2(0.1747128327f, -0.4146991995f), new Float2(-0.4423772489f, -0.08247647938f), new Float2(-0.2763960987f, -0.355112935f), new Float2(-0.4019385906f, -0.2023496216f), new Float2(0.3871414161f, -0.2293938184f), new Float2(-0.430008727f, 0.1326367019f), new Float2(-0.03037574274f, -0.4489736231f),
-                    new Float2(-0.3486181573f, 0.2845441624f), new Float2(0.04553517144f, -0.4476902368f), new Float2(-0.0375802926f, 0.4484280562f), new Float2(0.3266408905f, 0.3095250049f), new Float2(0.06540017593f, -0.4452222108f), new Float2(0.03409025829f, 0.448706869f), new Float2(-0.4449193635f, 0.06742966669f), new Float2(-0.4255936157f, -0.1461850686f),
-                    new Float2(0.449917292f, 0.008627302568f), new Float2(0.05242606404f, 0.4469356864f), new Float2(-0.4495305179f, -0.02055026661f), new Float2(-0.1204775703f, 0.4335725488f), new Float2(-0.341986385f, -0.2924813028f), new Float2(0.3865320182f, 0.2304191809f), new Float2(0.04506097811f, -0.447738214f), new Float2(-0.06283465979f, 0.4455915232f),
-                    new Float2(0.3932600341f, -0.2187385324f), new Float2(0.4472261803f, -0.04988730975f), new Float2(0.3753571011f, -0.2482076684f), new Float2(-0.273662295f, 0.357223947f), new Float2(0.1700461538f, 0.4166344988f), new Float2(0.4102692229f, 0.1848760794f), new Float2(0.323227187f, -0.3130881435f), new Float2(-0.2882310238f, -0.3455761521f),
-                    new Float2(0.2050972664f, 0.4005435199f), new Float2(0.4414085979f, -0.08751256895f), new Float2(-0.1684700334f, 0.4172743077f), new Float2(-0.003978032396f, 0.4499824166f), new Float2(-0.2055133639f, 0.4003301853f), new Float2(-0.006095674897f, -0.4499587123f), new Float2(-0.1196228124f, -0.4338091548f), new Float2(0.3901528491f, -0.2242337048f),
-                    new Float2(0.01723531752f, 0.4496698165f), new Float2(-0.3015070339f, 0.3340561458f), new Float2(-0.01514262423f, -0.4497451511f), new Float2(-0.4142574071f, -0.1757577897f), new Float2(-0.1916377265f, -0.4071547394f), new Float2(0.3749248747f, 0.2488600778f), new Float2(-0.2237774255f, 0.3904147331f), new Float2(-0.4166343106f, -0.1700466149f),
-                    new Float2(0.3619171625f, 0.267424695f), new Float2(0.1891126846f, -0.4083336779f), new Float2(-0.3127425077f, 0.323561623f), new Float2(-0.3281807787f, 0.307891826f), new Float2(-0.2294806661f, 0.3870899429f), new Float2(-0.3445266136f, 0.2894847362f), new Float2(-0.4167095422f, -0.1698621719f), new Float2(-0.257890321f, -0.3687717212f),
-                    new Float2(-0.3612037825f, 0.2683874578f), new Float2(0.2267996491f, 0.3886668486f), new Float2(0.207157062f, 0.3994821043f), new Float2(0.08355176718f, -0.4421754202f), new Float2(-0.4312233307f, 0.1286329626f), new Float2(0.3257055497f, 0.3105090899f), new Float2(0.177701095f, -0.4134275279f), new Float2(-0.445182522f, 0.06566979625f),
-                    new Float2(0.3955143435f, 0.2146355146f), new Float2(-0.4264613988f, 0.1436338239f), new Float2(-0.3793799665f, -0.2420141339f), new Float2(0.04617599081f, -0.4476245948f), new Float2(-0.371405428f, -0.2540826796f), new Float2(0.2563570295f, -0.3698392535f), new Float2(0.03476646309f, 0.4486549822f), new Float2(-0.3065454405f, 0.3294387544f),
-                    new Float2(-0.2256979823f, 0.3893076172f), new Float2(0.4116448463f, -0.1817925206f), new Float2(-0.2907745828f, -0.3434387019f), new Float2(0.2842278468f, -0.348876097f), new Float2(0.3114589359f, -0.3247973695f), new Float2(0.4464155859f, -0.0566844308f), new Float2(-0.3037334033f, -0.3320331606f), new Float2(0.4079607166f, 0.1899159123f),
-                    new Float2(-0.3486948919f, -0.2844501228f), new Float2(0.3264821436f, 0.3096924441f), new Float2(0.3211142406f, 0.3152548881f), new Float2(0.01183382662f, 0.4498443737f), new Float2(0.4333844092f, 0.1211526057f), new Float2(0.3118668416f, 0.324405723f), new Float2(-0.272753471f, 0.3579183483f), new Float2(-0.422228622f, -0.1556373694f),
-                    new Float2(-0.1009700099f, -0.4385260051f), new Float2(-0.2741171231f, -0.3568750521f), new Float2(-0.1465125133f, 0.4254810025f), new Float2(0.2302279044f, -0.3866459777f), new Float2(-0.3699435608f, 0.2562064828f), new Float2(0.105700352f, -0.4374099171f), new Float2(-0.2646713633f, 0.3639355292f), new Float2(0.3521828122f, 0.2801200935f),
-                    new Float2(-0.1864187807f, -0.4095705534f), new Float2(0.1994492955f, -0.4033856449f), new Float2(0.3937065066f, 0.2179339044f), new Float2(-0.3226158377f, 0.3137180602f), new Float2(0.3796235338f, 0.2416318948f), new Float2(0.1482921929f, 0.4248640083f), new Float2(-0.407400394f, 0.1911149365f), new Float2(0.4212853031f, 0.1581729856f),
-                    new Float2(-0.2621297173f, 0.3657704353f), new Float2(-0.2536986953f, -0.3716678248f), new Float2(-0.2100236383f, 0.3979825013f), new Float2(0.3624152444f, 0.2667493029f), new Float2(-0.3645038479f, -0.2638881295f), new Float2(0.2318486784f, 0.3856762766f), new Float2(-0.3260457004f, 0.3101519002f), new Float2(-0.2130045332f, -0.3963950918f),
-                    new Float2(0.3814998766f, -0.2386584257f), new Float2(-0.342977305f, 0.2913186713f), new Float2(-0.4355865605f, 0.1129794154f), new Float2(-0.2104679605f, 0.3977477059f), new Float2(0.3348364681f, -0.3006402163f), new Float2(0.3430468811f, 0.2912367377f), new Float2(-0.2291836801f, -0.3872658529f), new Float2(0.2547707298f, -0.3709337882f),
-                    new Float2(0.4236174945f, -0.151816397f), new Float2(-0.15387742f, 0.4228731957f), new Float2(-0.4407449312f, 0.09079595574f), new Float2(-0.06805276192f, -0.444824484f), new Float2(0.4453517192f, -0.06451237284f), new Float2(0.2562464609f, -0.3699158705f), new Float2(0.3278198355f, -0.3082761026f), new Float2(-0.4122774207f, -0.1803533432f),
-                    new Float2(0.3354090914f, -0.3000012356f), new Float2(0.446632869f, -0.05494615882f), new Float2(-0.1608953296f, 0.4202531296f), new Float2(-0.09463954939f, 0.4399356268f), new Float2(-0.02637688324f, -0.4492262904f), new Float2(0.447102804f, -0.05098119915f), new Float2(-0.4365670908f, 0.1091291678f), new Float2(-0.3959858651f, 0.2137643437f),
-                    new Float2(-0.4240048207f, -0.1507312575f), new Float2(-0.3882794568f, 0.2274622243f), new Float2(-0.4283652566f, -0.1378521198f), new Float2(0.3303888091f, 0.305521251f), new Float2(0.3321434919f, -0.3036127481f), new Float2(-0.413021046f, -0.1786438231f), new Float2(0.08403060337f, -0.4420846725f), new Float2(-0.3822882919f, 0.2373934748f),
-                    new Float2(-0.3712395594f, -0.2543249683f), new Float2(0.4472363971f, -0.04979563372f), new Float2(-0.4466591209f, 0.05473234629f), new Float2(0.0486272539f, -0.4473649407f), new Float2(-0.4203101295f, -0.1607463688f), new Float2(0.2205360833f, 0.39225481f), new Float2(-0.3624900666f, 0.2666476169f), new Float2(-0.4036086833f, -0.1989975647f),
-                    new Float2(0.2152727807f, 0.3951678503f), new Float2(-0.4359392962f, -0.1116106179f), new Float2(0.4178354266f, 0.1670735057f), new Float2(0.2007630161f, 0.4027334247f), new Float2(-0.07278067175f, -0.4440754146f), new Float2(0.3644748615f, -0.2639281632f), new Float2(-0.4317451775f, 0.126870413f), new Float2(-0.297436456f, 0.3376855855f),
-                    new Float2(-0.2998672222f, 0.3355289094f), new Float2(-0.2673674124f, 0.3619594822f), new Float2(0.2808423357f, 0.3516071423f), new Float2(0.3498946567f, 0.2829730186f), new Float2(-0.2229685561f, 0.390877248f), new Float2(0.3305823267f, 0.3053118493f), new Float2(-0.2436681211f, -0.3783197679f), new Float2(-0.03402776529f, 0.4487116125f),
-                    new Float2(-0.319358823f, 0.3170330301f), new Float2(0.4454633477f, -0.06373700535f), new Float2(0.4483504221f, 0.03849544189f), new Float2(-0.4427358436f, -0.08052932871f), new Float2(0.05452298565f, 0.4466847255f), new Float2(-0.2812560807f, 0.3512762688f), new Float2(0.1266696921f, 0.4318041097f), new Float2(-0.3735981243f, 0.2508474468f),
-                    new Float2(0.2959708351f, -0.3389708908f), new Float2(-0.3714377181f, 0.254035473f), new Float2(-0.404467102f, -0.1972469604f), new Float2(0.1636165687f, -0.419201167f), new Float2(0.3289185495f, -0.3071035458f), new Float2(-0.2494824991f, -0.3745109914f), new Float2(0.03283133272f, 0.4488007393f), new Float2(-0.166306057f, -0.4181414777f),
-                    new Float2(-0.106833179f, 0.4371346153f), new Float2(0.06440260376f, -0.4453676062f), new Float2(-0.4483230967f, 0.03881238203f), new Float2(-0.421377757f, -0.1579265206f), new Float2(0.05097920662f, -0.4471030312f), new Float2(0.2050584153f, -0.4005634111f), new Float2(0.4178098529f, -0.167137449f), new Float2(-0.3565189504f, -0.2745801121f),
-                    new Float2(0.4478398129f, 0.04403977727f), new Float2(-0.3399999602f, -0.2947881053f), new Float2(0.3767121994f, 0.2461461331f), new Float2(-0.3138934434f, 0.3224451987f), new Float2(-0.1462001792f, -0.4255884251f), new Float2(0.3970290489f, -0.2118205239f), new Float2(0.4459149305f, -0.06049689889f), new Float2(-0.4104889426f, -0.1843877112f),
-                    new Float2(0.1475103971f, -0.4251360756f), new Float2(0.09258030352f, 0.4403735771f), new Float2(-0.1589664637f, -0.4209865359f), new Float2(0.2482445008f, 0.3753327428f), new Float2(0.4383624232f, -0.1016778537f), new Float2(0.06242802956f, 0.4456486745f), new Float2(0.2846591015f, -0.3485243118f), new Float2(-0.344202744f, -0.2898697484f),
-                    new Float2(0.1198188883f, -0.4337550392f), new Float2(-0.243590703f, 0.3783696201f), new Float2(0.2958191174f, -0.3391033025f), new Float2(-0.1164007991f, 0.4346847754f), new Float2(0.1274037151f, -0.4315881062f), new Float2(0.368047306f, 0.2589231171f), new Float2(0.2451436949f, 0.3773652989f), new Float2(-0.4314509715f, 0.12786735f),
-                    };
-    
-    private static final Float3[] CELL_3D =
-            {
-                    new Float3(0.1453787434f, -0.4149781685f, -0.0956981749f), new Float3(-0.01242829687f, -0.1457918398f, -0.4255470325f), new Float3(0.2877979582f, -0.02606483451f, -0.3449535616f), new Float3(-0.07732986802f, 0.2377094325f, 0.3741848704f), new Float3(0.1107205875f, -0.3552302079f, -0.2530858567f), new Float3(0.2755209141f, 0.2640521179f, -0.238463215f),
-                    new Float3(0.294168941f, 0.1526064594f, 0.3044271714f), new Float3(0.4000921098f, -0.2034056362f, 0.03244149937f),
-                    new Float3(-0.1697304074f, 0.3970864695f, -0.1265461359f), new Float3(-0.1483224484f, -0.3859694688f, 0.1775613147f), new Float3(0.2623596946f, -0.2354852944f, 0.2796677792f), new Float3(-0.2709003183f, 0.3505271138f, -0.07901746678f), new Float3(-0.03516550699f, 0.3885234328f, 0.2243054374f), new Float3(-0.1267712655f, 0.1920044036f, 0.3867342179f),
-                    new Float3(0.02952021915f, 0.4409685861f, 0.08470692262f), new Float3(-0.2806854217f, -0.266996757f, 0.2289725438f),
-                    new Float3(-0.171159547f, 0.2141185563f, 0.3568720405f), new Float3(0.2113227183f, 0.3902405947f, -0.07453178509f), new Float3(-0.1024352839f, 0.2128044156f, -0.3830421561f), new Float3(-0.3304249877f, -0.1566986703f, 0.2622305365f), new Float3(0.2091111325f, 0.3133278055f, -0.2461670583f), new Float3(0.344678154f, -0.1944240454f, -0.2142341261f),
-                    new Float3(0.1984478035f, -0.3214342325f, -0.2445373252f), new Float3(-0.2929008603f, 0.2262915116f, 0.2559320961f),
-                    new Float3(-0.1617332831f, 0.006314769776f, -0.4198838754f), new Float3(-0.3582060271f, -0.148303178f, -0.2284613961f), new Float3(-0.1852067326f, -0.3454119342f, -0.2211087107f), new Float3(0.3046301062f, 0.1026310383f, 0.314908508f), new Float3(-0.03816768434f, -0.2551766358f, -0.3686842991f), new Float3(-0.4084952196f, 0.1805950793f, 0.05492788837f),
-                    new Float3(-0.02687443361f, -0.2749741471f, 0.3551999201f), new Float3(-0.03801098351f, 0.3277859044f, 0.3059600725f),
-                    new Float3(0.2371120802f, 0.2900386767f, -0.2493099024f), new Float3(0.4447660503f, 0.03946930643f, 0.05590469027f), new Float3(0.01985147278f, -0.01503183293f, -0.4493105419f), new Float3(0.4274339143f, 0.03345994256f, -0.1366772882f), new Float3(-0.2072988631f, 0.2871414597f, -0.2776273824f), new Float3(-0.3791240978f, 0.1281177671f, 0.2057929936f),
-                    new Float3(-0.2098721267f, -0.1007087278f, -0.3851122467f), new Float3(0.01582798878f, 0.4263894424f, 0.1429738373f),
-                    new Float3(-0.1888129464f, -0.3160996813f, -0.2587096108f), new Float3(0.1612988974f, -0.1974805082f, -0.3707885038f), new Float3(-0.08974491322f, 0.229148752f, -0.3767448739f), new Float3(0.07041229526f, 0.4150230285f, -0.1590534329f), new Float3(-0.1082925611f, -0.1586061639f, 0.4069604477f), new Float3(0.2474100658f, -0.3309414609f, 0.1782302128f),
-                    new Float3(-0.1068836661f, -0.2701644537f, -0.3436379634f), new Float3(0.2396452163f, 0.06803600538f, -0.3747549496f),
-                    new Float3(-0.3063886072f, 0.2597428179f, 0.2028785103f), new Float3(0.1593342891f, -0.3114350249f, -0.2830561951f), new Float3(0.2709690528f, 0.1412648683f, -0.3303331794f), new Float3(-0.1519780427f, 0.3623355133f, 0.2193527988f), new Float3(0.1699773681f, 0.3456012883f, 0.2327390037f), new Float3(-0.1986155616f, 0.3836276443f, -0.1260225743f),
-                    new Float3(-0.1887482106f, -0.2050154888f, -0.353330953f), new Float3(0.2659103394f, 0.3015631259f, -0.2021172246f),
-                    new Float3(-0.08838976154f, -0.4288819642f, -0.1036702021f), new Float3(-0.04201869311f, 0.3099592485f, 0.3235115047f), new Float3(-0.3230334656f, 0.201549922f, -0.2398478873f), new Float3(0.2612720941f, 0.2759854499f, -0.2409749453f), new Float3(0.385713046f, 0.2193460345f, 0.07491837764f), new Float3(0.07654967953f, 0.3721732183f, 0.241095919f),
-                    new Float3(0.4317038818f, -0.02577753072f, 0.1243675091f), new Float3(-0.2890436293f, -0.3418179959f, -0.04598084447f),
-                    new Float3(-0.2201947582f, 0.383023377f, -0.08548310451f), new Float3(0.4161322773f, -0.1669634289f, -0.03817251927f), new Float3(0.2204718095f, 0.02654238946f, -0.391391981f), new Float3(-0.1040307469f, 0.3890079625f, -0.2008741118f), new Float3(-0.1432122615f, 0.371614387f, -0.2095065525f), new Float3(0.3978380468f, -0.06206669342f, 0.2009293758f),
-                    new Float3(-0.2599274663f, 0.2616724959f, -0.2578084893f), new Float3(0.4032618332f, -0.1124593585f, 0.1650235939f),
-                    new Float3(-0.08953470255f, -0.3048244735f, 0.3186935478f), new Float3(0.118937202f, -0.2875221847f, 0.325092195f), new Float3(0.02167047076f, -0.03284630549f, -0.4482761547f), new Float3(-0.3411343612f, 0.2500031105f, 0.1537068389f), new Float3(0.3162964612f, 0.3082064153f, -0.08640228117f), new Float3(0.2355138889f, -0.3439334267f, -0.1695376245f),
-                    new Float3(-0.02874541518f, -0.3955933019f, 0.2125550295f), new Float3(-0.2461455173f, 0.02020282325f, -0.3761704803f),
-                    new Float3(0.04208029445f, -0.4470439576f, 0.02968078139f), new Float3(0.2727458746f, 0.2288471896f, -0.2752065618f), new Float3(-0.1347522818f, -0.02720848277f, -0.4284874806f), new Float3(0.3829624424f, 0.1231931484f, -0.2016512234f), new Float3(-0.3547613644f, 0.1271702173f, 0.2459107769f), new Float3(0.2305790207f, 0.3063895591f, 0.2354968222f),
-                    new Float3(-0.08323845599f, -0.1922245118f, 0.3982726409f), new Float3(0.2993663085f, -0.2619918095f, -0.2103333191f),
-                    new Float3(-0.2154865723f, 0.2706747713f, 0.287751117f), new Float3(0.01683355354f, -0.2680655787f, -0.3610505186f), new Float3(0.05240429123f, 0.4335128183f, -0.1087217856f), new Float3(0.00940104872f, -0.4472890582f, 0.04841609928f), new Float3(0.3465688735f, 0.01141914583f, -0.2868093776f), new Float3(-0.3706867948f, -0.2551104378f, 0.003156692623f),
-                    new Float3(0.2741169781f, 0.2139972417f, -0.2855959784f), new Float3(0.06413433865f, 0.1708718512f, 0.4113266307f),
-                    new Float3(-0.388187972f, -0.03973280434f, -0.2241236325f), new Float3(0.06419469312f, -0.2803682491f, 0.3460819069f), new Float3(-0.1986120739f, -0.3391173584f, 0.2192091725f), new Float3(-0.203203009f, -0.3871641506f, 0.1063600375f), new Float3(-0.1389736354f, -0.2775901578f, -0.3257760473f), new Float3(-0.06555641638f, 0.342253257f, -0.2847192729f),
-                    new Float3(-0.2529246486f, -0.2904227915f, 0.2327739768f), new Float3(0.1444476522f, 0.1069184044f, 0.4125570634f),
-                    new Float3(-0.3643780054f, -0.2447099973f, -0.09922543227f), new Float3(0.4286142488f, -0.1358496089f, -0.01829506817f), new Float3(0.165872923f, -0.3136808464f, -0.2767498872f), new Float3(0.2219610524f, -0.3658139958f, 0.1393320198f), new Float3(0.04322940318f, -0.3832730794f, 0.2318037215f), new Float3(-0.08481269795f, -0.4404869674f, -0.03574965489f),
-                    new Float3(0.1822082075f, -0.3953259299f, 0.1140946023f), new Float3(-0.3269323334f, 0.3036542563f, 0.05838957105f),
-                    new Float3(-0.4080485344f, 0.04227858267f, -0.184956522f), new Float3(0.2676025294f, -0.01299671652f, 0.36155217f), new Float3(0.3024892441f, -0.1009990293f, -0.3174892964f), new Float3(0.1448494052f, 0.425921681f, -0.0104580805f), new Float3(0.4198402157f, 0.08062320474f, 0.1404780841f), new Float3(-0.3008872161f, -0.333040905f, -0.03241355801f),
-                    new Float3(0.3639310428f, -0.1291284382f, -0.2310412139f), new Float3(0.3295806598f, 0.0184175994f, -0.3058388149f),
-                    new Float3(0.2776259487f, -0.2974929052f, -0.1921504723f), new Float3(0.4149000507f, -0.144793182f, -0.09691688386f), new Float3(0.145016715f, -0.0398992945f, 0.4241205002f), new Float3(0.09299023471f, -0.299732164f, -0.3225111565f), new Float3(0.1028907093f, -0.361266869f, 0.247789732f), new Float3(0.2683057049f, -0.07076041213f, -0.3542668666f),
-                    new Float3(-0.4227307273f, -0.07933161816f, -0.1323073187f), new Float3(-0.1781224702f, 0.1806857196f, -0.3716517945f),
-                    new Float3(0.4390788626f, -0.02841848598f, -0.09435116353f), new Float3(0.2972583585f, 0.2382799621f, -0.2394997452f), new Float3(-0.1707002821f, 0.2215845691f, 0.3525077196f), new Float3(0.3806686614f, 0.1471852559f, -0.1895464869f), new Float3(-0.1751445661f, -0.274887877f, 0.3102596268f), new Float3(-0.2227237566f, -0.2316778837f, 0.3149912482f),
-                    new Float3(0.1369633021f, 0.1341343041f, -0.4071228836f), new Float3(-0.3529503428f, -0.2472893463f, -0.129514612f),
-                    new Float3(-0.2590744185f, -0.2985577559f, -0.2150435121f), new Float3(-0.3784019401f, 0.2199816631f, -0.1044989934f), new Float3(-0.05635805671f, 0.1485737441f, 0.4210102279f), new Float3(0.3251428613f, 0.09666046873f, -0.2957006485f), new Float3(-0.4190995804f, 0.1406751354f, -0.08405978803f), new Float3(-0.3253150961f, -0.3080335042f, -0.04225456877f),
-                    new Float3(0.2857945863f, -0.05796152095f, 0.3427271751f), new Float3(-0.2733604046f, 0.1973770973f, -0.2980207554f),
-                    new Float3(0.219003657f, 0.2410037886f, -0.3105713639f), new Float3(0.3182767252f, -0.271342949f, 0.1660509868f), new Float3(-0.03222023115f, -0.3331161506f, -0.300824678f), new Float3(-0.3087780231f, 0.1992794134f, -0.2596995338f), new Float3(-0.06487611647f, -0.4311322747f, 0.1114273361f), new Float3(0.3921171432f, -0.06294284106f, -0.2116183942f),
-                    new Float3(-0.1606404506f, -0.358928121f, -0.2187812825f), new Float3(-0.03767771199f, -0.2290351443f, 0.3855169162f),
-                    new Float3(0.1394866832f, -0.3602213994f, 0.2308332918f), new Float3(-0.4345093872f, 0.005751117145f, 0.1169124335f), new Float3(-0.1044637494f, 0.4168128432f, -0.1336202785f), new Float3(0.2658727501f, 0.2551943237f, 0.2582393035f), new Float3(0.2051461999f, 0.1975390727f, 0.3484154868f), new Float3(-0.266085566f, 0.23483312f, 0.2766800993f),
-                    new Float3(0.07849405464f, -0.3300346342f, -0.2956616708f), new Float3(-0.2160686338f, 0.05376451292f, -0.3910546287f),
-                    new Float3(-0.185779186f, 0.2148499206f, 0.3490352499f), new Float3(0.02492421743f, -0.3229954284f, -0.3123343347f), new Float3(-0.120167831f, 0.4017266681f, 0.1633259825f), new Float3(-0.02160084693f, -0.06885389554f, 0.4441762538f), new Float3(0.2597670064f, 0.3096300784f, 0.1978643903f), new Float3(-0.1611553854f, -0.09823036005f, 0.4085091653f),
-                    new Float3(-0.3278896792f, 0.1461670309f, 0.2713366126f), new Float3(0.2822734956f, 0.03754421121f, -0.3484423997f),
-                    new Float3(0.03169341113f, 0.347405252f, -0.2842624114f), new Float3(0.2202613604f, -0.3460788041f, -0.1849713341f), new Float3(0.2933396046f, 0.3031973659f, 0.1565989581f), new Float3(-0.3194922995f, 0.2453752201f, -0.200538455f), new Float3(-0.3441586045f, -0.1698856132f, -0.2349334659f), new Float3(0.2703645948f, -0.3574277231f, 0.04060059933f),
-                    new Float3(0.2298568861f, 0.3744156221f, 0.0973588921f), new Float3(0.09326603877f, -0.3170108894f, 0.3054595587f),
-                    new Float3(-0.1116165319f, -0.2985018719f, 0.3177080142f), new Float3(0.2172907365f, -0.3460005203f, -0.1885958001f), new Float3(0.1991339479f, 0.3820341668f, -0.1299829458f), new Float3(-0.0541918155f, -0.2103145071f, 0.39412061f), new Float3(0.08871336998f, 0.2012117383f, 0.3926114802f), new Float3(0.2787673278f, 0.3505404674f, 0.04370535101f),
-                    new Float3(-0.322166438f, 0.3067213525f, 0.06804996813f), new Float3(-0.4277366384f, 0.132066775f, 0.04582286686f),
-                    new Float3(0.240131882f, -0.1612516055f, 0.344723946f), new Float3(0.1448607981f, -0.2387819045f, 0.3528435224f), new Float3(-0.3837065682f, -0.2206398454f, 0.08116235683f), new Float3(-0.4382627882f, -0.09082753406f, -0.04664855374f), new Float3(-0.37728353f, 0.05445141085f, 0.2391488697f), new Float3(0.1259579313f, 0.348394558f, 0.2554522098f),
-                    new Float3(-0.1406285511f, -0.270877371f, -0.3306796947f), new Float3(-0.1580694418f, 0.4162931958f, -0.06491553533f),
-                    new Float3(0.2477612106f, -0.2927867412f, -0.2353514536f), new Float3(0.2916132853f, 0.3312535401f, 0.08793624968f), new Float3(0.07365265219f, -0.1666159848f, 0.411478311f), new Float3(-0.26126526f, -0.2422237692f, 0.2748965434f), new Float3(-0.3721862032f, 0.252790166f, 0.008634938242f), new Float3(-0.3691191571f, -0.255281188f, 0.03290232422f),
-                    new Float3(0.2278441737f, -0.3358364886f, 0.1944244981f), new Float3(0.363398169f, -0.2310190248f, 0.1306597909f),
-                    new Float3(-0.304231482f, -0.2698452035f, 0.1926830856f), new Float3(-0.3199312232f, 0.316332536f, -0.008816977938f), new Float3(0.2874852279f, 0.1642275508f, -0.304764754f), new Float3(-0.1451096801f, 0.3277541114f, -0.2720669462f), new Float3(0.3220090754f, 0.0511344108f, 0.3101538769f), new Float3(-0.1247400865f, -0.04333605335f, -0.4301882115f),
-                    new Float3(-0.2829555867f, -0.3056190617f, -0.1703910946f), new Float3(0.1069384374f, 0.3491024667f, -0.2630430352f),
-                    new Float3(-0.1420661144f, -0.3055376754f, -0.2982682484f), new Float3(-0.250548338f, 0.3156466809f, -0.2002316239f), new Float3(0.3265787872f, 0.1871229129f, 0.2466400438f), new Float3(0.07646097258f, -0.3026690852f, 0.324106687f), new Float3(0.3451771584f, 0.2757120714f, -0.0856480183f), new Float3(0.298137964f, 0.2852657134f, 0.179547284f),
-                    new Float3(0.2812250376f, 0.3466716415f, 0.05684409612f), new Float3(0.4390345476f, -0.09790429955f, -0.01278335452f),
-                    new Float3(0.2148373234f, 0.1850172527f, 0.3494474791f), new Float3(0.2595421179f, -0.07946825393f, 0.3589187731f), new Float3(0.3182823114f, -0.307355516f, -0.08203022006f), new Float3(-0.4089859285f, -0.04647718411f, 0.1818526372f), new Float3(-0.2826749061f, 0.07417482322f, 0.3421885344f), new Float3(0.3483864637f, 0.225442246f, -0.1740766085f),
-                    new Float3(-0.3226415069f, -0.1420585388f, -0.2796816575f), new Float3(0.4330734858f, -0.118868561f, -0.02859407492f),
-                    new Float3(-0.08717822568f, -0.3909896417f, -0.2050050172f), new Float3(-0.2149678299f, 0.3939973956f, -0.03247898316f), new Float3(-0.2687330705f, 0.322686276f, -0.1617284888f), new Float3(0.2105665099f, -0.1961317136f, -0.3459683451f), new Float3(0.4361845915f, -0.1105517485f, 0.004616608544f), new Float3(0.05333333359f, -0.313639498f, -0.3182543336f),
-                    new Float3(-0.05986216652f, 0.1361029153f, -0.4247264031f), new Float3(0.3664988455f, 0.2550543014f, -0.05590974511f),
-                    new Float3(-0.2341015558f, -0.182405731f, 0.3382670703f), new Float3(-0.04730947785f, -0.4222150243f, -0.1483114513f), new Float3(-0.2391566239f, -0.2577696514f, -0.2808182972f), new Float3(-0.1242081035f, 0.4256953395f, -0.07652336246f), new Float3(0.2614832715f, -0.3650179274f, 0.02980623099f), new Float3(-0.2728794681f, -0.3499628774f, 0.07458404908f),
-                    new Float3(0.007892900508f, -0.1672771315f, 0.4176793787f), new Float3(-0.01730330376f, 0.2978486637f, -0.3368779738f),
-                    new Float3(0.2054835762f, -0.3252600376f, -0.2334146693f), new Float3(-0.3231994983f, 0.1564282844f, -0.2712420987f), new Float3(-0.2669545963f, 0.2599343665f, -0.2523278991f), new Float3(-0.05554372779f, 0.3170813944f, -0.3144428146f), new Float3(-0.2083935713f, -0.310922837f, -0.2497981362f), new Float3(0.06989323478f, -0.3156141536f, 0.3130537363f),
-                    new Float3(0.3847566193f, -0.1605309138f, -0.1693876312f), new Float3(-0.3026215288f, -0.3001537679f, -0.1443188342f),
-                    new Float3(0.3450735512f, 0.08611519592f, 0.2756962409f), new Float3(0.1814473292f, -0.2788782453f, -0.3029914042f), new Float3(-0.03855010448f, 0.09795110726f, 0.4375151083f), new Float3(0.3533670318f, 0.2665752752f, 0.08105160988f), new Float3(-0.007945601311f, 0.140359426f, -0.4274764309f), new Float3(0.4063099273f, -0.1491768253f, -0.1231199324f),
-                    new Float3(-0.2016773589f, 0.008816271194f, -0.4021797064f), new Float3(-0.07527055435f, -0.425643481f, -0.1251477955f),
-                    };
-    
-    
-    private static int FastFloor(float f)
-    {
-        return (f >= 0 ? (int) f : (int) f - 1);
-    }
-    
-    
-    private static int FastRound(float f)
-    {
-        return (f >= 0) ? (int) (f + (float) 0.5) : (int) (f - (float) 0.5);
-    }
-    
-    
-    private static float Lerp(float a, float b, float t)
-    {
-        return a + t * (b - a);
-    }
-    
-    
-    private static float InterpHermiteFunc(float t)
-    {
-        return t * t * (3 - 2 * t);
-    }
-    
-    
-    private static float InterpQuinticFunc(float t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-    
-    
-    private static float CubicLerp(float a, float b, float c, float d, float t)
-    {
-        float p = (d - c) - (a - b);
-        return t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b;
-    }
-    
-    private void CalculateFractalBounding()
-    {
-        float amp        = m_gain;
-        float ampFractal = 1;
-        for (int i = 1; i < m_octaves; i++)
-        {
-            ampFractal += amp;
-            amp *= m_gain;
-        }
-        m_fractalBounding = 1 / ampFractal;
-    }
-    
-    // Hashing
-    private final static int X_PRIME = 1619;
-    private final static int Y_PRIME = 31337;
-    private final static int Z_PRIME = 6971;
-    private final static int W_PRIME = 1013;
-    
-    private static int Hash2D(int seed, int x, int y)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        return hash;
-    }
-    
-    private static int Hash3D(int seed, int x, int y, int z)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        hash ^= Z_PRIME * z;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        return hash;
-    }
-    
-    private static int Hash4D(int seed, int x, int y, int z, int w)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        hash ^= Z_PRIME * z;
-        hash ^= W_PRIME * w;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        return hash;
-    }
-    
-    private static float ValCoord2D(int seed, int x, int y)
-    {
-        int n = seed;
-        n ^= X_PRIME * x;
-        n ^= Y_PRIME * y;
-        
-        return (n * n * n * 60493) / (float) 2147483648.0;
-    }
-    
-    private static float ValCoord3D(int seed, int x, int y, int z)
-    {
-        int n = seed;
-        n ^= X_PRIME * x;
-        n ^= Y_PRIME * y;
-        n ^= Z_PRIME * z;
-        
-        return (n * n * n * 60493) / (float) 2147483648.0;
-    }
-    
-    private static float ValCoord4D(int seed, int x, int y, int z, int w)
-    {
-        int n = seed;
-        n ^= X_PRIME * x;
-        n ^= Y_PRIME * y;
-        n ^= Z_PRIME * z;
-        n ^= W_PRIME * w;
-        
-        return (n * n * n * 60493) / (float) 2147483648.0;
-    }
-    
-    private static float GradCoord2D(int seed, int x, int y, float xd, float yd)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        Float2 g = GRAD_2D[hash & 7];
-        
-        return xd * g.x + yd * g.y;
-    }
-    
-    private static float GradCoord3D(int seed, int x, int y, int z, float xd, float yd, float zd)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        hash ^= Z_PRIME * z;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        Float3 g = GRAD_3D[hash & 15];
-        
-        return xd * g.x + yd * g.y + zd * g.z;
-    }
-    
-    private static float GradCoord4D(int seed, int x, int y, int z, int w, float xd, float yd, float zd, float wd)
-    {
-        int hash = seed;
-        hash ^= X_PRIME * x;
-        hash ^= Y_PRIME * y;
-        hash ^= Z_PRIME * z;
-        hash ^= W_PRIME * w;
-        
-        hash = hash * hash * hash * 60493;
-        hash = (hash >> 13) ^ hash;
-        
-        hash &= 31;
-        float a = yd, b = zd, c = wd;            // X,Y,Z
-        switch (hash >> 3)
-        {          // OR, DEPENDING ON HIGH ORDER 2 BITS:
-            case 1:
-                a = wd;
-                b = xd;
-                c = yd;
-                break;     // W,X,Y
-            case 2:
-                a = zd;
-                b = wd;
-                c = xd;
-                break;     // Z,W,X
-            case 3:
-                a = yd;
-                b = zd;
-                c = wd;
-                break;     // Y,Z,W
-        }
-        return ((hash & 4) == 0 ? -a : a) + ((hash & 2) == 0 ? -b : b) + ((hash & 1) == 0 ? -c : c);
-    }
-    
-    public float GetNoise(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_noiseType)
-        {
-            case Value:
-                return SingleValue(m_seed, x, y, z);
-            case ValueFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleValueFractalFBM(x, y, z);
-                    case Billow:
-                        return SingleValueFractalBillow(x, y, z);
-                    case RigidMulti:
-                        return SingleValueFractalRigidMulti(x, y, z);
-                    default:
-                        return 0;
-                }
-            case Perlin:
-                return SinglePerlin(m_seed, x, y, z);
-            case PerlinFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SinglePerlinFractalFBM(x, y, z);
-                    case Billow:
-                        return SinglePerlinFractalBillow(x, y, z);
-                    case RigidMulti:
-                        return SinglePerlinFractalRigidMulti(x, y, z);
-                    default:
-                        return 0;
-                }
-            case Simplex:
-                return SingleSimplex(m_seed, x, y, z);
-            case SimplexFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleSimplexFractalFBM(x, y, z);
-                    case Billow:
-                        return SingleSimplexFractalBillow(x, y, z);
-                    case RigidMulti:
-                        return SingleSimplexFractalRigidMulti(x, y, z);
-                    default:
-                        return 0;
-                }
-            case Cellular:
-                switch (m_cellularReturnType)
-                {
-                    case CellValue:
-                    case NoiseLookup:
-                    case Distance:
-                        return SingleCellular(x, y, z);
-                    default:
-                        return SingleCellular2Edge(x, y, z);
-                }
-            case WhiteNoise:
-                return GetWhiteNoise(x, y, z);
-            case Cubic:
-                return SingleCubic(m_seed, x, y, z);
-            case CubicFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleCubicFractalFBM(x, y, z);
-                    case Billow:
-                        return SingleCubicFractalBillow(x, y, z);
-                    case RigidMulti:
-                        return SingleCubicFractalRigidMulti(x, y, z);
-                    default:
-                        return 0;
-                }
-            default:
-                return 0;
-        }
-    }
-    
-    public float GetNoise(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_noiseType)
-        {
-            case Value:
-                return SingleValue(m_seed, x, y);
-            case ValueFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleValueFractalFBM(x, y);
-                    case Billow:
-                        return SingleValueFractalBillow(x, y);
-                    case RigidMulti:
-                        return SingleValueFractalRigidMulti(x, y);
-                    default:
-                        return 0;
-                }
-            case Perlin:
-                return SinglePerlin(m_seed, x, y);
-            case PerlinFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SinglePerlinFractalFBM(x, y);
-                    case Billow:
-                        return SinglePerlinFractalBillow(x, y);
-                    case RigidMulti:
-                        return SinglePerlinFractalRigidMulti(x, y);
-                    default:
-                        return 0;
-                }
-            case Simplex:
-                return SingleSimplex(m_seed, x, y);
-            case SimplexFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleSimplexFractalFBM(x, y);
-                    case Billow:
-                        return SingleSimplexFractalBillow(x, y);
-                    case RigidMulti:
-                        return SingleSimplexFractalRigidMulti(x, y);
-                    default:
-                        return 0;
-                }
-            case Cellular:
-                switch (m_cellularReturnType)
-                {
-                    case CellValue:
-                    case NoiseLookup:
-                    case Distance:
-                        return SingleCellular(x, y);
-                    default:
-                        return SingleCellular2Edge(x, y);
-                }
-            case WhiteNoise:
-                return GetWhiteNoise(x, y);
-            case Cubic:
-                return SingleCubic(m_seed, x, y);
-            case CubicFractal:
-                switch (m_fractalType)
-                {
-                    case FBM:
-                        return SingleCubicFractalFBM(x, y);
-                    case Billow:
-                        return SingleCubicFractalBillow(x, y);
-                    case RigidMulti:
-                        return SingleCubicFractalRigidMulti(x, y);
-                    default:
-                        return 0;
-                }
-            default:
-                return 0;
-        }
-    }
-    
-    // White Noise
-    
-    private int FloatCast2Int(float f)
-    {
-        int i = Float.floatToRawIntBits(f);
-        
-        return i ^ (i >> 16);
-    }
-    
-    public float GetWhiteNoise(float x, float y, float z, float w)
-    {
-        int xi = FloatCast2Int(x);
-        int yi = FloatCast2Int(y);
-        int zi = FloatCast2Int(z);
-        int wi = FloatCast2Int(w);
-        
-        return ValCoord4D(m_seed, xi, yi, zi, wi);
-    }
-    
-    public float GetWhiteNoise(float x, float y, float z)
-    {
-        int xi = FloatCast2Int(x);
-        int yi = FloatCast2Int(y);
-        int zi = FloatCast2Int(z);
-        
-        return ValCoord3D(m_seed, xi, yi, zi);
-    }
-    
-    public float GetWhiteNoise(float x, float y)
-    {
-        int xi = FloatCast2Int(x);
-        int yi = FloatCast2Int(y);
-        
-        return ValCoord2D(m_seed, xi, yi);
-    }
-    
-    public float GetWhiteNoiseInt(int x, int y, int z, int w)
-    {
-        return ValCoord4D(m_seed, x, y, z, w);
-    }
-    
-    public float GetWhiteNoiseInt(int x, int y, int z)
-    {
-        return ValCoord3D(m_seed, x, y, z);
-    }
-    
-    public float GetWhiteNoiseInt(int x, int y)
-    {
-        return ValCoord2D(m_seed, x, y);
-    }
-    
-    // Value Noise
-    public float GetValueFractal(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleValueFractalFBM(x, y, z);
-            case Billow:
-                return SingleValueFractalBillow(x, y, z);
-            case RigidMulti:
-                return SingleValueFractalRigidMulti(x, y, z);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleValueFractalFBM(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = SingleValue(seed, x, y, z);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleValue(++seed, x, y, z) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleValueFractalBillow(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleValue(seed, x, y, z)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SingleValue(++seed, x, y, z)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleValueFractalRigidMulti(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleValue(seed, x, y, z));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleValue(++seed, x, y, z))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetValue(float x, float y, float z)
-    {
-        return SingleValue(m_seed, x * m_frequency, y * m_frequency, z * m_frequency);
-    }
-    
-    private float SingleValue(int seed, float x, float y, float z)
-    {
-        int x0 = FastFloor(x);
-        int y0 = FastFloor(y);
-        int z0 = FastFloor(z);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        int z1 = z0 + 1;
-        
-        float xs, ys, zs;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = x - x0;
-                ys = y - y0;
-                zs = z - z0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(x - x0);
-                ys = InterpHermiteFunc(y - y0);
-                zs = InterpHermiteFunc(z - z0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(x - x0);
-                ys = InterpQuinticFunc(y - y0);
-                zs = InterpQuinticFunc(z - z0);
-                break;
-        }
-        
-        float xf00 = Lerp(ValCoord3D(seed, x0, y0, z0), ValCoord3D(seed, x1, y0, z0), xs);
-        float xf10 = Lerp(ValCoord3D(seed, x0, y1, z0), ValCoord3D(seed, x1, y1, z0), xs);
-        float xf01 = Lerp(ValCoord3D(seed, x0, y0, z1), ValCoord3D(seed, x1, y0, z1), xs);
-        float xf11 = Lerp(ValCoord3D(seed, x0, y1, z1), ValCoord3D(seed, x1, y1, z1), xs);
-        
-        float yf0 = Lerp(xf00, xf10, ys);
-        float yf1 = Lerp(xf01, xf11, ys);
-        
-        return Lerp(yf0, yf1, zs);
-    }
-    
-    public float GetValueFractal(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleValueFractalFBM(x, y);
-            case Billow:
-                return SingleValueFractalBillow(x, y);
-            case RigidMulti:
-                return SingleValueFractalRigidMulti(x, y);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleValueFractalFBM(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = SingleValue(seed, x, y);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleValue(++seed, x, y) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleValueFractalBillow(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleValue(seed, x, y)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            amp *= m_gain;
-            sum += (Math.abs(SingleValue(++seed, x, y)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleValueFractalRigidMulti(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleValue(seed, x, y));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleValue(++seed, x, y))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetValue(float x, float y)
-    {
-        return SingleValue(m_seed, x * m_frequency, y * m_frequency);
-    }
-    
-    private float SingleValue(int seed, float x, float y)
-    {
-        int x0 = FastFloor(x);
-        int y0 = FastFloor(y);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        
-        float xs, ys;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = x - x0;
-                ys = y - y0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(x - x0);
-                ys = InterpHermiteFunc(y - y0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(x - x0);
-                ys = InterpQuinticFunc(y - y0);
-                break;
-        }
-        
-        float xf0 = Lerp(ValCoord2D(seed, x0, y0), ValCoord2D(seed, x1, y0), xs);
-        float xf1 = Lerp(ValCoord2D(seed, x0, y1), ValCoord2D(seed, x1, y1), xs);
-        
-        return Lerp(xf0, xf1, ys);
-    }
-    
-    // Gradient Noise
-    public float GetPerlinFractal(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SinglePerlinFractalFBM(x, y, z);
-            case Billow:
-                return SinglePerlinFractalBillow(x, y, z);
-            case RigidMulti:
-                return SinglePerlinFractalRigidMulti(x, y, z);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SinglePerlinFractalFBM(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = SinglePerlin(seed, x, y, z);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SinglePerlin(++seed, x, y, z) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SinglePerlinFractalBillow(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SinglePerlin(seed, x, y, z)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SinglePerlin(++seed, x, y, z)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SinglePerlinFractalRigidMulti(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SinglePerlin(seed, x, y, z));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SinglePerlin(++seed, x, y, z))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetPerlin(float x, float y, float z)
-    {
-        return SinglePerlin(m_seed, x * m_frequency, y * m_frequency, z * m_frequency);
-    }
-    
-    private float SinglePerlin(int seed, float x, float y, float z)
-    {
-        int x0 = FastFloor(x);
-        int y0 = FastFloor(y);
-        int z0 = FastFloor(z);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        int z1 = z0 + 1;
-        
-        float xs, ys, zs;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = x - x0;
-                ys = y - y0;
-                zs = z - z0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(x - x0);
-                ys = InterpHermiteFunc(y - y0);
-                zs = InterpHermiteFunc(z - z0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(x - x0);
-                ys = InterpQuinticFunc(y - y0);
-                zs = InterpQuinticFunc(z - z0);
-                break;
-        }
-        
-        float xd0 = x - x0;
-        float yd0 = y - y0;
-        float zd0 = z - z0;
-        float xd1 = xd0 - 1;
-        float yd1 = yd0 - 1;
-        float zd1 = zd0 - 1;
-        
-        float xf00 = Lerp(GradCoord3D(seed, x0, y0, z0, xd0, yd0, zd0), GradCoord3D(seed, x1, y0, z0, xd1, yd0, zd0), xs);
-        float xf10 = Lerp(GradCoord3D(seed, x0, y1, z0, xd0, yd1, zd0), GradCoord3D(seed, x1, y1, z0, xd1, yd1, zd0), xs);
-        float xf01 = Lerp(GradCoord3D(seed, x0, y0, z1, xd0, yd0, zd1), GradCoord3D(seed, x1, y0, z1, xd1, yd0, zd1), xs);
-        float xf11 = Lerp(GradCoord3D(seed, x0, y1, z1, xd0, yd1, zd1), GradCoord3D(seed, x1, y1, z1, xd1, yd1, zd1), xs);
-        
-        float yf0 = Lerp(xf00, xf10, ys);
-        float yf1 = Lerp(xf01, xf11, ys);
-        
-        return Lerp(yf0, yf1, zs);
-    }
-    
-    public float GetPerlinFractal(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SinglePerlinFractalFBM(x, y);
-            case Billow:
-                return SinglePerlinFractalBillow(x, y);
-            case RigidMulti:
-                return SinglePerlinFractalRigidMulti(x, y);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SinglePerlinFractalFBM(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = SinglePerlin(seed, x, y);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SinglePerlin(++seed, x, y) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SinglePerlinFractalBillow(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SinglePerlin(seed, x, y)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SinglePerlin(++seed, x, y)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SinglePerlinFractalRigidMulti(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SinglePerlin(seed, x, y));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SinglePerlin(++seed, x, y))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetPerlin(float x, float y)
-    {
-        return SinglePerlin(m_seed, x * m_frequency, y * m_frequency);
-    }
-    
-    private float SinglePerlin(int seed, float x, float y)
-    {
-        int x0 = FastFloor(x);
-        int y0 = FastFloor(y);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        
-        float xs, ys;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = x - x0;
-                ys = y - y0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(x - x0);
-                ys = InterpHermiteFunc(y - y0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(x - x0);
-                ys = InterpQuinticFunc(y - y0);
-                break;
-        }
-        
-        float xd0 = x - x0;
-        float yd0 = y - y0;
-        float xd1 = xd0 - 1;
-        float yd1 = yd0 - 1;
-        
-        float xf0 = Lerp(GradCoord2D(seed, x0, y0, xd0, yd0), GradCoord2D(seed, x1, y0, xd1, yd0), xs);
-        float xf1 = Lerp(GradCoord2D(seed, x0, y1, xd0, yd1), GradCoord2D(seed, x1, y1, xd1, yd1), xs);
-        
-        return Lerp(xf0, xf1, ys);
-    }
-    
-    // Simplex Noise
-    public float GetSimplexFractal(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleSimplexFractalFBM(x, y, z);
-            case Billow:
-                return SingleSimplexFractalBillow(x, y, z);
-            case RigidMulti:
-                return SingleSimplexFractalRigidMulti(x, y, z);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleSimplexFractalFBM(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = SingleSimplex(seed, x, y, z);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleSimplex(++seed, x, y, z) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleSimplexFractalBillow(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleSimplex(seed, x, y, z)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SingleSimplex(++seed, x, y, z)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleSimplexFractalRigidMulti(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleSimplex(seed, x, y, z));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleSimplex(++seed, x, y, z))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetSimplex(float x, float y, float z)
-    {
-        return SingleSimplex(m_seed, x * m_frequency, y * m_frequency, z * m_frequency);
-    }
-    
-    private final static float F3  = (float) (1.0 / 3.0);
-    private final static float G3  = (float) (1.0 / 6.0);
-    private final static float G33 = G3 * 3 - 1;
-    
-    private float SingleSimplex(int seed, float x, float y, float z)
-    {
-        float t = (x + y + z) * F3;
-        int   i = FastFloor(x + t);
-        int   j = FastFloor(y + t);
-        int   k = FastFloor(z + t);
-        
-        t = (i + j + k) * G3;
-        float x0 = x - (i - t);
-        float y0 = y - (j - t);
-        float z0 = z - (k - t);
-        
-        int i1, j1, k1;
-        int i2, j2, k2;
-        
-        if (x0 >= y0)
-        {
-            if (y0 >= z0)
-            {
-                i1 = 1;
-                j1 = 0;
-                k1 = 0;
-                i2 = 1;
-                j2 = 1;
-                k2 = 0;
-            }
-            else if (x0 >= z0)
-            {
-                i1 = 1;
-                j1 = 0;
-                k1 = 0;
-                i2 = 1;
-                j2 = 0;
-                k2 = 1;
-            }
-            else // x0 < z0
-            {
-                i1 = 0;
-                j1 = 0;
-                k1 = 1;
-                i2 = 1;
-                j2 = 0;
-                k2 = 1;
-            }
-        }
-        else // x0 < y0
-        {
-            if (y0 < z0)
-            {
-                i1 = 0;
-                j1 = 0;
-                k1 = 1;
-                i2 = 0;
-                j2 = 1;
-                k2 = 1;
-            }
-            else if (x0 < z0)
-            {
-                i1 = 0;
-                j1 = 1;
-                k1 = 0;
-                i2 = 0;
-                j2 = 1;
-                k2 = 1;
-            }
-            else // x0 >= z0
-            {
-                i1 = 0;
-                j1 = 1;
-                k1 = 0;
-                i2 = 1;
-                j2 = 1;
-                k2 = 0;
-            }
-        }
-        
-        float x1 = x0 - i1 + G3;
-        float y1 = y0 - j1 + G3;
-        float z1 = z0 - k1 + G3;
-        float x2 = x0 - i2 + F3;
-        float y2 = y0 - j2 + F3;
-        float z2 = z0 - k2 + F3;
-        float x3 = x0 + G33;
-        float y3 = y0 + G33;
-        float z3 = z0 + G33;
-        
-        float n0, n1, n2, n3;
-        
-        t = (float) 0.6 - x0 * x0 - y0 * y0 - z0 * z0;
-        if (t < 0) { n0 = 0; }
-        else
-        {
-            t *= t;
-            n0 = t * t * GradCoord3D(seed, i, j, k, x0, y0, z0);
-        }
-        
-        t = (float) 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
-        if (t < 0) { n1 = 0; }
-        else
-        {
-            t *= t;
-            n1 = t * t * GradCoord3D(seed, i + i1, j + j1, k + k1, x1, y1, z1);
-        }
-        
-        t = (float) 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
-        if (t < 0) { n2 = 0; }
-        else
-        {
-            t *= t;
-            n2 = t * t * GradCoord3D(seed, i + i2, j + j2, k + k2, x2, y2, z2);
-        }
-        
-        t = (float) 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
-        if (t < 0) { n3 = 0; }
-        else
-        {
-            t *= t;
-            n3 = t * t * GradCoord3D(seed, i + 1, j + 1, k + 1, x3, y3, z3);
-        }
-        
-        return 32 * (n0 + n1 + n2 + n3);
-    }
-    
-    public float GetSimplexFractal(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleSimplexFractalFBM(x, y);
-            case Billow:
-                return SingleSimplexFractalBillow(x, y);
-            case RigidMulti:
-                return SingleSimplexFractalRigidMulti(x, y);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleSimplexFractalFBM(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = SingleSimplex(seed, x, y);
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleSimplex(++seed, x, y) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleSimplexFractalBillow(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleSimplex(seed, x, y)) * 2 - 1;
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SingleSimplex(++seed, x, y)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleSimplexFractalRigidMulti(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleSimplex(seed, x, y));
-        float amp  = 1;
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleSimplex(++seed, x, y))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetSimplex(float x, float y)
-    {
-        return SingleSimplex(m_seed, x * m_frequency, y * m_frequency);
-    }
-    
-    //private final static float F2 = (float) (1.0 / 2.0);
-    //private final static float G2 = (float) (1.0 / 4.0);
-    
-    private final static float SQRT3 = (float) 1.7320508075688772935274463415059;
-    private final static float F2    = 0.5f * (SQRT3 - 1.0f);
-    private final static float G2    = (3.0f - SQRT3) / 6.0f;
-    
-    private float SingleSimplex(int seed, float x, float y)
-    {
-        float t = (x + y) * F2;
-        int   i = FastFloor(x + t);
-        int   j = FastFloor(y + t);
-        
-        t = (i + j) * G2;
-        float X0 = i - t;
-        float Y0 = j - t;
-        
-        float x0 = x - X0;
-        float y0 = y - Y0;
-        
-        int i1, j1;
-        if (x0 > y0)
-        {
-            i1 = 1;
-            j1 = 0;
-        }
-        else
-        {
-            i1 = 0;
-            j1 = 1;
-        }
-        
-        float x1 = x0 - i1 + G2;
-        float y1 = y0 - j1 + G2;
-        float x2 = x0 - 1 + 2 * G2;
-        float y2 = y0 - 1 + 2 * G2;
-        
-        float n0, n1, n2;
-        
-        t = (float) 0.5 - x0 * x0 - y0 * y0;
-        if (t < 0) { n0 = 0; }
-        else
-        {
-            t *= t;
-            n0 = t * t * GradCoord2D(seed, i, j, x0, y0);
-        }
-        
-        t = (float) 0.5 - x1 * x1 - y1 * y1;
-        if (t < 0) { n1 = 0; }
-        else
-        {
-            t *= t;
-            n1 = t * t * GradCoord2D(seed, i + i1, j + j1, x1, y1);
-        }
-        
-        t = (float) 0.5 - x2 * x2 - y2 * y2;
-        if (t < 0) { n2 = 0; }
-        else
-        {
-            t *= t;
-            n2 = t * t * GradCoord2D(seed, i + 1, j + 1, x2, y2);
-        }
-        
-        return 50 * (n0 + n1 + n2);
-    }
-    
-    public float GetSimplex(float x, float y, float z, float w)
-    {
-        return SingleSimplex(m_seed, x * m_frequency, y * m_frequency, z * m_frequency, w * m_frequency);
-    }
-    
-    private static final byte[] SIMPLEX_4D =
-            {
-                    0, 1, 2, 3, 0, 1, 3, 2, 0, 0, 0, 0, 0, 2, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0,
-                    0, 2, 1, 3, 0, 0, 0, 0, 0, 3, 1, 2, 0, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 2, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    1, 2, 0, 3, 0, 0, 0, 0, 1, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 1, 2, 3, 1, 0,
-                    1, 0, 2, 3, 1, 0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 3, 1, 0, 0, 0, 0, 2, 1, 3, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    2, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 2, 3, 0, 2, 1, 0, 0, 0, 0, 3, 1, 2, 0,
-                    2, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 2, 0, 0, 0, 0, 3, 2, 0, 1, 3, 2, 1, 0
-            };
-    
-    private final static float F4 = (float) ((2.23606797 - 1.0) / 4.0);
-    private final static float G4 = (float) ((5.0 - 2.23606797) / 20.0);
-    
-    private float SingleSimplex(int seed, float x, float y, float z, float w)
-    {
-        float n0, n1, n2, n3, n4;
-        float t = (x + y + z + w) * F4;
-        int   i = FastFloor(x + t);
-        int   j = FastFloor(y + t);
-        int   k = FastFloor(z + t);
-        int   l = FastFloor(w + t);
-        t = (i + j + k + l) * G4;
-        float X0 = i - t;
-        float Y0 = j - t;
-        float Z0 = k - t;
-        float W0 = l - t;
-        float x0 = x - X0;
-        float y0 = y - Y0;
-        float z0 = z - Z0;
-        float w0 = w - W0;
-        
-        int c = (x0 > y0) ? 32 : 0;
-        c += (x0 > z0) ? 16 : 0;
-        c += (y0 > z0) ? 8 : 0;
-        c += (x0 > w0) ? 4 : 0;
-        c += (y0 > w0) ? 2 : 0;
-        c += (z0 > w0) ? 1 : 0;
-        c <<= 2;
-        
-        int i1 = SIMPLEX_4D[c] >= 3 ? 1 : 0;
-        int i2 = SIMPLEX_4D[c] >= 2 ? 1 : 0;
-        int i3 = SIMPLEX_4D[c++] >= 1 ? 1 : 0;
-        int j1 = SIMPLEX_4D[c] >= 3 ? 1 : 0;
-        int j2 = SIMPLEX_4D[c] >= 2 ? 1 : 0;
-        int j3 = SIMPLEX_4D[c++] >= 1 ? 1 : 0;
-        int k1 = SIMPLEX_4D[c] >= 3 ? 1 : 0;
-        int k2 = SIMPLEX_4D[c] >= 2 ? 1 : 0;
-        int k3 = SIMPLEX_4D[c++] >= 1 ? 1 : 0;
-        int l1 = SIMPLEX_4D[c] >= 3 ? 1 : 0;
-        int l2 = SIMPLEX_4D[c] >= 2 ? 1 : 0;
-        int l3 = SIMPLEX_4D[c] >= 1 ? 1 : 0;
-        
-        float x1 = x0 - i1 + G4;
-        float y1 = y0 - j1 + G4;
-        float z1 = z0 - k1 + G4;
-        float w1 = w0 - l1 + G4;
-        float x2 = x0 - i2 + 2 * G4;
-        float y2 = y0 - j2 + 2 * G4;
-        float z2 = z0 - k2 + 2 * G4;
-        float w2 = w0 - l2 + 2 * G4;
-        float x3 = x0 - i3 + 3 * G4;
-        float y3 = y0 - j3 + 3 * G4;
-        float z3 = z0 - k3 + 3 * G4;
-        float w3 = w0 - l3 + 3 * G4;
-        float x4 = x0 - 1 + 4 * G4;
-        float y4 = y0 - 1 + 4 * G4;
-        float z4 = z0 - 1 + 4 * G4;
-        float w4 = w0 - 1 + 4 * G4;
-        
-        t = (float) 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
-        if (t < 0) { n0 = 0; }
-        else
-        {
-            t *= t;
-            n0 = t * t * GradCoord4D(seed, i, j, k, l, x0, y0, z0, w0);
-        }
-        t = (float) 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
-        if (t < 0) { n1 = 0; }
-        else
-        {
-            t *= t;
-            n1 = t * t * GradCoord4D(seed, i + i1, j + j1, k + k1, l + l1, x1, y1, z1, w1);
-        }
-        t = (float) 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
-        if (t < 0) { n2 = 0; }
-        else
-        {
-            t *= t;
-            n2 = t * t * GradCoord4D(seed, i + i2, j + j2, k + k2, l + l2, x2, y2, z2, w2);
-        }
-        t = (float) 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
-        if (t < 0) { n3 = 0; }
-        else
-        {
-            t *= t;
-            n3 = t * t * GradCoord4D(seed, i + i3, j + j3, k + k3, l + l3, x3, y3, z3, w3);
-        }
-        t = (float) 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
-        if (t < 0) { n4 = 0; }
-        else
-        {
-            t *= t;
-            n4 = t * t * GradCoord4D(seed, i + 1, j + 1, k + 1, l + 1, x4, y4, z4, w4);
-        }
-        
-        return 27 * (n0 + n1 + n2 + n3 + n4);
-    }
-    
-    // Cubic Noise
-    public float GetCubicFractal(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleCubicFractalFBM(x, y, z);
-            case Billow:
-                return SingleCubicFractalBillow(x, y, z);
-            case RigidMulti:
-                return SingleCubicFractalRigidMulti(x, y, z);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleCubicFractalFBM(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = SingleCubic(seed, x, y, z);
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleCubic(++seed, x, y, z) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleCubicFractalBillow(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleCubic(seed, x, y, z)) * 2 - 1;
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SingleCubic(++seed, x, y, z)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleCubicFractalRigidMulti(float x, float y, float z)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleCubic(seed, x, y, z));
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            z *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleCubic(++seed, x, y, z))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetCubic(float x, float y, float z)
-    {
-        return SingleCubic(m_seed, x * m_frequency, y * m_frequency, z * m_frequency);
-    }
-    
-    private final static float CUBIC_3D_BOUNDING = 1 / (float) (1.5 * 1.5 * 1.5);
-    
-    private float SingleCubic(int seed, float x, float y, float z)
-    {
-        int x1 = FastFloor(x);
-        int y1 = FastFloor(y);
-        int z1 = FastFloor(z);
-        
-        int x0 = x1 - 1;
-        int y0 = y1 - 1;
-        int z0 = z1 - 1;
-        int x2 = x1 + 1;
-        int y2 = y1 + 1;
-        int z2 = z1 + 1;
-        int x3 = x1 + 2;
-        int y3 = y1 + 2;
-        int z3 = z1 + 2;
-        
-        float xs = x - (float) x1;
-        float ys = y - (float) y1;
-        float zs = z - (float) z1;
-        
-        return CubicLerp(
-                CubicLerp(
-                        CubicLerp(ValCoord3D(seed, x0, y0, z0), ValCoord3D(seed, x1, y0, z0), ValCoord3D(seed, x2, y0, z0), ValCoord3D(seed, x3, y0, z0), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y1, z0), ValCoord3D(seed, x1, y1, z0), ValCoord3D(seed, x2, y1, z0), ValCoord3D(seed, x3, y1, z0), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y2, z0), ValCoord3D(seed, x1, y2, z0), ValCoord3D(seed, x2, y2, z0), ValCoord3D(seed, x3, y2, z0), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y3, z0), ValCoord3D(seed, x1, y3, z0), ValCoord3D(seed, x2, y3, z0), ValCoord3D(seed, x3, y3, z0), xs),
-                        ys),
-                CubicLerp(
-                        CubicLerp(ValCoord3D(seed, x0, y0, z1), ValCoord3D(seed, x1, y0, z1), ValCoord3D(seed, x2, y0, z1), ValCoord3D(seed, x3, y0, z1), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y1, z1), ValCoord3D(seed, x1, y1, z1), ValCoord3D(seed, x2, y1, z1), ValCoord3D(seed, x3, y1, z1), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y2, z1), ValCoord3D(seed, x1, y2, z1), ValCoord3D(seed, x2, y2, z1), ValCoord3D(seed, x3, y2, z1), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y3, z1), ValCoord3D(seed, x1, y3, z1), ValCoord3D(seed, x2, y3, z1), ValCoord3D(seed, x3, y3, z1), xs),
-                        ys),
-                CubicLerp(
-                        CubicLerp(ValCoord3D(seed, x0, y0, z2), ValCoord3D(seed, x1, y0, z2), ValCoord3D(seed, x2, y0, z2), ValCoord3D(seed, x3, y0, z2), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y1, z2), ValCoord3D(seed, x1, y1, z2), ValCoord3D(seed, x2, y1, z2), ValCoord3D(seed, x3, y1, z2), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y2, z2), ValCoord3D(seed, x1, y2, z2), ValCoord3D(seed, x2, y2, z2), ValCoord3D(seed, x3, y2, z2), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y3, z2), ValCoord3D(seed, x1, y3, z2), ValCoord3D(seed, x2, y3, z2), ValCoord3D(seed, x3, y3, z2), xs),
-                        ys),
-                CubicLerp(
-                        CubicLerp(ValCoord3D(seed, x0, y0, z3), ValCoord3D(seed, x1, y0, z3), ValCoord3D(seed, x2, y0, z3), ValCoord3D(seed, x3, y0, z3), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y1, z3), ValCoord3D(seed, x1, y1, z3), ValCoord3D(seed, x2, y1, z3), ValCoord3D(seed, x3, y1, z3), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y2, z3), ValCoord3D(seed, x1, y2, z3), ValCoord3D(seed, x2, y2, z3), ValCoord3D(seed, x3, y2, z3), xs),
-                        CubicLerp(ValCoord3D(seed, x0, y3, z3), ValCoord3D(seed, x1, y3, z3), ValCoord3D(seed, x2, y3, z3), ValCoord3D(seed, x3, y3, z3), xs),
-                        ys),
-                zs) * CUBIC_3D_BOUNDING;
-    }
-    
-    
-    public float GetCubicFractal(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_fractalType)
-        {
-            case FBM:
-                return SingleCubicFractalFBM(x, y);
-            case Billow:
-                return SingleCubicFractalBillow(x, y);
-            case RigidMulti:
-                return SingleCubicFractalRigidMulti(x, y);
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleCubicFractalFBM(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = SingleCubic(seed, x, y);
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += SingleCubic(++seed, x, y) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleCubicFractalBillow(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = Math.abs(SingleCubic(seed, x, y)) * 2 - 1;
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum += (Math.abs(SingleCubic(++seed, x, y)) * 2 - 1) * amp;
-        }
-        
-        return sum * m_fractalBounding;
-    }
-    
-    private float SingleCubicFractalRigidMulti(float x, float y)
-    {
-        int   seed = m_seed;
-        float sum  = 1 - Math.abs(SingleCubic(seed, x, y));
-        float amp  = 1;
-        int   i    = 0;
-        
-        while (++i < m_octaves)
-        {
-            x *= m_lacunarity;
-            y *= m_lacunarity;
-            
-            amp *= m_gain;
-            sum -= (1 - Math.abs(SingleCubic(++seed, x, y))) * amp;
-        }
-        
-        return sum;
-    }
-    
-    public float GetCubic(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        return SingleCubic(0, x, y);
-    }
-    
-    private final static float CUBIC_2D_BOUNDING = 1 / (float) (1.5 * 1.5);
-    
-    private float SingleCubic(int seed, float x, float y)
-    {
-        int x1 = FastFloor(x);
-        int y1 = FastFloor(y);
-        
-        int x0 = x1 - 1;
-        int y0 = y1 - 1;
-        int x2 = x1 + 1;
-        int y2 = y1 + 1;
-        int x3 = x1 + 2;
-        int y3 = y1 + 2;
-        
-        float xs = x - (float) x1;
-        float ys = y - (float) y1;
-        
-        return CubicLerp(
-                CubicLerp(ValCoord2D(seed, x0, y0), ValCoord2D(seed, x1, y0), ValCoord2D(seed, x2, y0), ValCoord2D(seed, x3, y0),
-                          xs),
-                CubicLerp(ValCoord2D(seed, x0, y1), ValCoord2D(seed, x1, y1), ValCoord2D(seed, x2, y1), ValCoord2D(seed, x3, y1),
-                          xs),
-                CubicLerp(ValCoord2D(seed, x0, y2), ValCoord2D(seed, x1, y2), ValCoord2D(seed, x2, y2), ValCoord2D(seed, x3, y2),
-                          xs),
-                CubicLerp(ValCoord2D(seed, x0, y3), ValCoord2D(seed, x1, y3), ValCoord2D(seed, x2, y3), ValCoord2D(seed, x3, y3),
-                          xs),
-                ys) * CUBIC_2D_BOUNDING;
-    }
-    
-    // Cellular Noise
-    public float GetCellular(float x, float y, float z)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        z *= m_frequency;
-        
-        switch (m_cellularReturnType)
-        {
-            case CellValue:
-            case NoiseLookup:
-            case Distance:
-                return SingleCellular(x, y, z);
-            default:
-                return SingleCellular2Edge(x, y, z);
-        }
-    }
-    
-    private float SingleCellular(float x, float y, float z)
-    {
-        int xr = FastRound(x);
-        int yr = FastRound(y);
-        int zr = FastRound(z);
-        
-        float distance = 999999;
-        int   xc       = 0, yc = 0, zc = 0;
-        
-        switch (m_cellularDistanceFunction)
-        {
-            case Euclidean:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = vecX * vecX + vecY * vecY + vecZ * vecZ;
-                            
-                            if (newDistance < distance)
-                            {
-                                distance = newDistance;
-                                xc       = xi;
-                                yc       = yi;
-                                zc       = zi;
-                            }
-                        }
-                    }
-                }
-                break;
-            case Manhattan:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = Math.abs(vecX) + Math.abs(vecY) + Math.abs(vecZ);
-                            
-                            if (newDistance < distance)
-                            {
-                                distance = newDistance;
-                                xc       = xi;
-                                yc       = yi;
-                                zc       = zi;
-                            }
-                        }
-                    }
-                }
-                break;
-            case Natural:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = (Math.abs(vecX) + Math.abs(vecY) + Math.abs(vecZ)) + (vecX * vecX + vecY * vecY + vecZ * vecZ);
-                            
-                            if (newDistance < distance)
-                            {
-                                distance = newDistance;
-                                xc       = xi;
-                                yc       = yi;
-                                zc       = zi;
-                            }
-                        }
-                    }
-                }
-                break;
-        }
-        
-        switch (m_cellularReturnType)
-        {
-            case CellValue:
-                return ValCoord3D(0, xc, yc, zc);
-            
-            case NoiseLookup:
-                Float3 vec = CELL_3D[Hash3D(m_seed, xc, yc, zc) & 255];
-                return m_cellularNoiseLookup.GetNoise(xc + vec.x, yc + vec.y, zc + vec.z);
-            
-            case Distance:
-                return distance - 1;
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleCellular2Edge(float x, float y, float z)
-    {
-        int xr = FastRound(x);
-        int yr = FastRound(y);
-        int zr = FastRound(z);
-        
-        float distance  = 999999;
-        float distance2 = 999999;
-        
-        switch (m_cellularDistanceFunction)
-        {
-            case Euclidean:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = vecX * vecX + vecY * vecY + vecZ * vecZ;
-                            
-                            distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                            distance  = Math.min(distance, newDistance);
-                        }
-                    }
-                }
-                break;
-            case Manhattan:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = Math.abs(vecX) + Math.abs(vecY) + Math.abs(vecZ);
-                            
-                            distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                            distance  = Math.min(distance, newDistance);
-                        }
-                    }
-                }
-                break;
-            case Natural:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        for (int zi = zr - 1; zi <= zr + 1; zi++)
-                        {
-                            Float3 vec = CELL_3D[Hash3D(m_seed, xi, yi, zi) & 255];
-                            
-                            float vecX = xi - x + vec.x;
-                            float vecY = yi - y + vec.y;
-                            float vecZ = zi - z + vec.z;
-                            
-                            float newDistance = (Math.abs(vecX) + Math.abs(vecY) + Math.abs(vecZ)) + (vecX * vecX + vecY * vecY + vecZ * vecZ);
-                            
-                            distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                            distance  = Math.min(distance, newDistance);
-                        }
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-        
-        switch (m_cellularReturnType)
-        {
-            case Distance2:
-                return distance2 - 1;
-            case Distance2Add:
-                return distance2 + distance - 1;
-            case Distance2Sub:
-                return distance2 - distance - 1;
-            case Distance2Mul:
-                return distance2 * distance - 1;
-            case Distance2Div:
-                return distance / distance2 - 1;
-            default:
-                return 0;
-        }
-    }
-    
-    public float GetCellular(float x, float y)
-    {
-        x *= m_frequency;
-        y *= m_frequency;
-        
-        switch (m_cellularReturnType)
-        {
-            case CellValue:
-            case NoiseLookup:
-            case Distance:
-                return SingleCellular(x, y);
-            default:
-                return SingleCellular2Edge(x, y);
-        }
-    }
-    
-    private float SingleCellular(float x, float y)
-    {
-        int xr = FastRound(x);
-        int yr = FastRound(y);
-        
-        float distance = 999999;
-        int   xc       = 0, yc = 0;
-        
-        switch (m_cellularDistanceFunction)
-        {
-            default:
-            case Euclidean:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = vecX * vecX + vecY * vecY;
-                        
-                        if (newDistance < distance)
-                        {
-                            distance = newDistance;
-                            xc       = xi;
-                            yc       = yi;
-                        }
-                    }
-                }
-                break;
-            case Manhattan:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = (Math.abs(vecX) + Math.abs(vecY));
-                        
-                        if (newDistance < distance)
-                        {
-                            distance = newDistance;
-                            xc       = xi;
-                            yc       = yi;
-                        }
-                    }
-                }
-                break;
-            case Natural:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = (Math.abs(vecX) + Math.abs(vecY)) + (vecX * vecX + vecY * vecY);
-                        
-                        if (newDistance < distance)
-                        {
-                            distance = newDistance;
-                            xc       = xi;
-                            yc       = yi;
-                        }
-                    }
-                }
-                break;
-        }
-        
-        switch (m_cellularReturnType)
-        {
-            case CellValue:
-                return ValCoord2D(0, xc, yc);
-            
-            case NoiseLookup:
-                Float2 vec = CELL_2D[Hash2D(m_seed, xc, yc) & 255];
-                return m_cellularNoiseLookup.GetNoise(xc + vec.x, yc + vec.y);
-            
-            case Distance:
-                return distance - 1;
-            default:
-                return 0;
-        }
-    }
-    
-    private float SingleCellular2Edge(float x, float y)
-    {
-        int xr = FastRound(x);
-        int yr = FastRound(y);
-        
-        float distance  = 999999;
-        float distance2 = 999999;
-        
-        switch (m_cellularDistanceFunction)
-        {
-            default:
-            case Euclidean:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = vecX * vecX + vecY * vecY;
-                        
-                        distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                        distance  = Math.min(distance, newDistance);
-                    }
-                }
-                break;
-            case Manhattan:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = Math.abs(vecX) + Math.abs(vecY);
-                        
-                        distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                        distance  = Math.min(distance, newDistance);
-                    }
-                }
-                break;
-            case Natural:
-                for (int xi = xr - 1; xi <= xr + 1; xi++)
-                {
-                    for (int yi = yr - 1; yi <= yr + 1; yi++)
-                    {
-                        Float2 vec = CELL_2D[Hash2D(m_seed, xi, yi) & 255];
-                        
-                        float vecX = xi - x + vec.x;
-                        float vecY = yi - y + vec.y;
-                        
-                        float newDistance = (Math.abs(vecX) + Math.abs(vecY)) + (vecX * vecX + vecY * vecY);
-                        
-                        distance2 = Math.max(Math.min(distance2, newDistance), distance);
-                        distance  = Math.min(distance, newDistance);
-                    }
-                }
-                break;
-        }
-        
-        switch (m_cellularReturnType)
-        {
-            case Distance2:
-                return distance2 - 1;
-            case Distance2Add:
-                return distance2 + distance - 1;
-            case Distance2Sub:
-                return distance2 - distance - 1;
-            case Distance2Mul:
-                return distance2 * distance - 1;
-            case Distance2Div:
-                return distance / distance2 - 1;
-            default:
-                return 0;
-        }
-    }
-    
-    public void GradientPerturb(TripleF v3)
-    {
-        SingleGradientPerturb(m_seed, m_gradientPerturbAmp, m_frequency, v3);
-    }
-    
-    public void GradientPerturbFractal(TripleF v3)
-    {
-        int   seed = m_seed;
-        float amp  = m_gradientPerturbAmp * m_fractalBounding;
-        float freq = m_frequency;
-        
-        SingleGradientPerturb(seed, amp, m_frequency, v3);
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            freq *= m_lacunarity;
-            amp *= m_gain;
-            SingleGradientPerturb(++seed, amp, freq, v3);
-        }
-    }
-    
-    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, TripleF v3)
-    {
-        float xf = v3.a * frequency;
-        float yf = v3.b * frequency;
-        float zf = v3.c * frequency;
-        
-        int x0 = FastFloor(xf);
-        int y0 = FastFloor(yf);
-        int z0 = FastFloor(zf);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        int z1 = z0 + 1;
-        
-        float xs, ys, zs;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = xf - x0;
-                ys = yf - y0;
-                zs = zf - z0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(xf - x0);
-                ys = InterpHermiteFunc(yf - y0);
-                zs = InterpHermiteFunc(zf - z0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(xf - x0);
-                ys = InterpQuinticFunc(yf - y0);
-                zs = InterpQuinticFunc(zf - z0);
-                break;
-        }
-        
-        Float3 vec0 = CELL_3D[Hash3D(seed, x0, y0, z0) & 255];
-        Float3 vec1 = CELL_3D[Hash3D(seed, x1, y0, z0) & 255];
-        
-        float lx0x = Lerp(vec0.x, vec1.x, xs);
-        float ly0x = Lerp(vec0.y, vec1.y, xs);
-        float lz0x = Lerp(vec0.z, vec1.z, xs);
-        
-        vec0 = CELL_3D[Hash3D(seed, x0, y1, z0) & 255];
-        vec1 = CELL_3D[Hash3D(seed, x1, y1, z0) & 255];
-        
-        float lx1x = Lerp(vec0.x, vec1.x, xs);
-        float ly1x = Lerp(vec0.y, vec1.y, xs);
-        float lz1x = Lerp(vec0.z, vec1.z, xs);
-        
-        float lx0y = Lerp(lx0x, lx1x, ys);
-        float ly0y = Lerp(ly0x, ly1x, ys);
-        float lz0y = Lerp(lz0x, lz1x, ys);
-        
-        vec0 = CELL_3D[Hash3D(seed, x0, y0, z1) & 255];
-        vec1 = CELL_3D[Hash3D(seed, x1, y0, z1) & 255];
-        
-        lx0x = Lerp(vec0.x, vec1.x, xs);
-        ly0x = Lerp(vec0.y, vec1.y, xs);
-        lz0x = Lerp(vec0.z, vec1.z, xs);
-        
-        vec0 = CELL_3D[Hash3D(seed, x0, y1, z1) & 255];
-        vec1 = CELL_3D[Hash3D(seed, x1, y1, z1) & 255];
-        
-        lx1x = Lerp(vec0.x, vec1.x, xs);
-        ly1x = Lerp(vec0.y, vec1.y, xs);
-        lz1x = Lerp(vec0.z, vec1.z, xs);
-        
-        v3.a += Lerp(lx0y, Lerp(lx0x, lx1x, ys), zs) * perturbAmp;
-        v3.b += Lerp(ly0y, Lerp(ly0x, ly1x, ys), zs) * perturbAmp;
-        v3.c += Lerp(lz0y, Lerp(lz0x, lz1x, ys), zs) * perturbAmp;
-    }
-    
-    public void GradientPerturb(PairF v2)
-    {
-        SingleGradientPerturb(m_seed, m_gradientPerturbAmp, m_frequency, v2);
-    }
-    
-    public void GradientPerturbFractal(PairF v2)
-    {
-        int   seed = m_seed;
-        float amp  = m_gradientPerturbAmp * m_fractalBounding;
-        float freq = m_frequency;
-        
-        SingleGradientPerturb(seed, amp, m_frequency, v2);
-        
-        for (int i = 1; i < m_octaves; i++)
-        {
-            freq *= m_lacunarity;
-            amp *= m_gain;
-            SingleGradientPerturb(++seed, amp, freq, v2);
-        }
-    }
-    
-    private void SingleGradientPerturb(int seed, float perturbAmp, float frequency, PairF v2)
-    {
-        float xf = v2.a * frequency;
-        float yf = v2.b * frequency;
-        
-        int x0 = FastFloor(xf);
-        int y0 = FastFloor(yf);
-        int x1 = x0 + 1;
-        int y1 = y0 + 1;
-        
-        float xs, ys;
-        switch (m_interp)
-        {
-            default:
-            case Linear:
-                xs = xf - x0;
-                ys = yf - y0;
-                break;
-            case Hermite:
-                xs = InterpHermiteFunc(xf - x0);
-                ys = InterpHermiteFunc(yf - y0);
-                break;
-            case Quintic:
-                xs = InterpQuinticFunc(xf - x0);
-                ys = InterpQuinticFunc(yf - y0);
-                break;
-        }
-        
-        Float2 vec0 = CELL_2D[Hash2D(seed, x0, y0) & 255];
-        Float2 vec1 = CELL_2D[Hash2D(seed, x1, y0) & 255];
-        
-        float lx0x = Lerp(vec0.x, vec1.x, xs);
-        float ly0x = Lerp(vec0.y, vec1.y, xs);
-        
-        vec0 = CELL_2D[Hash2D(seed, x0, y1) & 255];
-        vec1 = CELL_2D[Hash2D(seed, x1, y1) & 255];
-        
-        float lx1x = Lerp(vec0.x, vec1.x, xs);
-        float ly1x = Lerp(vec0.y, vec1.y, xs);
-        
-        v2.a += Lerp(lx0x, lx1x, ys) * perturbAmp;
-        v2.b += Lerp(ly0x, ly1x, ys) * perturbAmp;
     }
 }

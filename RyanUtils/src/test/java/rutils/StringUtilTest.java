@@ -98,79 +98,75 @@ class StringUtilTest
     @Test
     void printStream()
     {
-        PrintStream stream = System.out;
+        StringUtil.print((Object) null);
+        StringUtil.print(true);
+        StringUtil.print('%');
+        StringUtil.print((byte) 1);
+        StringUtil.print((short) 1);
+        StringUtil.print(1);
+        StringUtil.print(1L);
+        StringUtil.print(1F);
+        StringUtil.print(1D);
+        StringUtil.print("Thing");
         
-        StringUtil.printToStream(stream, (Object) null);
-        StringUtil.printToStream(stream, true);
-        StringUtil.printToStream(stream, '%');
-        StringUtil.printToStream(stream, (byte) 1);
-        StringUtil.printToStream(stream, (short) 1);
-        StringUtil.printToStream(stream, 1);
-        StringUtil.printToStream(stream, 1L);
-        StringUtil.printToStream(stream, 1F);
-        StringUtil.printToStream(stream, 1D);
-        StringUtil.printToStream(stream, "Thing");
+        StringUtil.print(null, null);
+        StringUtil.print(true, true);
+        StringUtil.print('%', '%');
+        StringUtil.print((byte) 1, (byte) 1);
+        StringUtil.print((short) 1, (short) 1);
+        StringUtil.print(1, 1);
+        StringUtil.print(1L, 1L);
+        StringUtil.print(1F, 1F);
+        StringUtil.print(1D, 1D);
+        StringUtil.print("Thing", "Thing");
         
-        StringUtil.printToStream(stream, null, null);
-        StringUtil.printToStream(stream, true, true);
-        StringUtil.printToStream(stream, '%', '%');
-        StringUtil.printToStream(stream, (byte) 1, (byte) 1);
-        StringUtil.printToStream(stream, (short) 1, (short) 1);
-        StringUtil.printToStream(stream, 1, 1);
-        StringUtil.printToStream(stream, 1L, 1L);
-        StringUtil.printToStream(stream, 1F, 1F);
-        StringUtil.printToStream(stream, 1D, 1D);
-        StringUtil.printToStream(stream, "Thing", "Thing");
-        
-        StringUtil.printToStream(stream, "{%s-%s}", null, null);
-        StringUtil.printToStream(stream, "{%s-%s}", true, true);
-        StringUtil.printToStream(stream, "{%s-%s}", '%', '%');
-        StringUtil.printToStream(stream, "{%s-%s}", (byte) 1, (byte) 1);
-        StringUtil.printToStream(stream, "{%s-%s}", (short) 1, (short) 1);
-        StringUtil.printToStream(stream, "{%s-%s}", 1, 1);
-        StringUtil.printToStream(stream, "{%s-%s}", 1L, 1L);
-        StringUtil.printToStream(stream, "{%s-%s}", 1F, 1F);
-        StringUtil.printToStream(stream, "{%s-%s}", 1D, 1D);
-        StringUtil.printToStream(stream, "{%s-%s}", "Thing", "Thing");
+        StringUtil.print("{%s-%s}", null, null);
+        StringUtil.print("{%s-%s}", true, true);
+        StringUtil.print("{%s-%s}", '%', '%');
+        StringUtil.print("{%s-%s}", (byte) 1, (byte) 1);
+        StringUtil.print("{%s-%s}", (short) 1, (short) 1);
+        StringUtil.print("{%s-%s}", 1, 1);
+        StringUtil.print("{%s-%s}", 1L, 1L);
+        StringUtil.print("{%s-%s}", 1F, 1F);
+        StringUtil.print("{%s-%s}", 1D, 1D);
+        StringUtil.print("{%s-%s}", "Thing", "Thing");
     }
     
     @Test
     void printlnToStream()
     {
-        PrintStream stream = System.out;
+        StringUtil.println((Object) null);
+        StringUtil.println(true);
+        StringUtil.println('%');
+        StringUtil.println((byte) 1);
+        StringUtil.println((short) 1);
+        StringUtil.println(1);
+        StringUtil.println(1L);
+        StringUtil.println(1F);
+        StringUtil.println(1D);
+        StringUtil.println("Thing");
         
-        StringUtil.printlnToStream(stream, (Object) null);
-        StringUtil.printlnToStream(stream, true);
-        StringUtil.printlnToStream(stream, '%');
-        StringUtil.printlnToStream(stream, (byte) 1);
-        StringUtil.printlnToStream(stream, (short) 1);
-        StringUtil.printlnToStream(stream, 1);
-        StringUtil.printlnToStream(stream, 1L);
-        StringUtil.printlnToStream(stream, 1F);
-        StringUtil.printlnToStream(stream, 1D);
-        StringUtil.printlnToStream(stream, "Thing");
+        StringUtil.println(null, null);
+        StringUtil.println(true, true);
+        StringUtil.println('%', '%');
+        StringUtil.println((byte) 1, (byte) 1);
+        StringUtil.println((short) 1, (short) 1);
+        StringUtil.println(1, 1);
+        StringUtil.println(1L, 1L);
+        StringUtil.println(1F, 1F);
+        StringUtil.println(1D, 1D);
+        StringUtil.println("Thing", "Thing");
         
-        StringUtil.printlnToStream(stream, null, null);
-        StringUtil.printlnToStream(stream, true, true);
-        StringUtil.printlnToStream(stream, '%', '%');
-        StringUtil.printlnToStream(stream, (byte) 1, (byte) 1);
-        StringUtil.printlnToStream(stream, (short) 1, (short) 1);
-        StringUtil.printlnToStream(stream, 1, 1);
-        StringUtil.printlnToStream(stream, 1L, 1L);
-        StringUtil.printlnToStream(stream, 1F, 1F);
-        StringUtil.printlnToStream(stream, 1D, 1D);
-        StringUtil.printlnToStream(stream, "Thing", "Thing");
-        
-        StringUtil.printlnToStream(stream, "{%s-%s}", null, null);
-        StringUtil.printlnToStream(stream, "{%s-%s}", true, true);
-        StringUtil.printlnToStream(stream, "{%s-%s}", '%', '%');
-        StringUtil.printlnToStream(stream, "{%s-%s}", (byte) 1, (byte) 1);
-        StringUtil.printlnToStream(stream, "{%s-%s}", (short) 1, (short) 1);
-        StringUtil.printlnToStream(stream, "{%s-%s}", 1, 1);
-        StringUtil.printlnToStream(stream, "{%s-%s}", 1L, 1L);
-        StringUtil.printlnToStream(stream, "{%s-%s}", 1F, 1F);
-        StringUtil.printlnToStream(stream, "{%s-%s}", 1D, 1D);
-        StringUtil.printlnToStream(stream, "{%s-%s}", "Thing", "Thing");
+        StringUtil.println("{%s-%s}", null, null);
+        StringUtil.println("{%s-%s}", true, true);
+        StringUtil.println("{%s-%s}", '%', '%');
+        StringUtil.println("{%s-%s}", (byte) 1, (byte) 1);
+        StringUtil.println("{%s-%s}", (short) 1, (short) 1);
+        StringUtil.println("{%s-%s}", 1, 1);
+        StringUtil.println("{%s-%s}", 1L, 1L);
+        StringUtil.println("{%s-%s}", 1F, 1F);
+        StringUtil.println("{%s-%s}", 1D, 1D);
+        StringUtil.println("{%s-%s}", "Thing", "Thing");
     }
     
     @Test

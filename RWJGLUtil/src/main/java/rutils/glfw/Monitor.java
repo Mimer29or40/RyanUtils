@@ -1,5 +1,6 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector2i;
@@ -27,7 +28,7 @@ public class Monitor
     protected final int    index;
     protected final String name;
     
-    protected final ArrayList<VideoMode> videoModes       = new ArrayList<>();
+    protected final ArrayList<VideoMode> videoModes = new ArrayList<>();
     protected final VideoMode            primaryVideoMode;
     
     protected final Vector2i actualSize = new Vector2i();
@@ -339,12 +340,39 @@ public class Monitor
         return this.workAreaSize.y;
     }
     
-    public GammaRamp gammaRamp()
+    /**
+     * Returns the current gamma ramp for the monitor.
+     * <p>
+     * The returned structure and its arrays are allocated and freed by GLFW.
+     * You should not free them yourself. They are valid until the specified
+     * monitor is disconnected, this function is called again for that monitor
+     * or the library is terminated.
+     *
+     * @return the current gamma ramp, or {@code null} if an error occurred
+     */
+    public @Nullable GammaRamp gammaRamp()
     {
         GLFWGammaRamp ramp = GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetGammaRamp(this.handle));
         return ramp != null ? new GammaRamp(ramp) : null;
     }
     
+    /**
+     * Sets the current gamma ramp for the monitor.
+     *
+     * <p>This function sets the current gamma ramp for the specified monitor.
+     * The original gamma ramp for that monitor is saved by GLFW the first
+     * time this function is called and is restored by {@link GLFW#destroy()}.
+     * <p>
+     * The software controlled gamma ramp is applied <em>in addition</em> to
+     * the hardware gamma correction, which today is usually an approximation
+     * of sRGB gamma. This means that setting a perfectly linear ramp, or gamma
+     * 1.0, will produce the default (usually sRGB-like) behavior.
+     * <p>
+     * For gamma correct rendering with OpenGL or OpenGL ES, see the
+     * {@link org.lwjgl.glfw.GLFW#GLFW_SRGB_CAPABLE SRGB_CAPABLE} hint.
+     *
+     * @param gammaRamp the gamma ramp to use
+     */
     public void gammaRamp(GammaRamp gammaRamp)
     {
         GLFW.TASK_DELEGATOR.waitRunTask(() -> {
@@ -362,9 +390,26 @@ public class Monitor
         });
     }
     
-    public void gammaRamp(float ramp)
+    /**
+     * Generates a gamma ramp and sets it for the monitor.
+     * <p>
+     * This function generates an appropriately sized gamma ramp from the
+     * specified exponent and then calls {@link #gammaRamp} with it. The value
+     * must be a finite number greater than zero.
+     * <p>
+     * The software controlled gamma ramp is applied <em>in addition</em> to
+     * the hardware gamma correction, which today is usually an approximation
+     * of sRGB gamma. This means that setting a perfectly linear ramp, or gamma
+     * 1.0, will produce the default (usually sRGB-like) behavior.
+     * <p>
+     * For gamma correct rendering with OpenGL or OpenGL ES, see the
+     * {@link org.lwjgl.glfw.GLFW#GLFW_SRGB_CAPABLE SRGB_CAPABLE} hint.
+     *
+     * @param gamma the desired exponent
+     */
+    public void gammaRamp(float gamma)
     {
-        GLFW.TASK_DELEGATOR.waitRunTask(() -> glfwSetGamma(this.handle, ramp));
+        GLFW.TASK_DELEGATOR.waitRunTask(() -> glfwSetGamma(this.handle, gamma));
     }
     
     public int windowOverlap(Window window)

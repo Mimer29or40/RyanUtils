@@ -83,6 +83,6 @@ public enum Modifier implements Predicate<Integer>
     @Override
     public boolean test(Integer mods)
     {
-        return (mods == 0 && this.value == 0) || (mods & this.value) != 0;
+        return this.value == -1 || (mods == 0 && this.value == 0) || (mods & this.value) == this.value;
     }
 }

@@ -310,7 +310,7 @@ public class Window
      */
     public void show()
     {
-        this.taskDelegator.runTask(() -> glfwShowWindow(this.handle));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwShowWindow(this.handle));
     }
     
     /**
@@ -319,7 +319,7 @@ public class Window
      */
     public void hide()
     {
-        this.taskDelegator.runTask(() -> glfwHideWindow(this.handle));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwHideWindow(this.handle));
     }
     
     /**

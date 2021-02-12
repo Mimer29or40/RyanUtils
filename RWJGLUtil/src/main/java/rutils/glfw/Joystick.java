@@ -21,7 +21,7 @@ public class Joystick extends InputDevice
     
     protected final int jid;
     
-    private final boolean gamepad;
+    protected final boolean gamepad;
     
     protected final String name;
     protected final String guid;
