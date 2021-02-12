@@ -149,6 +149,54 @@ public class Monitor
     }
     
     /**
+     * @return The width of the video mode in screen coordinates, not pixels.
+     */
+    public int width()
+    {
+        return videoMode().width;
+    }
+    
+    /**
+     * @return The height of the video mode in screen coordinates, not pixels.
+     */
+    public int height()
+    {
+        return videoMode().height;
+    }
+    
+    /**
+     * @return The red bit depth of the current video mode.
+     */
+    public int redBits()
+    {
+        return videoMode().redBits;
+    }
+    
+    /**
+     * @return The green bit depth of the current video mode.
+     */
+    public int greenBits()
+    {
+        return videoMode().greenBits;
+    }
+    
+    /**
+     * @return The blue bit depth of the current video mode.
+     */
+    public int blueBits()
+    {
+        return videoMode().blueBits;
+    }
+    
+    /**
+     * @return The refresh rate, in Hz, of the current video mode.
+     */
+    public int refreshRate()
+    {
+        return videoMode().refreshRate;
+    }
+    
+    /**
      * The physical size of a monitor in millimetres, or an estimation of it.
      * This has no relation to its current resolution, i.e. the width and
      * height of its current video mode.
