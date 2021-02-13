@@ -1,13 +1,9 @@
 package rutils.glfw;
 
-import java.util.function.Predicate;
-
 import static org.lwjgl.glfw.GLFW.*;
 
-public enum Modifier implements Predicate<Integer>
+public enum Modifier
 {
-    NONE(0x00000000),
-    
     SHIFT(GLFW_MOD_SHIFT),
     CONTROL(GLFW_MOD_CONTROL),
     ALT(GLFW_MOD_ALT),
@@ -74,15 +70,62 @@ public enum Modifier implements Predicate<Integer>
     }
     
     /**
-     * Checks if this modifier is active in the provided bitmap.
+     * Checks if this modifier is active.
      *
-     * @param mods The modifier bitmap.
-     * @return {@code true} if this modifier is active in the bitmap, otherwise
-     * {@code false}
+     * @return {@code true} if this modifier is active, otherwise {@code false}
      */
-    @Override
-    public boolean test(Integer mods)
+    public boolean test()
     {
-        return this.value == -1 || (mods == 0 && this.value == 0) || (mods & this.value) == this.value;
+        return (Modifier.activeMods & this.value) > 0;
+    }
+    
+    /**
+     * Checks to see if the provided modifiers are set.
+     * <p>
+     * If {@link Modifier#ANY ANY} is present among any combination of
+     * Modifiers, then it will take precedent over the other Modifiers, i.e.
+     * returning {@code true} if any modifiers are currently active.
+     * <p>
+     * If no modifiers are provided, then it will return {@code true} if and
+     * only if no modifiers are currently active.
+     *
+     * @param modifiers The modifiers to query.
+     * @return {@code true} if and only if the provided modifiers are active.
+     */
+    public static boolean test(Modifier... modifiers)
+    {
+        if (modifiers.length == 0) return Modifier.activeMods == 0;
+        int query = 0;
+        for (Modifier modifier : modifiers)
+        {
+            if (modifier == Modifier.ANY) return Modifier.activeMods > 0;
+            query |= modifier.value;
+        }
+        return (Modifier.activeMods & query) == query;
+    }
+    
+    /**
+     * Checks to see if and only if the provided modifiers are set.
+     * <p>
+     * If {@link Modifier#ANY ANY} is present among any combination of
+     * Modifiers, then it will take precedent over the other Modifiers, i.e.
+     * returning {@code true} if any modifiers are currently active.
+     * <p>
+     * If no modifiers are provided, then it will return {@code true} if and
+     * only if no modifiers are currently active.
+     *
+     * @param modifiers The modifiers to query.
+     * @return {@code true} if and only if the provided modifiers are active.
+     */
+    public static boolean testExclusive(Modifier... modifiers)
+    {
+        if (modifiers.length == 0) return Modifier.activeMods == 0;
+        int query = 0;
+        for (Modifier modifier : modifiers)
+        {
+            if (modifier == Modifier.ANY) return Modifier.activeMods > 0;
+            query |= modifier.value;
+        }
+        return Modifier.activeMods == query;
     }
 }
