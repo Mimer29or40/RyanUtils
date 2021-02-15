@@ -33,7 +33,7 @@ public class Profiler
     
     private long warningThreshold = 100_000_000L;
     
-    private boolean started;
+    private boolean inFrame;
     
     private final Stack<Pair<String, Long>>        sections         = new Stack<>();
     private final ArrayList<Long>                  frameTimeList    = new ArrayList<>();
@@ -91,7 +91,7 @@ public class Profiler
         
         this.newEnabled = enabled;
         
-        if (!this.started) this.enabled = enabled;
+        if (!this.inFrame) this.enabled = enabled;
     }
     
     /**
@@ -154,21 +154,26 @@ public class Profiler
      */
     public void startFrame()
     {
-        if (this.enabled = this.newEnabled)
+        this.enabled = this.newEnabled;
+        
+        if (this.inFrame)
         {
-            if (this.started)
+            if (this.enabled)
             {
-                Profiler.LOGGER.warning("Frame for %s already started.", this);
+                Profiler.LOGGER.warning("Already in Frame for %s", this);
             }
-            else
+        }
+        else
+        {
+            this.inFrame = true;
+            
+            if (this.enabled)
             {
                 Profiler.LOGGER.finest("Starting Frame for", this);
                 
                 this.sections.clear();
                 
                 this.frameTimeList.add(System.nanoTime());
-                
-                this.started = true;
             }
         }
     }
@@ -178,19 +183,23 @@ public class Profiler
      */
     public void endFrame()
     {
-        if (this.enabled)
+        if (!this.inFrame)
         {
-            if (!this.started)
+            if (this.enabled)
             {
-                Profiler.LOGGER.warning("Frame for %s was never started.", this);
+                Profiler.LOGGER.warning("Frame for %s was never entered.", this);
             }
-            else
+        }
+        else
+        {
+            this.inFrame = false;
+            
+            if (this.enabled)
             {
                 Profiler.LOGGER.finest("Ending Frame for", this);
                 
                 this.frameTimeList.add(System.nanoTime() - this.frameTimeList.remove(this.frameTimeList.size() - 1));
                 
-                this.started = false;
                 if (!this.sections.isEmpty()) Profiler.LOGGER.warning("Frame for %s ended before all sections were ended (remainder: '%s')", this, this.sections.peek());
             }
         }
@@ -206,9 +215,9 @@ public class Profiler
     {
         if (this.enabled)
         {
-            if (!this.started)
+            if (!this.inFrame)
             {
-                Profiler.LOGGER.warning("Cannot start section '%s' in %s because frame wasn't started.", name, this);
+                Profiler.LOGGER.warning("Cannot start section '%s' in %s because not in frame.", name, this);
             }
             else
             {
@@ -232,9 +241,9 @@ public class Profiler
     {
         if (this.enabled)
         {
-            if (!this.started)
+            if (!this.inFrame)
             {
-                Profiler.LOGGER.warning("Cannot stop section because profiler frame wasn't started.");
+                Profiler.LOGGER.warning("Cannot stop section in %s because not in frame.", this);
             }
             else if (this.sections.isEmpty())
             {
