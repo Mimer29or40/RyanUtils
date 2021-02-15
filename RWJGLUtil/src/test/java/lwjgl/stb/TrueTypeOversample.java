@@ -136,7 +136,7 @@ public final class TrueTypeOversample
             charData.clear();
             stbtt_PackEnd(pc);
             
-            font_tex.bind().upload(bitmap).applyTextureSettings();
+            font_tex.bind().set(bitmap).applyTextureSettings();
         }
         catch (IOException e)
         {

@@ -148,18 +148,14 @@ public class GLBuffer
     
     /**
      * Deletes the contents of the buffer and free's its memory.
-     *
-     * @return This instance for call chaining.
      */
-    public GLBuffer delete()
+    public void delete()
     {
         GLBuffer.LOGGER.fine("%s: Deleting", this);
         
         this.bufferSize = 0;
         
         glDeleteBuffers(this.id);
-        
-        return this;
     }
     
     /**
@@ -544,7 +540,7 @@ public class GLBuffer
     {
         GLBuffer.LOGGER.finer("%s: Getting to short array", this);
         
-        short[] shortData = new short[this.bufferSize / Short.BYTES];
+        short[] shortData = new short[this.dataSize / Short.BYTES];
         glGetBufferSubData(this.type.ref(), 0, shortData);
         return shortData;
     }
@@ -560,7 +556,7 @@ public class GLBuffer
     {
         GLBuffer.LOGGER.finer("%s: Getting to int array", this);
         
-        int[] intData = new int[this.bufferSize / Integer.BYTES];
+        int[] intData = new int[this.dataSize / Integer.BYTES];
         glGetBufferSubData(this.type.ref(), 0, intData);
         return intData;
     }
@@ -576,7 +572,7 @@ public class GLBuffer
     {
         GLBuffer.LOGGER.finer("%s: Getting to long array", this);
         
-        long[] longData = new long[this.bufferSize / Long.BYTES];
+        long[] longData = new long[this.dataSize / Long.BYTES];
         glGetBufferSubData(this.type.ref(), 0, longData);
         return longData;
     }
@@ -592,7 +588,7 @@ public class GLBuffer
     {
         GLBuffer.LOGGER.finer("%s: Getting to float array", this);
         
-        float[] floatData = new float[this.bufferSize / Float.BYTES];
+        float[] floatData = new float[this.dataSize / Float.BYTES];
         glGetBufferSubData(this.type.ref(), 0, floatData);
         return floatData;
     }
@@ -608,9 +604,111 @@ public class GLBuffer
     {
         GLBuffer.LOGGER.finer("%s: Getting to double array", this);
         
-        double[] doubleData = new double[this.bufferSize / Double.BYTES];
+        double[] doubleData = new double[this.dataSize / Double.BYTES];
         glGetBufferSubData(this.type.ref(), 0, doubleData);
         return doubleData;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public ByteBuffer getByteBuffer(ByteBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to ByteBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public ShortBuffer getShortBuffer(ShortBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to ShortBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public IntBuffer getIntBuffer(IntBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to IntBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public LongBuffer getLongBuffer(LongBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to LongBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public FloatBuffer getFloatBuffer(FloatBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to FloatBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
+    }
+    
+    /**
+     * Gets the data in the buffer.
+     * <p>
+     * Make sure to bind the buffer first.
+     *
+     * @param buffer The destination buffer.
+     * @return The data in the buffer.
+     */
+    public DoubleBuffer getDoubleBuffer(DoubleBuffer buffer)
+    {
+        GLBuffer.LOGGER.finer("%s: Getting to DoubleBuffer", this);
+        
+        assert buffer.remaining() >= this.bufferSize;
+        glGetBufferSubData(this.type.ref(), 0, buffer);
+        return buffer;
     }
     
     /**
@@ -622,11 +720,7 @@ public class GLBuffer
      */
     public ByteBuffer getByteBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to ByteBuffer", this);
-        
-        ByteBuffer buffer = BufferUtils.createByteBuffer(this.bufferSize);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getByteBuffer(BufferUtils.createByteBuffer(this.dataSize));
     }
     
     /**
@@ -638,11 +732,7 @@ public class GLBuffer
      */
     public ShortBuffer getShortBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to ShortBuffer", this);
-        
-        ShortBuffer buffer = BufferUtils.createShortBuffer(this.bufferSize / Short.BYTES);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getShortBuffer(BufferUtils.createByteBuffer(this.dataSize).asShortBuffer());
     }
     
     /**
@@ -654,11 +744,7 @@ public class GLBuffer
      */
     public IntBuffer getIntBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to IntBuffer", this);
-        
-        IntBuffer buffer = BufferUtils.createIntBuffer(this.bufferSize / Integer.BYTES);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getIntBuffer(BufferUtils.createByteBuffer(this.dataSize).asIntBuffer());
     }
     
     /**
@@ -670,11 +756,7 @@ public class GLBuffer
      */
     public LongBuffer getLongBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to LongBuffer", this);
-        
-        LongBuffer buffer = BufferUtils.createLongBuffer(this.bufferSize / Long.BYTES);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getLongBuffer(BufferUtils.createByteBuffer(this.dataSize).asLongBuffer());
     }
     
     /**
@@ -686,11 +768,7 @@ public class GLBuffer
      */
     public FloatBuffer getFloatBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to FloatBuffer", this);
-        
-        FloatBuffer buffer = BufferUtils.createFloatBuffer(this.bufferSize / Float.BYTES);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getFloatBuffer(BufferUtils.createByteBuffer(this.dataSize).asFloatBuffer());
     }
     
     /**
@@ -702,10 +780,6 @@ public class GLBuffer
      */
     public DoubleBuffer getDoubleBuffer()
     {
-        GLBuffer.LOGGER.finer("%s: Getting to DoubleBuffer", this);
-        
-        DoubleBuffer buffer = BufferUtils.createDoubleBuffer(this.bufferSize / Double.BYTES);
-        glGetBufferSubData(this.type.ref(), 0, buffer);
-        return buffer;
+        return getDoubleBuffer(BufferUtils.createByteBuffer(this.dataSize).asDoubleBuffer());
     }
 }

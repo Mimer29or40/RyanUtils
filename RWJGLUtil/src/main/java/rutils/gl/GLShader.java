@@ -1,6 +1,7 @@
 package rutils.gl;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 import org.lwjgl.system.MemoryStack;
 import rutils.Logger;
@@ -34,21 +35,21 @@ public class GLShader
     {
         this.id = glCreateProgram();
         
-        GLShader.LOGGER.fine("Generating GLShader{id=%s}", this.id);
+        GLShader.LOGGER.fine("Generated ", this);
     }
     
     @Override
-    public String toString()
+    public @NotNull String toString()
     {
         return "GLShader{" + "id=" + this.id + '}';
     }
     
-    public GLShader loadFile(String file)
+    public @NotNull GLShader loadFile(@NotNull String file)
     {
         return loadFile(determineShaderType(getPath(file)), file);
     }
     
-    public GLShader loadFile(GL shaderType, String file)
+    public @NotNull GLShader loadFile(@NotNull GL shaderType, @NotNull String file)
     {
         try
         {
@@ -64,7 +65,7 @@ public class GLShader
         }
     }
     
-    public GLShader load(GL shaderType, String source)
+    public @NotNull GLShader load(@NotNull GL shaderType, @NotNull String source)
     {
         GLShader.LOGGER.fine("%s: Loading %s from String:%n%s", this, shaderType, source);
         
@@ -76,15 +77,17 @@ public class GLShader
      *
      * @return This instance for call chaining.
      */
-    public GLShader validate()
+    public @NotNull GLShader validate()
     {
-        GLShader.LOGGER.fine("%s: Validating", this);
-        
         glLinkProgram(this.id);
         if (glGetProgrami(this.id, GL_LINK_STATUS) != GL_TRUE) throw new RuntimeException(this + " Link failure: \n" + glGetProgramInfoLog(this.id));
         
+        GLShader.LOGGER.fine("%s: Linked", this);
+        
         glValidateProgram(this.id);
         if (glGetProgrami(this.id, GL_VALIDATE_STATUS) != GL_TRUE) throw new RuntimeException(this + " Validation failure: \n" + glGetProgramInfoLog(this.id));
+        
+        GLShader.LOGGER.fine("%s: Validated", this);
         
         return this;
     }
@@ -95,12 +98,12 @@ public class GLShader
      * @param shaderType The type to query.
      * @return The source string.
      */
-    public @NotNull String source(GL shaderType)
+    public @Nullable String source(GL shaderType)
     {
         String source = this.sources.get(shaderType);
         if (source != null) return source;
         GLShader.LOGGER.warning("%s does not have a shader associated with %s", this, shaderType);
-        return "";
+        return null;
     }
     
     /**
@@ -108,7 +111,7 @@ public class GLShader
      *
      * @return This instance for call chaining.
      */
-    public GLShader bind()
+    public @NotNull GLShader bind()
     {
         GLShader.LOGGER.finer("%s: Binding", this);
         
@@ -121,7 +124,7 @@ public class GLShader
      *
      * @return This instance for call chaining.
      */
-    public GLShader unbind()
+    public @NotNull GLShader unbind()
     {
         GLShader.LOGGER.finer("%s: Unbinding", this);
         
@@ -131,10 +134,8 @@ public class GLShader
     
     /**
      * Deletes the shader from memory.
-     *
-     * @return This instance for call chaining.
      */
-    public GLShader delete()
+    public void delete()
     {
         GLShader.LOGGER.fine("%s: Deleting", this);
         
@@ -143,8 +144,6 @@ public class GLShader
         
         this.shaders.clear();
         this.sources.clear();
-        
-        return this;
     }
     
     /**
@@ -153,7 +152,7 @@ public class GLShader
      * @param name  The uniform name.
      * @param value The value.
      */
-    public void setUniform(final String name, boolean value)
+    public void setUniform(@NotNull final String name, boolean value)
     {
         GLShader.LOGGER.finest("%s: Setting bool Uniform: %s=%s", this, name, value);
         
@@ -234,7 +233,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector2ic vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector2ic vec)
     {
         setUniform(name, vec.x(), vec.y());
     }
@@ -245,7 +244,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector2fc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector2fc vec)
     {
         setUniform(name, vec.x(), vec.y());
     }
@@ -256,7 +255,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector2dc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector2dc vec)
     {
         setUniform(name, vec.x(), vec.y());
     }
@@ -269,7 +268,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(final String name, boolean x, boolean y, boolean z)
+    public void setUniform(@NotNull final String name, boolean x, boolean y, boolean z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -284,7 +283,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(final String name, long x, long y, long z)
+    public void setUniform(@NotNull final String name, long x, long y, long z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -299,7 +298,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(final String name, double x, double y, double z)
+    public void setUniform(@NotNull final String name, double x, double y, double z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -312,7 +311,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector3ic vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector3ic vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z());
     }
@@ -323,7 +322,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector3fc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector3fc vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z());
     }
@@ -334,7 +333,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector3dc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector3dc vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z());
     }
@@ -348,7 +347,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(final String name, boolean x, boolean y, boolean z, boolean w)
+    public void setUniform(@NotNull final String name, boolean x, boolean y, boolean z, boolean w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -364,7 +363,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(final String name, long x, long y, long z, long w)
+    public void setUniform(@NotNull final String name, long x, long y, long z, long w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -380,7 +379,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(final String name, double x, double y, double z, double w)
+    public void setUniform(@NotNull final String name, double x, double y, double z, double w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -393,7 +392,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector4ic vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector4ic vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z(), vec.w());
     }
@@ -404,7 +403,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector4fc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector4fc vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z(), vec.w());
     }
@@ -415,7 +414,7 @@ public class GLShader
      * @param name The uniform name.
      * @param vec  The value.
      */
-    public void setUniform(final String name, Vector4dc vec)
+    public void setUniform(@NotNull final String name, @NotNull final Vector4dc vec)
     {
         setUniform(name, vec.x(), vec.y(), vec.z(), vec.w());
     }
@@ -426,7 +425,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix2fc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix2fc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat2 Uniform: %s=%n%s", this, name, mat);
         
@@ -442,7 +441,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix2dc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix2dc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat2 Uniform: %s=%n%s", this, name, mat);
         
@@ -461,7 +460,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix3fc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix3fc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat3 Uniform: %s=%n%s", this, name, mat);
         
@@ -477,7 +476,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix3dc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix3dc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat3 Uniform: %s=%n%s", this, name, mat);
         
@@ -493,7 +492,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix4fc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix4fc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat4 Uniform: %s=%n%s", this, name, mat);
         
@@ -509,7 +508,7 @@ public class GLShader
      * @param name The uniform name.
      * @param mat  The matrix value.
      */
-    public void setUniform(final String name, Matrix4dc mat)
+    public void setUniform(@NotNull final String name, @NotNull final Matrix4dc mat)
     {
         GLShader.LOGGER.finest("%s: Setting mat4 Uniform: %s=%n%s", this, name, mat);
         

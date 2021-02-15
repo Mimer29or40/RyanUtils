@@ -87,7 +87,7 @@ public final class TrueType extends FontDemo
         ByteBuffer bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H);
         stbtt_BakeFontBitmap(ttf, getFontHeight() * getContentScaleY(), bitmap, BITMAP_W, BITMAP_H, 32, cdata);
     
-        texture.bind().filterMode(GL.LINEAR, GL.LINEAR).applyTextureSettings().upload(bitmap);
+        texture.bind().filterMode(GL.LINEAR, GL.LINEAR).applyTextureSettings().set(bitmap);
         texture.saveImage("out/original.png").copy().bind().saveImage("out/copied.png");
         texture.bind();
         

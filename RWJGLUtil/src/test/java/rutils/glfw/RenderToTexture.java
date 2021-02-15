@@ -2,7 +2,6 @@ package rutils.glfw;
 
 import org.joml.Matrix3d;
 import org.joml.Matrix4d;
-import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import rutils.gl.GL;
 import rutils.gl.GLShader;
@@ -285,7 +284,7 @@ public class RenderToTexture extends GLFWApplicationTest
                 }
             }
         }
-        this.texture.bind().upload(data.clear()).applyTextureSettings();
+        this.texture.bind().set(data.clear()).applyTextureSettings();
         
         glClearColor(.5f, .5f, .5f, 1.f);
     }

@@ -460,8 +460,7 @@ public class GLVertexArray
             
             if (i + 1 >= n || formats[i + 1] instanceof GL)
             {
-                if (format == null) throw new RuntimeException("Invalid vertex format: GL type not provided");
-                Attribute attribute = getAttribute(format, count != null ? count : 1, normalized != null ? normalized : false);
+                Attribute attribute = getAttribute(format, count, normalized);
                 bufferAttributes.add(attribute);
                 stride += attribute.size;
                 
@@ -1383,13 +1382,17 @@ public class GLVertexArray
     
     private static final HashMap<Integer, Attribute> ATTRIBUTE_CACHE = new HashMap<>();
     
-    private static Attribute getAttribute(GL type, int count, boolean normalize)
+    private static Attribute getAttribute(GL format, Integer c, Boolean n)
     {
-        int hash = Objects.hash(type, count);
+        if (format == null) throw new RuntimeException("Invalid vertex format: GL type not provided");
+        int     count     = c != null ? c : 1;
+        boolean normalize = n != null ? n : false;
+        
+        int hash = Objects.hash(format, count, normalize);
         
         if (!GLVertexArray.ATTRIBUTE_CACHE.containsKey(hash))
         {
-            Attribute attribute = new Attribute(type, count, normalize);
+            Attribute attribute = new Attribute(format, count, normalize);
             
             GLVertexArray.ATTRIBUTE_CACHE.put(hash, attribute);
         }

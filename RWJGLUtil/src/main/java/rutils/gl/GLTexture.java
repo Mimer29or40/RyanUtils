@@ -260,7 +260,7 @@ public class GLTexture
         other.minFilter = this.minFilter;
         other.magFilter = this.magFilter;
         
-        return copy(other.bind().applyTextureSettings().upload((ByteBuffer) null).unbind());
+        return copy(other.bind().applyTextureSettings().set((ByteBuffer) null).unbind());
     }
     
     /**
@@ -282,6 +282,30 @@ public class GLTexture
     }
     
     /**
+     * Creates a new texture that is a sub region of this one.
+     *
+     * @param x      the left coordinate of the sub region
+     * @param y      the top coordinate of the sub region
+     * @param width  the width of the sub region
+     * @param height the height of the sub region
+     * @return the new Texture.
+     */
+    public GLTexture subTexture(int x, int y, int width, int height)
+    {
+        if (x + width > this.width) throw new RuntimeException("Sub-Region exceeds texture bounds");
+        if (y + height > this.height) throw new RuntimeException("Sub-Region exceeds texture bounds");
+        
+        GLTexture other = new GLTexture(width, height, this.internalFormat);
+        other.bind().applyTextureSettings().allocate().unbind();
+        
+        glCopyImageSubData(this.id, GL_TEXTURE_2D, 0, x, y, 0,
+                           other.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                           width, height, this.channels);
+        
+        return other;
+    }
+    
+    /**
      * Allocates the memory required to store this texture in v-ram.
      * <p>
      * Make sure to bind the texture first.
@@ -296,44 +320,17 @@ public class GLTexture
     }
     
     /**
-     * Uploads the data in the byte buffer to the GPU
-     * <p>
-     * Make sure to bind the texture first.
-     *
-     * @param data The texture data.
-     * @return This instance for call chaining
-     */
-    public GLTexture upload(ByteBuffer data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
-        
-        return this;
-    }
-    
-    /**
-     * Uploads the data in the byte buffer to the GPU
-     * <p>
-     * Make sure to bind the texture first.
-     *
-     * @param data The texture data.
-     * @return This instance for call chaining
-     */
-    public GLTexture upload(int[] data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
-        
-        return this;
-    }
-    
-    /**
      * Downloads the texture from the GPU and stores it into the buffer.
      * <p>
      * Make sure to bind the texture first.
      *
      * @return This buffer containing the data.
      */
-    public ByteBuffer download(ByteBuffer data)
+    public ByteBuffer get(ByteBuffer data)
     {
+        int size = this.width * this.height * this.channels;
+        if (data.remaining() != size) throw new RuntimeException("Array size mismatch: " + data.remaining() + " != " + size);
+        
         glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
         
         return data;
@@ -346,8 +343,11 @@ public class GLTexture
      *
      * @return This buffer containing the data.
      */
-    public int[] download(int[] data)
+    public int[] get(int[] data)
     {
+        int size = this.width * this.height * this.channels;
+        if (data.length != size) throw new RuntimeException("Array size mismatch: " + data.length + " != " + size);
+        
         glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
         
         return data;
@@ -360,9 +360,45 @@ public class GLTexture
      *
      * @return This array containing the data.
      */
-    public int[] download()
+    public int[] get()
     {
-        return download(new int[this.width * this.height * this.channels]);
+        return get(new int[this.width * this.height * this.channels]);
+    }
+    
+    /**
+     * Uploads the data in the byte buffer to the GPU
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @param data The texture data.
+     * @return This instance for call chaining
+     */
+    public GLTexture set(ByteBuffer data)
+    {
+        int size = this.width * this.height * this.channels;
+        if (data.remaining() != size) throw new RuntimeException("Array size mismatch: " + data.remaining() + " != " + size);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
+        
+        return this;
+    }
+    
+    /**
+     * Uploads the data in the byte buffer to the GPU
+     * <p>
+     * Make sure to bind the texture first.
+     *
+     * @param data The texture data.
+     * @return This instance for call chaining
+     */
+    public GLTexture set(int[] data)
+    {
+        int size = this.width * this.height * this.channels;
+        if (data.length != size) throw new RuntimeException("Array size mismatch: " + data.length + " != " + size);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
+        
+        return this;
     }
     
     /**
@@ -389,7 +425,7 @@ public class GLTexture
     {
         if (!filePath.endsWith(".png")) filePath += ".png";
         
-        ByteBuffer data = download(MemoryUtil.memAlloc(this.width * this.height * this.channels));
+        ByteBuffer data = get(MemoryUtil.memAlloc(this.width * this.height * this.channels));
         
         if (!stbi_write_png(filePath, this.width, this.height, this.channels, data, this.width * this.channels))
         {
@@ -423,7 +459,7 @@ public class GLTexture
             {
                 ByteBuffer data = stbi_load(actualPath, width, height, channels, 0);
                 
-                return new GLTexture(width.get(), height.get(), getFormat(channels.get())).bind().upload(data).generateMipmap().unbind();
+                return new GLTexture(width.get(), height.get(), getFormat(channels.get())).bind().set(data).generateMipmap().unbind();
             }
             else
             {

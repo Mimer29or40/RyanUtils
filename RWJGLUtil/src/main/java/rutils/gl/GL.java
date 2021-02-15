@@ -1875,34 +1875,29 @@ public enum GL
     static
     {
         glEnable(GL_DEBUG_OUTPUT);
-        glDebugMessageCallback(new GLDebugMessageCallback()
-        {
-            @Override
-            public void invoke(int sourceInt, int typeInt, int idInt, int severityInt, int length, long messagePointer, long userParam)
+        glDebugMessageCallback((sourceInt, typeInt, idInt, severityInt, length, messagePointer, userParam) -> {
+            GL source   = GL.get(sourceInt);
+            GL type     = GL.get(typeInt);
+            GL id       = GL.get(idInt);
+            GL severity = GL.get(severityInt);
+        
+            String header  = "OpenGL Error Message\n\tID: %s\n\tSource: %s\n\tType: %s\n\tSeverity: %s\n\tMessage: %s\n";
+            String message = MemoryUtil.memUTF8(messagePointer);
+        
+            switch (type)
             {
-                GL source   = GL.get(sourceInt);
-                GL type     = GL.get(typeInt);
-                GL id       = GL.get(idInt);
-                GL severity = GL.get(severityInt);
-                
-                String header  = "OpenGL Error Message\n\tID: %s\n\tSource: %s\n\tType: %s\n\tSeverity: %s\n\tMessage: %s\n";
-                String message = MemoryUtil.memUTF8(messagePointer);
-                
-                switch (type)
-                {
-                    case DEBUG_TYPE_ERROR -> {
-                        switch (severity)
-                        {
-                            case DEBUG_SEVERITY_HIGH -> GL.LOGGER.severe(header, id, source, type, severity, message);
-                            case DEBUG_SEVERITY_MEDIUM -> GL.LOGGER.warning(header, id, source, type, severity, message);
-                            case DEBUG_SEVERITY_LOW -> GL.LOGGER.info(header, id, source, type, severity, message);
-                            case DEBUG_SEVERITY_NOTIFICATION -> GL.LOGGER.fine(header, id, source, type, severity, message);
-                        }
+                case DEBUG_TYPE_ERROR -> {
+                    switch (severity)
+                    {
+                        case DEBUG_SEVERITY_HIGH -> GL.LOGGER.severe(header, id, source, type, severity, message);
+                        case DEBUG_SEVERITY_MEDIUM -> GL.LOGGER.warning(header, id, source, type, severity, message);
+                        case DEBUG_SEVERITY_LOW -> GL.LOGGER.info(header, id, source, type, severity, message);
+                        case DEBUG_SEVERITY_NOTIFICATION -> GL.LOGGER.finer(header, id, source, type, severity, message);
                     }
-                    case DEBUG_TYPE_DEPRECATED_BEHAVIOR, DEBUG_TYPE_UNDEFINED_BEHAVIOR -> GL.LOGGER.warning(header, id, source, type, severity, message);
-                    case DEBUG_TYPE_PORTABILITY -> GL.LOGGER.info(header, id, source, type, severity, message);
-                    default -> GL.LOGGER.fine(header, id, source, type, severity, message);
                 }
+                case DEBUG_TYPE_DEPRECATED_BEHAVIOR, DEBUG_TYPE_UNDEFINED_BEHAVIOR -> GL.LOGGER.warning(header, id, source, type, severity, message);
+                case DEBUG_TYPE_PORTABILITY -> GL.LOGGER.info(header, id, source, type, severity, message);
+                default -> GL.LOGGER.finer(header, id, source, type, severity, message);
             }
         }, 0);
     }
