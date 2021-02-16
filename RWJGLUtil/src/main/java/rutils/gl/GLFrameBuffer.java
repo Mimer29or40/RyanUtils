@@ -24,8 +24,8 @@ public class GLFrameBuffer
         this.width  = width;
         this.height = height;
         
-        this.color        = new GLTexture(width, height, GL.RGB).bind().allocate().filterMode(GL.NEAREST, GL.NEAREST).unbind();
-        this.depthStencil = new GLTexture(width, height, GL.DEPTH24_STENCIL8).bind().allocate().filterMode(GL.NEAREST, GL.NEAREST).unbind();
+        this.color        = new GLTexture(width, height, GL.RGB).bind().allocate().wrapMode(GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE).filterMode(GL.NEAREST, GL.NEAREST).unbind();
+        this.depthStencil = new GLTexture(width, height, GL.DEPTH24_STENCIL8).bind().allocate().wrapMode(GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE).filterMode(GL.NEAREST, GL.NEAREST).unbind();
         
         GLFrameBuffer.LOGGER.fine("Generated:", this);
     }

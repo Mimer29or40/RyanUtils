@@ -4,6 +4,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import rutils.IOUtil;
 import rutils.Logger;
+import rutils.MemUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -260,7 +261,7 @@ public class GLTexture
         other.minFilter = this.minFilter;
         other.magFilter = this.magFilter;
         
-        return copy(other.bind().applyTextureSettings().set((ByteBuffer) null).unbind());
+        return copy(other.bind().applyTextureSettings().allocate().unbind());
     }
     
     /**
@@ -348,7 +349,13 @@ public class GLTexture
         int size = this.width * this.height * this.channels;
         if (data.length != size) throw new RuntimeException("Array size mismatch: " + data.length + " != " + size);
         
-        glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
+        ByteBuffer buffer = MemoryUtil.memAlloc(size);
+        
+        glGetTexImage(GL_TEXTURE_2D, 0, this.format.ref(), GL_UNSIGNED_BYTE, buffer);
+        
+        MemUtil.memCopy(buffer, data);
+        
+        MemoryUtil.memFree(buffer);
         
         return data;
     }
@@ -396,7 +403,13 @@ public class GLTexture
         int size = this.width * this.height * this.channels;
         if (data.length != size) throw new RuntimeException("Array size mismatch: " + data.length + " != " + size);
         
-        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, data);
+        ByteBuffer buffer = MemoryUtil.memAlloc(size);
+        
+        MemUtil.memCopy(data, buffer);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), GL_UNSIGNED_BYTE, buffer);
+        
+        MemoryUtil.memFree(buffer);
         
         return this;
     }
@@ -457,7 +470,7 @@ public class GLTexture
             
             if (stbi_info(actualPath, width, height, channels))
             {
-                ByteBuffer data = stbi_load(actualPath, width, height, channels, 0);
+                ByteBuffer data = Objects.requireNonNull(stbi_load(actualPath, width, height, channels, 0), "Failed to load Texture: " + filePath);
                 
                 return new GLTexture(width.get(), height.get(), getFormat(channels.get())).bind().set(data).generateMipmap().unbind();
             }
