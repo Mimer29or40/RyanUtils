@@ -67,7 +67,7 @@ public class Noise
     
     // -------------------- Properties (All NoiseTypes) -------------------- //
     
-    private int   seed;
+    private int    seed;
     private double frequency = 0.01;
     private Type   type      = Type.OPEN_SIMPLEX_2;
     // private Rotation rotation  = Rotation.NONE;
@@ -144,7 +144,7 @@ public class Noise
     public double get(double x)
     {
         x *= this.frequency;
-    
+        
         return get(this.seed, x);
     }
     
@@ -152,7 +152,7 @@ public class Noise
     {
         x *= this.frequency;
         y *= this.frequency;
-    
+        
         return get(this.seed, x, y);
     }
     
@@ -161,7 +161,7 @@ public class Noise
         x *= this.frequency;
         y *= this.frequency;
         z *= this.frequency;
-    
+        
         return get(this.seed, x, y, z);
     }
     
@@ -171,7 +171,7 @@ public class Noise
         y *= this.frequency;
         z *= this.frequency;
         w *= this.frequency;
-    
+        
         return get(this.seed, x, y, z, w);
     }
     
@@ -260,7 +260,7 @@ public class Noise
         int y2 = y1 + PRIME_Y;
         int x3 = x1 + (PRIME_X << 1);
         int y3 = y1 + (PRIME_Y << 1);
-    
+        
         double lx_y0 = lerpCubic(valueCoord(seed, x0, y0), valueCoord(seed, x1, y0), valueCoord(seed, x2, y0), valueCoord(seed, x3, y0), xs);
         double lx_y1 = lerpCubic(valueCoord(seed, x0, y1), valueCoord(seed, x1, y1), valueCoord(seed, x2, y1), valueCoord(seed, x3, y1), xs);
         double lx_y2 = lerpCubic(valueCoord(seed, x0, y2), valueCoord(seed, x1, y2), valueCoord(seed, x2, y2), valueCoord(seed, x3, y2), xs);
@@ -288,7 +288,7 @@ public class Noise
         int x3 = x1 + (PRIME_X << 1);
         int y3 = y1 + (PRIME_Y << 1);
         int z3 = z1 + (PRIME_Z << 1);
-    
+        
         double lx_y0_z0 = lerpCubic(valueCoord(seed, x0, y0, z0), valueCoord(seed, x1, y0, z0), valueCoord(seed, x2, y0, z0), valueCoord(seed, x3, y0, z0), xs);
         double lx_y1_z0 = lerpCubic(valueCoord(seed, x0, y1, z0), valueCoord(seed, x1, y1, z0), valueCoord(seed, x2, y1, z0), valueCoord(seed, x3, y1, z0), xs);
         double lx_y2_z0 = lerpCubic(valueCoord(seed, x0, y2, z0), valueCoord(seed, x1, y2, z0), valueCoord(seed, x2, y2, z0), valueCoord(seed, x3, y2, z0), xs);
@@ -305,12 +305,12 @@ public class Noise
         double lx_y1_z3 = lerpCubic(valueCoord(seed, x0, y1, z3), valueCoord(seed, x1, y1, z3), valueCoord(seed, x2, y1, z3), valueCoord(seed, x3, y1, z3), xs);
         double lx_y2_z3 = lerpCubic(valueCoord(seed, x0, y2, z3), valueCoord(seed, x1, y2, z3), valueCoord(seed, x2, y2, z3), valueCoord(seed, x3, y2, z3), xs);
         double lx_y3_z3 = lerpCubic(valueCoord(seed, x0, y3, z3), valueCoord(seed, x1, y3, z3), valueCoord(seed, x2, y3, z3), valueCoord(seed, x3, y3, z3), xs);
-    
+        
         double ly_z0 = lerpCubic(lx_y0_z0, lx_y1_z0, lx_y2_z0, lx_y3_z0, ys);
         double ly_z1 = lerpCubic(lx_y0_z1, lx_y1_z1, lx_y2_z1, lx_y3_z1, ys);
         double ly_z2 = lerpCubic(lx_y0_z2, lx_y1_z2, lx_y2_z2, lx_y3_z2, ys);
         double ly_z3 = lerpCubic(lx_y0_z3, lx_y1_z3, lx_y2_z3, lx_y3_z3, ys);
-    
+        
         return lerpCubic(ly_z0, ly_z1, ly_z2, ly_z3, zs) * (1.0 / (1.5 * 1.5 * 1.5));
     }
     
@@ -338,7 +338,7 @@ public class Noise
         int y3 = y1 + (PRIME_Y << 1);
         int z3 = z1 + (PRIME_Z << 1);
         int w3 = w1 + (PRIME_W << 1);
-    
+        
         double lx_y0_z0_w0 = lerpCubic(valueCoord(seed, x0, y0, z0, w0), valueCoord(seed, x1, y0, z0, w0), valueCoord(seed, x2, y0, z0, w0), valueCoord(seed, x3, y0, z0, w0), xs);
         double lx_y1_z0_w0 = lerpCubic(valueCoord(seed, x0, y1, z0, w0), valueCoord(seed, x1, y1, z0, w0), valueCoord(seed, x2, y1, z0, w0), valueCoord(seed, x3, y1, z0, w0), xs);
         double lx_y2_z0_w0 = lerpCubic(valueCoord(seed, x0, y2, z0, w0), valueCoord(seed, x1, y2, z0, w0), valueCoord(seed, x2, y2, z0, w0), valueCoord(seed, x3, y2, z0, w0), xs);
@@ -403,7 +403,7 @@ public class Noise
         double lx_y1_z3_w3 = lerpCubic(valueCoord(seed, x0, y1, z3, w3), valueCoord(seed, x1, y1, z3, w3), valueCoord(seed, x2, y1, z3, w3), valueCoord(seed, x3, y1, z3, w3), xs);
         double lx_y2_z3_w3 = lerpCubic(valueCoord(seed, x0, y2, z3, w3), valueCoord(seed, x1, y2, z3, w3), valueCoord(seed, x2, y2, z3, w3), valueCoord(seed, x3, y2, z3, w3), xs);
         double lx_y3_z3_w3 = lerpCubic(valueCoord(seed, x0, y3, z3, w3), valueCoord(seed, x1, y3, z3, w3), valueCoord(seed, x2, y3, z3, w3), valueCoord(seed, x3, y3, z3, w3), xs);
-    
+        
         double ly_z0_w0 = lerpCubic(lx_y0_z0_w0, lx_y1_z0_w0, lx_y2_z0_w0, lx_y3_z0_w0, ys);
         double ly_z1_w0 = lerpCubic(lx_y0_z1_w0, lx_y1_z1_w0, lx_y2_z1_w0, lx_y3_z1_w0, ys);
         double ly_z2_w0 = lerpCubic(lx_y0_z2_w0, lx_y1_z2_w0, lx_y2_z2_w0, lx_y3_z2_w0, ys);
@@ -420,12 +420,12 @@ public class Noise
         double ly_z1_w3 = lerpCubic(lx_y0_z1_w3, lx_y1_z1_w3, lx_y2_z1_w3, lx_y3_z1_w3, ys);
         double ly_z2_w3 = lerpCubic(lx_y0_z2_w3, lx_y1_z2_w3, lx_y2_z2_w3, lx_y3_z2_w3, ys);
         double ly_z3_w3 = lerpCubic(lx_y0_z3_w3, lx_y1_z3_w3, lx_y2_z3_w3, lx_y3_z3_w3, ys);
-    
+        
         double lz_w0 = lerpCubic(ly_z0_w0, ly_z1_w0, ly_z2_w0, ly_z3_w0, zs);
         double lz_w1 = lerpCubic(ly_z0_w1, ly_z1_w1, ly_z2_w1, ly_z3_w1, zs);
         double lz_w2 = lerpCubic(ly_z0_w2, ly_z1_w2, ly_z2_w2, ly_z3_w2, zs);
         double lz_w3 = lerpCubic(ly_z0_w3, ly_z1_w3, ly_z2_w3, ly_z3_w3, zs);
-    
+        
         return lerpCubic(lz_w0, lz_w1, lz_w2, lz_w3, ws) * (1.0 / (1.5 * 1.5 * 1.5 * 1.5));
     }
     
@@ -452,10 +452,10 @@ public class Noise
         
         int x1 = (x0 *= PRIME_X) + PRIME_X;
         int y1 = (y0 *= PRIME_Y) + PRIME_Y;
-    
+        
         double lx_y0 = lerp(valueCoord(seed, x0, y0), valueCoord(seed, x1, y0), xs);
         double lx_y1 = lerp(valueCoord(seed, x0, y1), valueCoord(seed, x1, y1), xs);
-    
+        
         return lerp(lx_y0, lx_y1, ys);
     }
     
@@ -472,15 +472,15 @@ public class Noise
         int x1 = (x0 *= PRIME_X) + PRIME_X;
         int y1 = (y0 *= PRIME_Y) + PRIME_Y;
         int z1 = (z0 *= PRIME_Z) + PRIME_Z;
-    
+        
         double lx_y0_z0 = lerp(valueCoord(seed, x0, y0, z0), valueCoord(seed, x1, y0, z0), xs);
         double lx_y1_z0 = lerp(valueCoord(seed, x0, y1, z0), valueCoord(seed, x1, y1, z0), xs);
         double lx_y0_z1 = lerp(valueCoord(seed, x0, y0, z1), valueCoord(seed, x1, y0, z1), xs);
         double lx_y1_z1 = lerp(valueCoord(seed, x0, y1, z1), valueCoord(seed, x1, y1, z1), xs);
-    
+        
         double ly_z0 = lerp(lx_y0_z0, lx_y1_z0, ys);
         double ly_z1 = lerp(lx_y0_z1, lx_y1_z1, ys);
-    
+        
         return lerp(ly_z0, ly_z1, zs);
     }
     
@@ -728,7 +728,7 @@ public class Noise
     
     private static final int PRIME_MUL = 0x27D4EB2D;
     
-    private static final double VALUE_MUL = 1.0 / ((double) Integer.MAX_VALUE + 1.0) ;
+    private static final double VALUE_MUL = 1.0 / ((double) Integer.MAX_VALUE + 1.0);
     
     private static int hash(int seed, int x)
     {
@@ -796,8 +796,8 @@ public class Noise
         hash ^= hash >>> 32;
         hash &= 0xFE;
         
-        double xg = Noise.GRAD2[(int) hash];
-        double yg = Noise.GRAD2[(int) hash | 1];
+        double xg = Noise.GRAD2[hash];
+        double yg = Noise.GRAD2[hash | 1];
         
         return xd * xg + yd * yg;
     }
@@ -808,9 +808,9 @@ public class Noise
         hash ^= hash >>> 32;
         hash &= 0xFC;
         
-        double xg = Noise.GRAD3[(int) hash];
-        double yg = Noise.GRAD3[(int) hash | 1];
-        double zg = Noise.GRAD3[(int) hash | 2];
+        double xg = Noise.GRAD3[hash];
+        double yg = Noise.GRAD3[hash | 1];
+        double zg = Noise.GRAD3[hash | 2];
         
         return xd * xg + yd * yg + zd * zg;
     }
@@ -828,7 +828,7 @@ public class Noise
         
         hash &= 31;
         double a, b, c;    // X,Y,Z
-        switch ((int) hash >> 3) // OR, DEPENDING ON HIGH ORDER 2 BITS:
+        switch (hash >> 3) // OR, DEPENDING ON HIGH ORDER 2 BITS:
         {
             // W,X,Y
             case 1 -> {

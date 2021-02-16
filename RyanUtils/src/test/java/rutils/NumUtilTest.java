@@ -828,7 +828,7 @@ class NumUtilTest
     {
         double[] numbers = new double[] {10.234543, 0.3425, 6.42345, -4.34523, -3654.2342};
         int[]    floors  = new int[] {11, 1, 7, -4, -3654};
-    
+        
         for (int i = 0, n = numbers.length; i < n; i++)
         {
             assertEquals(floors[i], NumUtil.fastCeil(numbers[i]));

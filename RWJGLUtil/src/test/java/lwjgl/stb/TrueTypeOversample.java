@@ -310,7 +310,7 @@ public final class TrueTypeOversample
         
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if (action == GLFW_RELEASE) return;
-    
+            
             switch (key)
             {
                 case GLFW_KEY_ESCAPE -> glfwSetWindowShouldClose(window, true);

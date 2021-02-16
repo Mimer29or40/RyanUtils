@@ -7,7 +7,7 @@ public interface EventGamepadButtonPressed extends EventInputDeviceInputPressed,
     final class _EventJoystickButtonPressed extends AbstractEventGamepadButton implements EventGamepadButtonPressed
     {
         private final boolean doublePressed;
-    
+        
         private _EventJoystickButtonPressed(Gamepad gamepad, Gamepad.Button button, boolean doublePressed)
         {
             super(gamepad, button);

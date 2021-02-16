@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventWindowIconified extends EventWindow
 {
@@ -15,7 +15,7 @@ public interface EventWindowIconified extends EventWindow
         private _EventWindowIconified(Window window, boolean iconified)
         {
             super(window);
-    
+            
             this.iconified = iconified;
         }
         

@@ -81,12 +81,12 @@ public final class TrueType extends FontDemo
     
     private STBTTBakedChar.Buffer init(int BITMAP_W, int BITMAP_H)
     {
-        GLTexture texture = new GLTexture(BITMAP_W, BITMAP_H, GL.RED);
-        STBTTBakedChar.Buffer cdata = STBTTBakedChar.malloc(512);
+        GLTexture             texture = new GLTexture(BITMAP_W, BITMAP_H, GL.RED);
+        STBTTBakedChar.Buffer cdata   = STBTTBakedChar.malloc(512);
         
         ByteBuffer bitmap = BufferUtils.createByteBuffer(BITMAP_W * BITMAP_H);
         stbtt_BakeFontBitmap(ttf, getFontHeight() * getContentScaleY(), bitmap, BITMAP_W, BITMAP_H, 32, cdata);
-    
+        
         texture.bind().filterMode(GL.LINEAR, GL.LINEAR).applyTextureSettings().set(bitmap);
         texture.saveImage("out/original.png").copy().bind().saveImage("out/copied.png");
         texture.bind();

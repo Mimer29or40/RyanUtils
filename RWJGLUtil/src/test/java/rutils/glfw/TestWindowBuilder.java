@@ -18,19 +18,19 @@ class TestWindowBuilder
                         .name("Name")
                         .build();
             }
-    
+            
             @Override
             protected void init()
             {
-        
+            
             }
-    
+            
             @Override
             protected void draw(double time, double deltaT)
             {
-        
+            
             }
-    
+            
             @Override
             protected void beforeEventLoop()
             {
@@ -47,19 +47,19 @@ class TestWindowBuilder
                         .name(null)
                         .build();
             }
-    
+            
             @Override
             protected void init()
             {
-        
+            
             }
-    
+            
             @Override
             protected void draw(double time, double deltaT)
             {
-        
+            
             }
-    
+            
             @Override
             protected void beforeEventLoop()
             {

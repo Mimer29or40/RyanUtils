@@ -7,7 +7,7 @@ public interface EventJoystickButtonPressed extends EventInputDeviceInputPressed
     final class _EventJoystickButtonPressed extends AbstractEventJoystickButton implements EventJoystickButtonPressed
     {
         private final boolean doublePressed;
-    
+        
         private _EventJoystickButtonPressed(Joystick joystick, int button, boolean doublePressed)
         {
             super(joystick, button);

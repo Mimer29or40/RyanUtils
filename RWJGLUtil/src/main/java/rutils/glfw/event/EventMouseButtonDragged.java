@@ -2,9 +2,9 @@ package rutils.glfw.event;
 
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
+import rutils.glfw.EventProperty;
 import rutils.glfw.Mouse;
 import rutils.glfw.Window;
-import rutils.glfw.EventProperty;
 
 public interface EventMouseButtonDragged extends EventMouseButton
 {

@@ -1,8 +1,8 @@
 package rutils.glfw.event;
 
+import rutils.glfw.EventProperty;
 import rutils.glfw.Monitor;
 import rutils.glfw.Window;
-import rutils.glfw.EventProperty;
 
 public interface EventWindowMonitorChanged extends EventWindow
 {
@@ -16,21 +16,21 @@ public interface EventWindowMonitorChanged extends EventWindow
     {
         private final Monitor from;
         private final Monitor to;
-    
+        
         private _EventWindowMonitorChanged(Window window, Monitor from, Monitor to)
         {
             super(window);
-        
+            
             this.from = from;
-            this.to = to;
+            this.to   = to;
         }
-    
+        
         @Override
         public Monitor from()
         {
             return this.from;
         }
-    
+        
         @Override
         public Monitor to()
         {

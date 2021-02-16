@@ -25,7 +25,7 @@ public class Keyboard extends InputDevice
     
     protected final Queue<Triple<Window, Key, Integer>> keyStateChanges = new ConcurrentLinkedQueue<>();
     
-    protected final Map<Key, Input>        keyMap;
+    protected final Map<Key, Input> keyMap;
     
     Keyboard()
     {
@@ -82,7 +82,7 @@ public class Keyboard extends InputDevice
         {
             GLFW.EVENT_BUS.post(EventKeyboardTyped.create(charChange.getA(), charChange.getB()));
         }
-    
+        
         Triple<Window, Key, Integer> keyStateChange;
         while ((keyStateChange = this.keyStateChanges.poll()) != null)
         {

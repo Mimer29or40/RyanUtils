@@ -2,8 +2,8 @@ package rutils.glfw.event;
 
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventMouseScrolled extends EventMouse
 {

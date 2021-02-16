@@ -7,7 +7,6 @@ import rutils.glfw.Window;
 
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class LearnOpenGL405
 {

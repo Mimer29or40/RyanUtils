@@ -54,8 +54,6 @@ package rutils;
 // /*FNLfloat*/ float
 // /*FNLfloat*/ double
 
-import rutils.interpolator.Interpolator;
-
 public class FastNoise
 {
     public enum NoiseType
@@ -1811,7 +1809,7 @@ public class FastNoise
             case OpenSimplex2, OpenSimplex2Reduced -> {
                 final double SQRT3 = 1.7320508075688772935274463415059;
                 final double F2    = 0.5 * (SQRT3 - 1);
-                double t = (xs + ys) * F2;
+                double       t     = (xs + ys) * F2;
                 xs += t;
                 ys += t;
             }
@@ -1849,7 +1847,7 @@ public class FastNoise
             }
             case DefaultOpenSimplex2 -> {
                 final double R3 = 2.0 / 3.0;
-                double r = (xs + ys + zs) * R3; // Rotation, not skew
+                double       r  = (xs + ys + zs) * R3; // Rotation, not skew
                 xs = r - xs;
                 ys = r - ys;
                 zs = r - zs;
@@ -1876,7 +1874,7 @@ public class FastNoise
                 case OpenSimplex2, OpenSimplex2Reduced -> {
                     final double SQRT3 = 1.7320508075688772935274463415059;
                     final double F2    = 0.5 * (SQRT3 - 1);
-                    double t = (xs + ys) * F2;
+                    double       t     = (xs + ys) * F2;
                     xs += t;
                     ys += t;
                 }
@@ -1921,7 +1919,7 @@ public class FastNoise
                 }
                 case DefaultOpenSimplex2 -> {
                     final double R3 = 2.0 / 3.0;
-                    double r = (xs + ys + zs) * R3; // Rotation, not skew
+                    double       r  = (xs + ys + zs) * R3; // Rotation, not skew
                     xs = r - xs;
                     ys = r - ys;
                     zs = r - zs;
@@ -1946,7 +1944,7 @@ public class FastNoise
             case OpenSimplex2, OpenSimplex2Reduced -> {
                 final double SQRT3 = 1.7320508075688772935274463415059;
                 final double F2    = 0.5 * (SQRT3 - 1);
-                double t = (xs + ys) * F2;
+                double       t     = (xs + ys) * F2;
                 xs += t;
                 ys += t;
             }
@@ -1991,7 +1989,7 @@ public class FastNoise
             }
             case DefaultOpenSimplex2 -> {
                 final double R3 = 2.0 / 3.0;
-                double r = (xs + ys + zs) * R3; // Rotation, not skew
+                double       r  = (xs + ys + zs) * R3; // Rotation, not skew
                 xs = r - xs;
                 ys = r - ys;
                 zs = r - zs;

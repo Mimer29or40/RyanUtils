@@ -347,7 +347,7 @@ public class Random extends rutils.Random
      */
     public Vector2d nextVector2d(double origin, double bound)
     {
-        return nextVector2d(new Vector2d() ,origin, bound);
+        return nextVector2d(new Vector2d(), origin, bound);
     }
     
     /**

@@ -78,7 +78,7 @@ public class LearnOpenGL102 extends GLFWApplicationTest
     protected void beforeEventLoop()
     {
         System.out.println(GLFW_OPENGL_CORE_PROFILE + " " + window.getAttribute(GLFW_OPENGL_PROFILE));
-    
+        
     }
     
     public static void main(String[] args)

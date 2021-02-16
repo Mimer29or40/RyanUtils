@@ -9,7 +9,7 @@ abstract class AbstractEventGamepadButton extends AbstractEventJoystickButton im
     AbstractEventGamepadButton(Gamepad gamepad, Gamepad.Button button)
     {
         super(gamepad, button.id());
-    
+        
         this.button = button;
     }
     

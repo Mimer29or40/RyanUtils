@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Joystick;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Joystick;
 
 public interface EventJoystickAxis extends EventJoystick
 {
@@ -19,28 +19,28 @@ public interface EventJoystickAxis extends EventJoystick
         private final int    axis;
         private final double value;
         private final double delta;
-    
+        
         private _EventJoystickAxis(Joystick joystick, int axis, double value, double delta)
         {
             super(joystick);
-        
+            
             this.axis  = axis;
             this.value = value;
             this.delta = delta;
         }
-    
+        
         @Override
         public int axis()
         {
             return this.axis;
         }
-    
+        
         @Override
         public double value()
         {
             return this.value;
         }
-    
+        
         @Override
         public double delta()
         {

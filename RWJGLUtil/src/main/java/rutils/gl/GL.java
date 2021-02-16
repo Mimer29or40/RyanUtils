@@ -1,7 +1,5 @@
 package rutils.gl;
 
-import org.lwjgl.opengl.GLDebugMessageCallback;
-import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 
@@ -1880,10 +1878,10 @@ public enum GL
             GL type     = GL.get(typeInt);
             GL id       = GL.get(idInt);
             GL severity = GL.get(severityInt);
-        
+            
             String header  = "OpenGL Error Message\n\tID: %s\n\tSource: %s\n\tType: %s\n\tSeverity: %s\n\tMessage: %s\n";
             String message = MemoryUtil.memUTF8(messagePointer);
-        
+            
             switch (type)
             {
                 case DEBUG_TYPE_ERROR -> {

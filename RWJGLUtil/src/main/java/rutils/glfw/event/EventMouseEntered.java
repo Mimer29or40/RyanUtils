@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventMouseEntered extends EventMouse
 {

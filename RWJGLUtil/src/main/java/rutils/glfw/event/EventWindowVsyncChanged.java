@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventWindowVsyncChanged extends EventWindow
 {
@@ -15,7 +15,7 @@ public interface EventWindowVsyncChanged extends EventWindow
         private _EventWindowVsyncChanged(Window window, boolean vsync)
         {
             super(window);
-    
+            
             this.vsync = vsync;
         }
         

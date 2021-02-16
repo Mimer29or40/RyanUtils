@@ -9,7 +9,7 @@ abstract class AbstractEventMonitor extends AbstractEvent implements EventMonito
     AbstractEventMonitor(Monitor monitor)
     {
         super();
-    
+        
         this.monitor = monitor;
     }
     

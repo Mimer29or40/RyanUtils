@@ -11,9 +11,9 @@ public class ArcInterpolator extends ScalarInterpolator
     public Double difference()
     {
         double difference = Math.PI - Math.abs((Math.abs(this.current - this.target) % ArcInterpolator.PI2) - Math.PI);
-    
+        
         if (clamp(this.current - this.target) < Math.PI) difference *= -1.0f;
-    
+        
         return difference;
     }
     
@@ -26,7 +26,7 @@ public class ArcInterpolator extends ScalarInterpolator
     public void update(double dt)
     {
         this._current = clamp(this._current);
-    
+        
         super.update(dt);
     }
     
@@ -39,7 +39,7 @@ public class ArcInterpolator extends ScalarInterpolator
     protected void updateCurrent(double dt)
     {
         super.updateCurrent(dt);
-    
+        
         this.current = clamp(this.current);
     }
     

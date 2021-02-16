@@ -328,9 +328,9 @@ class RandomTest
     void nextFrom()
     {
         RandomTest.INSTANCE.setSeed(1337);
-    
+        
         boolean isIn;
-    
+        
         int[] iArray  = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         int   iResult = RandomTest.INSTANCE.nextFrom(iArray);
         isIn = false;
@@ -360,9 +360,9 @@ class RandomTest
         isIn = false;
         for (Class<?> c : cArray) if (c == cResult) isIn = true;
         assertTrue(isIn);
-    
-        List<Class<?>> clArray = Arrays.asList(cArray);
-        Class<?>   clResult = RandomTest.INSTANCE.nextFrom(clArray);
+        
+        List<Class<?>> clArray  = Arrays.asList(cArray);
+        Class<?>       clResult = RandomTest.INSTANCE.nextFrom(clArray);
         isIn = false;
         for (Class<?> cl : clArray) if (cl == clResult) isIn = true;
         assertTrue(isIn);

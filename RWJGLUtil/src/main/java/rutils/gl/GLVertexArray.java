@@ -448,8 +448,8 @@ public class GLVertexArray
         
         int stride = 0;
         
-        GL format = null;
-        Integer             count  = null;
+        GL      format     = null;
+        Integer count      = null;
         Boolean normalized = null;
         for (int i = 0; i < n; i++)
         {
@@ -1402,8 +1402,8 @@ public class GLVertexArray
     
     public static class Attribute
     {
-        public final GL type;
-        public final int                 count;
+        public final GL      type;
+        public final int     count;
         public final boolean normalize;
         public final int     bytes;
         public final int     size;

@@ -112,7 +112,7 @@ public class Quad<A, B, C, D> extends Group implements IQuad<A, B, C, D>, Compar
     public int compareTo(@NotNull rutils.group.IQuad<A, B, C, D> o)
     {
         int comparison;
-
+        
         if (this.a != o.getA())
         {
             if (this.a == null)
@@ -127,7 +127,7 @@ public class Quad<A, B, C, D> extends Group implements IQuad<A, B, C, D>, Compar
             final Comparable<Object> comparable = (Comparable<Object>) this.a;
             if ((comparison = comparable.compareTo(o.getA())) != 0) return comparison;
         }
-
+        
         if (this.b != o.getB())
         {
             if (this.b == null)
@@ -142,7 +142,7 @@ public class Quad<A, B, C, D> extends Group implements IQuad<A, B, C, D>, Compar
             final Comparable<Object> comparable = (Comparable<Object>) this.b;
             if ((comparison = comparable.compareTo(o.getB())) != 0) return comparison;
         }
-
+        
         if (this.c != o.getC())
         {
             if (this.c == null)
@@ -157,7 +157,7 @@ public class Quad<A, B, C, D> extends Group implements IQuad<A, B, C, D>, Compar
             final Comparable<Object> comparable = (Comparable<Object>) this.c;
             if ((comparison = comparable.compareTo(o.getC())) != 0) return comparison;
         }
-
+        
         if (this.d != o.getD())
         {
             if (this.d == null)
@@ -172,7 +172,7 @@ public class Quad<A, B, C, D> extends Group implements IQuad<A, B, C, D>, Compar
             final Comparable<Object> comparable = (Comparable<Object>) this.d;
             if ((comparison = comparable.compareTo(o.getD())) != 0) return comparison;
         }
-
+        
         return 0;
     }
     

@@ -38,7 +38,7 @@ abstract class Group implements IGroup
     @Override
     public Object[] toArray()
     {
-        int n = size();
+        int      n   = size();
         Object[] arr = new Object[n];
         for (int i = 0; i < n; i++) arr[i] = get(i);
         return arr;

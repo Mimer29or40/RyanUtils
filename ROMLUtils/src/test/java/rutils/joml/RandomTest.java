@@ -24,13 +24,13 @@ class RandomTest
     void nextVector2i()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2i(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2i(1, 0)));
-    
+        
         int origin, bound, amount;
         
         Vector2i vector = RandomTest.INSTANCE.nextVector2i();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -42,7 +42,7 @@ class RandomTest
             assertTrue(vector.y >= origin);
             assertTrue(vector.y <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -60,13 +60,13 @@ class RandomTest
     void nextVector3i()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3i(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3i(1, 0)));
-    
+        
         int origin, bound, amount;
         
         Vector3i vector = RandomTest.INSTANCE.nextVector3i();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -80,7 +80,7 @@ class RandomTest
             assertTrue(vector.z >= origin);
             assertTrue(vector.z <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -100,13 +100,13 @@ class RandomTest
     void nextVector4i()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4i(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4i(1, 0)));
-    
+        
         int origin, bound, amount;
         
         Vector4i vector = RandomTest.INSTANCE.nextVector4i();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -122,7 +122,7 @@ class RandomTest
             assertTrue(vector.w >= origin);
             assertTrue(vector.w <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -144,13 +144,13 @@ class RandomTest
     void nextVector2f()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2f(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2f(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector2f vector = RandomTest.INSTANCE.nextVector2f();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -162,7 +162,7 @@ class RandomTest
             assertTrue(vector.y >= origin);
             assertTrue(vector.y <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -180,13 +180,13 @@ class RandomTest
     void nextVector3f()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3f(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3f(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector3f vector = RandomTest.INSTANCE.nextVector3f();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -200,7 +200,7 @@ class RandomTest
             assertTrue(vector.z >= origin);
             assertTrue(vector.z <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -220,13 +220,13 @@ class RandomTest
     void nextVector4f()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4f(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4f(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector4f vector = RandomTest.INSTANCE.nextVector4f();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -242,7 +242,7 @@ class RandomTest
             assertTrue(vector.w >= origin);
             assertTrue(vector.w <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -264,13 +264,13 @@ class RandomTest
     void nextVector2d()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2d(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector2d(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector2d vector = RandomTest.INSTANCE.nextVector2d();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -282,7 +282,7 @@ class RandomTest
             assertTrue(vector.y >= origin);
             assertTrue(vector.y <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -300,13 +300,13 @@ class RandomTest
     void nextVector3d()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3d(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector3d(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector3d vector = RandomTest.INSTANCE.nextVector3d();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -320,7 +320,7 @@ class RandomTest
             assertTrue(vector.z >= origin);
             assertTrue(vector.z <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;
@@ -340,13 +340,13 @@ class RandomTest
     void nextVector4d()
     {
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4d(-1)));
-    
+        
         assertThrows(IllegalArgumentException.class, () -> LOGGER.info(INSTANCE.nextVector4d(1, 0)));
-    
+        
         float origin, bound, amount;
         
         Vector4d vector = RandomTest.INSTANCE.nextVector4d();
-    
+        
         origin = 0;
         bound  = 267;
         amount = 100_000_000;
@@ -362,7 +362,7 @@ class RandomTest
             assertTrue(vector.w >= origin);
             assertTrue(vector.w <= bound);
         }
-    
+        
         origin = 50;
         bound  = 100;
         amount = 100_000_000;

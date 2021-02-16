@@ -99,13 +99,13 @@ class ScalarInterpolatorTest
     void resetVelocity()
     {
         ScalarInterpolator interpolator = new ScalarInterpolator();
-    
+        
         double dt = 0.1;
-    
+        
         interpolator.target = 10.0;
         interpolator.update(dt);
         interpolator.resetVelocity();
-    
+        
         assertEquals(0.0, interpolator.velocity(), 0.000001);
     }
 }

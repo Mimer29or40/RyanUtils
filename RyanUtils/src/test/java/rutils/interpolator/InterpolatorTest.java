@@ -2,7 +2,8 @@ package rutils.interpolator;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InterpolatorTest
 {
@@ -42,10 +43,10 @@ class InterpolatorTest
         assertTrue(interpolator.atTarget());
         assertFalse(interpolator.updated());
         
-        interpolator.target  = 1000.0;
-        interpolator.current = 1.0;
+        interpolator.target          = 1000.0;
+        interpolator.current         = 1.0;
         interpolator.maxAcceleration = 50;
-        interpolator.maxVelocity = 200;
+        interpolator.maxVelocity     = 200;
         while (!interpolator.atTarget())
         {
             interpolator.update(0.1);
@@ -59,9 +60,9 @@ class InterpolatorTest
     void extrema()
     {
         Interpolator<Double> interpolator = new ScalarInterpolator();
-    
+        
         assertTrue(interpolator.updated());
-    
+        
         interpolator.target  = 1.0;
         interpolator.current = 1.0;
         for (int i = 0; i < 10; i++)
@@ -70,10 +71,10 @@ class InterpolatorTest
         }
         assertTrue(interpolator.atTarget());
         assertFalse(interpolator.updated());
-    
+        
         interpolator.maxValue = 9.0;
-        interpolator.target  = 10.0;
-        interpolator.current = 1.0;
+        interpolator.target   = 10.0;
+        interpolator.current  = 1.0;
         while (!interpolator.atTarget())
         {
             interpolator.update(0.1);
@@ -81,10 +82,10 @@ class InterpolatorTest
         }
         interpolator.update(0.1);
         assertFalse(interpolator.updated());
-    
+        
         interpolator.minValue = 2.0;
-        interpolator.target  = 1.0;
-        interpolator.current = 10.0;
+        interpolator.target   = 1.0;
+        interpolator.current  = 10.0;
         while (!interpolator.atTarget())
         {
             interpolator.update(0.1);

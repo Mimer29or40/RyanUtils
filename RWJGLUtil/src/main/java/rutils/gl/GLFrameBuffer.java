@@ -111,7 +111,7 @@ public class GLFrameBuffer
     public GLFrameBuffer bind()
     {
         GLFrameBuffer.LOGGER.finest("Binding:", this);
-    
+        
         glBindFramebuffer(GL_FRAMEBUFFER, this.id);
         
         return this;

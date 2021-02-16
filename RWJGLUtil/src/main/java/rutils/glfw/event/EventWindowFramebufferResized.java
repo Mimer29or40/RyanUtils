@@ -2,8 +2,8 @@ package rutils.glfw.event;
 
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventWindowFramebufferResized extends EventWindow
 {

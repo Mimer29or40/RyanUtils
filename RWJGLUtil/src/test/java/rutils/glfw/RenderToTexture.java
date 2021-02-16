@@ -294,17 +294,17 @@ public class RenderToTexture extends GLFWApplicationTest
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, window.framebufferWidth(), window.framebufferHeight());
-    
+        
         proj.identity().perspective(Math.toRadians(90), window.aspectRatio(), 0.1, 100.0);
         view.identity().lookAt(5 * Math.cos(time), 1, 5 * Math.sin(time), 0, 0, 0, 0, 1, 0);
-    
+        
         shader.bind();
         shader.setUniform("projectionMatrix", proj);
         shader.setUniform("modelViewMatrix", view);
         shader.setUniform("normalMatrix", view.normal(new Matrix3d()));
         
         texture.bind(0);
-    
+        
         vertexArray.bind().draw(GL.TRIANGLES);
         
         window.swap();

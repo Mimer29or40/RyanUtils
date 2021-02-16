@@ -16,10 +16,10 @@ public class GammaRamp
     {
         this.size = glfwGammaRamp.size();
         
-        this.red = new short[this.size];
+        this.red   = new short[this.size];
         this.green = new short[this.size];
-        this.blue = new short[this.size];
-    
+        this.blue  = new short[this.size];
+        
         MemUtil.memCopy(glfwGammaRamp.red(), this.red);
         MemUtil.memCopy(glfwGammaRamp.green(), this.green);
         MemUtil.memCopy(glfwGammaRamp.blue(), this.blue);

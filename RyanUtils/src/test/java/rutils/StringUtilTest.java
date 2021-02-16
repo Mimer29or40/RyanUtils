@@ -2,7 +2,6 @@ package rutils;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 

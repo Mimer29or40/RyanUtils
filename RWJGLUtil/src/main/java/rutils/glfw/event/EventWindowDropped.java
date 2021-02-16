@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 import java.nio.file.Path;
 
@@ -13,14 +13,14 @@ public interface EventWindowDropped extends EventWindow
     final class _EventWindowDropped extends AbstractEventWindow implements EventWindowDropped
     {
         private final Path[] paths;
-    
+        
         private _EventWindowDropped(Window window, Path[] paths)
         {
             super(window);
-        
+            
             this.paths = paths;
         }
-    
+        
         @Override
         public Path[] paths()
         {

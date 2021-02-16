@@ -314,7 +314,7 @@ public final class GLFW
                 glfwSetJoystickCallback(null)
         };
         for (Callback callback : callbacks) if (callback != null) callback.free();
-    
+        
         GLFW.TASK_DELEGATOR.runTasks();
         GLFW.TASK_DELEGATOR = null;
         

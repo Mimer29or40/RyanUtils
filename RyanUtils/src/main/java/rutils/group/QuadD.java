@@ -17,7 +17,7 @@ public class QuadD extends Quad<Double, Double, Double, Double> implements IQuad
     {
         super(a, b, c, d);
     }
-
+    
     /**
      * @return The first double value.
      */
@@ -26,7 +26,7 @@ public class QuadD extends Quad<Double, Double, Double, Double> implements IQuad
     {
         return this.a;
     }
-
+    
     /**
      * @return The second double value.
      */
@@ -35,7 +35,7 @@ public class QuadD extends Quad<Double, Double, Double, Double> implements IQuad
     {
         return this.b;
     }
-
+    
     /**
      * @return The third double value.
      */
@@ -44,7 +44,7 @@ public class QuadD extends Quad<Double, Double, Double, Double> implements IQuad
     {
         return this.c;
     }
-
+    
     /**
      * @return The fourth double value.
      */

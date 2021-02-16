@@ -30,34 +30,34 @@ class GLFWTest
         Collection<Monitor> monitors;
         Monitor             monitor;
         Joystick            joystick;
-    
+        
         monitors = GLFW.monitors();
         assertTrue(monitors.size() > 0);
-    
+        
         assertThrows(RuntimeException.class, () -> GLFW.getMonitor(-1));
         for (int index = 0; index < monitors.size(); index++)
         {
             monitor = GLFW.getMonitor(index);
             assertNotNull(monitor, "Monitor at index=" + index + " is null");
         }
-    
+        
         monitor = GLFW.primaryMonitor();
         assertNotNull(monitor, "Primary Monitor is null");
         assertEquals(monitor, GLFW.getMonitor(0), "Primary Monitor is not first");
-    
+        
         assertTrue(GLFW.getTime() > 0);
         
         double newTime = 32.1235;
         GLFW.setTime(newTime);
         assertTrue(GLFW.getTime() > newTime && GLFW.getTime() < 33.1235);
-    
+        
         assertDoesNotThrow(GLFW::supportRawMouseInput);
-    
+        
         assertTrue(GLFW.loadControllerMapping("game_controller_db.txt"));
-    
+        
         assertNotNull(GLFW.mouse());
         assertNotNull(GLFW.keyboard());
-    
+        
         assertThrows(RuntimeException.class, () -> GLFW.getJoystick(-1));
         assertThrows(RuntimeException.class, () -> GLFW.getJoystick(GLFW_JOYSTICK_LAST + 1));
         for (int jid = GLFW_JOYSTICK_1; jid < GLFW_JOYSTICK_LAST; jid++)
@@ -72,7 +72,7 @@ class GLFWTest
                 assertNull(joystick, "Joystick at jid=" + jid + " is not null");
             }
         }
-    
+        
         String clipboardString = "Clipboard String";
         GLFW.setClipboardString(clipboardString);
         assertEquals(clipboardString, GLFW.getClipboardString());
@@ -84,11 +84,11 @@ class GLFWTest
         notInitialized();
         
         GLFW.init();
-    
+        
         initialized();
         
         GLFW.destroy();
-    
+        
         notInitialized();
     }
 }

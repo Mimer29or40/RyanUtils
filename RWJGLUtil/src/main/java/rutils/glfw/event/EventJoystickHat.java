@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Joystick;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Joystick;
 
 public interface EventJoystickHat extends EventJoystick
 {
@@ -15,21 +15,21 @@ public interface EventJoystickHat extends EventJoystick
     {
         private final int          hat;
         private final Joystick.Hat state;
-    
+        
         private _EventJoystickHat(Joystick joystick, int hat, Joystick.Hat state)
         {
             super(joystick);
-        
+            
             this.hat   = hat;
             this.state = state;
         }
-    
+        
         @Override
         public int hat()
         {
             return this.hat;
         }
-    
+        
         @Override
         public Joystick.Hat state()
         {

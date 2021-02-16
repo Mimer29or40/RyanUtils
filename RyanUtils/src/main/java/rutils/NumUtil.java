@@ -467,7 +467,7 @@ public class NumUtil
      */
     public static float stdDev(int... array)
     {
-        float mean = mean(array);
+        float mean   = mean(array);
         float stdDev = 0;
         for (int x : array) stdDev += (x - mean) * (x - mean);
         return (float) Math.sqrt(stdDev / array.length);
@@ -481,7 +481,7 @@ public class NumUtil
      */
     public static double stdDev(long... array)
     {
-        double mean = mean(array);
+        double mean   = mean(array);
         double stdDev = 0;
         for (long x : array) stdDev += (x - mean) * (x - mean);
         return Math.sqrt(stdDev / array.length);
@@ -495,7 +495,7 @@ public class NumUtil
      */
     public static float stdDev(float... array)
     {
-        float mean = mean(array);
+        float mean   = mean(array);
         float stdDev = 0;
         for (float x : array) stdDev += (x - mean) * (x - mean);
         return (float) Math.sqrt(stdDev / array.length);
@@ -509,7 +509,7 @@ public class NumUtil
      */
     public static double stdDev(double... array)
     {
-        double mean = mean(array);
+        double mean   = mean(array);
         double stdDev = 0;
         for (double x : array) stdDev += (x - mean) * (x - mean);
         return Math.sqrt(stdDev / array.length);

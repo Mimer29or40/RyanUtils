@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Gamepad;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Gamepad;
 
 public interface EventGamepadAxis extends EventJoystickAxis, EventGamepad
 {
@@ -28,7 +28,7 @@ public interface EventGamepadAxis extends EventJoystickAxis, EventGamepad
             this.value = value;
             this.delta = delta;
         }
-    
+        
         @Override
         public int axis()
         {
@@ -40,7 +40,7 @@ public interface EventGamepadAxis extends EventJoystickAxis, EventGamepad
         {
             return this.axis;
         }
-    
+        
         @Override
         public double value()
         {

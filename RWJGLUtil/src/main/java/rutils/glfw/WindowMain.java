@@ -11,7 +11,7 @@ class WindowMain extends Window
         super(WindowMain.BUILDER);
         
         glfwMakeContextCurrent(this.handle);
-    
+        
         org.lwjgl.opengl.GL.createCapabilities();
     }
     
@@ -19,7 +19,7 @@ class WindowMain extends Window
     public void destroy()
     {
         org.lwjgl.opengl.GL.destroy();
-    
+        
         super.destroy();
     }
 }

@@ -21,7 +21,7 @@ public abstract class SectionData implements Comparable<SectionData>
     public static class Average extends SectionData
     {
         public final long avgTime, minTime, maxTime;
-    
+        
         Average(String name, long avgTime, long minTime, long maxTime)
         {
             super(name);
@@ -47,7 +47,7 @@ public abstract class SectionData implements Comparable<SectionData>
     {
         public final long   time;
         public final double percentage, globalPercentage;
-    
+        
         Percent(String name, long time, double percentage, double globalPercentage)
         {
             super(name);

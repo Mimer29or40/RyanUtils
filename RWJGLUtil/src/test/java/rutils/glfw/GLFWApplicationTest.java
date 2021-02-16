@@ -30,7 +30,7 @@ public abstract class GLFWApplicationTest
             this.window.onWindowInit(this::init);
             this.window.onWindowDraw(this::draw);
             this.window.open();
-    
+            
             beforeEventLoop();
             
             GLFW.eventLoop();

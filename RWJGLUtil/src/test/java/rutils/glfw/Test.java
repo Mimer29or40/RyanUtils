@@ -98,7 +98,7 @@ public class Test
             
             GLFW.EVENT_BUS.register(Test.class);
             
-            window  = new Window.Builder().name("First").build();
+            window = new Window.Builder().name("First").build();
             window.onWindowInit(() -> {
                 glClearColor(0F, 1F, 0F, 1F);
                 
@@ -113,7 +113,7 @@ public class Test
             window.open();
             
             window1 = new Window.Builder().name("Second").build().open();
-
+            
             GLFW.eventLoop();
         }
         catch (Throwable e)
@@ -123,7 +123,7 @@ public class Test
         finally
         {
             Test.LOGGER.fine("Application Stopping");
-    
+            
             GLFW.EVENT_BUS.unregister(Test.class);
             
             GLFW.destroy();

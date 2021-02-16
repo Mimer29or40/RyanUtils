@@ -99,7 +99,7 @@ public class Triple<A, B, C> extends Group implements ITriple<A, B, C>, Comparab
     public int compareTo(@NotNull ITriple<A, B, C> o)
     {
         int comparison;
-    
+        
         if (this.a != o.getA())
         {
             if (this.a == null)
@@ -114,7 +114,7 @@ public class Triple<A, B, C> extends Group implements ITriple<A, B, C>, Comparab
             final Comparable<Object> comparable = (Comparable<Object>) this.a;
             if ((comparison = comparable.compareTo(o.getA())) != 0) return comparison;
         }
-    
+        
         if (this.b != o.getB())
         {
             if (this.b == null)
@@ -129,7 +129,7 @@ public class Triple<A, B, C> extends Group implements ITriple<A, B, C>, Comparab
             final Comparable<Object> comparable = (Comparable<Object>) this.b;
             if ((comparison = comparable.compareTo(o.getB())) != 0) return comparison;
         }
-    
+        
         if (this.c != o.getC())
         {
             if (this.c == null)

@@ -86,7 +86,7 @@ public class Pair<A, B> extends Group implements IPair<A, B>, Comparable<IPair<A
     public int compareTo(@NotNull IPair<A, B> o)
     {
         int comparison;
-    
+        
         if (this.a != o.getA())
         {
             if (this.a == null)
@@ -101,7 +101,7 @@ public class Pair<A, B> extends Group implements IPair<A, B>, Comparable<IPair<A
             final Comparable<Object> comparable = (Comparable<Object>) this.a;
             if ((comparison = comparable.compareTo(o.getA())) != 0) return comparison;
         }
-    
+        
         if (this.b != o.getB())
         {
             if (this.b == null)

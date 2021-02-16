@@ -5,7 +5,6 @@ import rutils.gl.GLShader;
 import rutils.gl.GLTexture;
 import rutils.gl.GLVertexArray;
 import rutils.glfw.GLFW;
-import rutils.glfw.Test;
 import rutils.glfw.Window;
 
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;

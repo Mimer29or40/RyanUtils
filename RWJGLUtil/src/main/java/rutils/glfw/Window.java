@@ -1060,7 +1060,7 @@ public class Window
             makeCurrent();
             
             org.lwjgl.opengl.GL.createCapabilities();
-    
+            
             if (this.onWindowInit != null) this.onWindowInit.run();
             
             double time, dt;
@@ -1068,8 +1068,8 @@ public class Window
             
             while (!this.close && this.open)
             {
-                time = GLFW.getTime();
-                dt = time - lastFrame;
+                time      = GLFW.getTime();
+                dt        = time - lastFrame;
                 lastFrame = time;
                 
                 boolean updateMonitor = false;

@@ -1,7 +1,7 @@
 package rutils.glfw.event;
 
-import rutils.glfw.Window;
 import rutils.glfw.EventProperty;
+import rutils.glfw.Window;
 
 public interface EventWindowFocused extends EventWindow
 {
@@ -11,14 +11,14 @@ public interface EventWindowFocused extends EventWindow
     final class _EventWindowFocused extends AbstractEventWindow implements EventWindowFocused
     {
         private final boolean focused;
-    
+        
         private _EventWindowFocused(Window window, boolean focused)
         {
             super(window);
-        
+            
             this.focused = focused;
         }
-    
+        
         @Override
         public boolean focused()
         {

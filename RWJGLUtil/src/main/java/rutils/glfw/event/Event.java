@@ -2,8 +2,8 @@ package rutils.glfw.event;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import rutils.glfw.EventProperty;
 import rutils.glfw.EventPriority;
+import rutils.glfw.EventProperty;
 
 public interface Event
 {

@@ -5,12 +5,12 @@ import java.util.Objects;
 public class Section implements AutoCloseable
 {
     private final Profiler profiler;
-    private final String name;
+    private final String   name;
     
     Section(Profiler profiler, String name)
     {
         this.profiler = profiler;
-        this.name = name;
+        this.name     = name;
     }
     
     @Override
@@ -55,7 +55,7 @@ public class Section implements AutoCloseable
         {
             super(profiler, "null");
         }
-    
+        
         @Override
         public void close() { }
     }
