@@ -17,9 +17,13 @@ public enum EventPriority implements IEventListener
     LOW,
     LOWEST; //Last to execute
     
-    
+    /**
+     * Performs this operation on the given argument.
+     *
+     * @param event the input argument
+     */
     @Override
-    public void invoke(Event event)
+    public void accept(Event event)
     {
         event.setPhase(this);
     }

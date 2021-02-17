@@ -336,10 +336,10 @@ public class StringUtil
      * @param suffix    The string that will be after each value.
      * @return The joined String.
      */
-    public static @NotNull String join(@NotNull Iterable<?> iterable, @NotNull String separator, @NotNull String prefix, @NotNull String suffix)
+    public static @NotNull String join(@NotNull Iterable<?> iterable, @NotNull CharSequence separator, @NotNull CharSequence prefix, @NotNull CharSequence suffix)
     {
         Iterator<?> iterator = iterable.iterator();
-        if (!iterator.hasNext()) return prefix + suffix;
+        if (!iterator.hasNext()) return prefix.toString() + suffix.toString();
         StringBuilder builder = new StringBuilder(prefix).append(toString(iterator.next()));
         while (iterator.hasNext()) builder.append(separator).append(toString(iterator.next()));
         return builder.append(suffix).toString();
@@ -364,7 +364,7 @@ public class StringUtil
      * @param separator The string that will be in between each value.
      * @return The joined String.
      */
-    public static @NotNull String join(@NotNull Iterable<?> iterable, @NotNull String separator)
+    public static @NotNull String join(@NotNull Iterable<?> iterable, @NotNull CharSequence separator)
     {
         return join(iterable, separator, "", "");
     }
@@ -413,10 +413,10 @@ public class StringUtil
      * @param suffix    The string that will be after each value.
      * @return The joined String.
      */
-    public static @NotNull String join(@NotNull Object[] array, @NotNull String separator, @NotNull String prefix, @NotNull String suffix)
+    public static @NotNull String join(@NotNull Object[] array, @NotNull CharSequence separator, @NotNull CharSequence prefix, @NotNull CharSequence suffix)
     {
         int n = array.length;
-        if (array.length == 0) return prefix + suffix;
+        if (array.length == 0) return prefix.toString() + suffix.toString();
         StringBuilder b = new StringBuilder(prefix).append(toString(array[0]));
         for (int i = 1; i < n; i++) b.append(separator).append(toString(array[i]));
         return b.append(suffix).toString();
@@ -441,7 +441,7 @@ public class StringUtil
      * @param separator The string that will be in between each value.
      * @return The joined String.
      */
-    public static @NotNull String join(@NotNull Object[] array, @NotNull String separator)
+    public static @NotNull String join(@NotNull Object[] array, @NotNull CharSequence separator)
     {
         return join(array, separator, "", "");
     }

@@ -9,10 +9,13 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static rutils.StringUtil.join;
 
 public class EventBus
 {
@@ -57,7 +60,7 @@ public class EventBus
                         for (IEventListener listener : listeners)
                         {
                             if (!this.trackPhases && Objects.equals(listener.getClass(), EventPriority.class)) continue;
-                            listener.invoke(event);
+                            listener.accept(event);
                             index++;
                         }
                     }
@@ -179,7 +182,7 @@ public class EventBus
     
     private void addToListeners(final Object target, final Class<?> eventType, final IEventListener listener, final EventPriority priority)
     {
-        EventBus.LOGGER.finer("Adding listener '%s' of '%s' to target '%s' with priority=%s", listener, eventType.getSimpleName(), target, priority);
+        EventBus.LOGGER.finer("Adding listener '%s' with priority=%s", listener, priority);
         
         List<IEventListener> objectListeners = this.objectListeners.computeIfAbsent(target, c -> Collections.synchronizedList(new ArrayList<>()));
         objectListeners.add(listener);
@@ -195,16 +198,48 @@ public class EventBus
     public IEventListener wrapMethod(final Object target, final Method method)
     {
         int hash = Objects.hash(target, method.getName(), Arrays.hashCode(method.getParameterTypes()));
-        return this.wrappedCache.computeIfAbsent(hash, h -> event -> {
-            try
+        return this.wrappedCache.computeIfAbsent(hash, h -> {
+            final Object invokeTarget = target.getClass() == Class.class ? null : target;
+            
+            StringBuilder builder = new StringBuilder();
+            
+            if (Modifier.isStatic(method.getModifiers())) builder.append("static ");
+            builder.append(target.getClass() == Class.class ? ((Class<?>) target).getSimpleName() : target.getClass().getSimpleName());
+            builder.append('.');
+            builder.append(method.getName());
+            builder.append('(');
+            Parameter[] parameters = method.getParameters();
+            for (int i = 0, n = parameters.length; i < n; i++)
             {
-                method.invoke(target.getClass() == Class.class ? null : target, event);
+                builder.append(parameters[i].getType().getSimpleName());
+                if (i + 1 < n) builder.append(", ");
             }
-            catch (IllegalAccessException | InvocationTargetException e)
+            builder.append(')');
+            
+            final String name = builder.toString();
+            
+            return new IEventListener()
             {
-                EventBus.LOGGER.severe("Could not access listener method.");
-                EventBus.LOGGER.severe(e);
-            }
+                @Override
+                public String toString()
+                {
+                    return name;
+                }
+                
+                @Override
+                public void accept(Event event)
+                {
+                    try
+                    {
+                        method.invoke(invokeTarget, event);
+                    }
+                    catch (IllegalAccessException | InvocationTargetException e)
+                    {
+                        EventBus.LOGGER.severe("Could not access listener method.");
+                        EventBus.LOGGER.severe(e);
+                    }
+                }
+            };
         });
     }
     
