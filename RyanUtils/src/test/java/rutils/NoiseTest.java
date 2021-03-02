@@ -16,6 +16,7 @@ import rutils.glfw.event.EventMouseScrolled;
 import rutils.noise.Noise;
 
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
@@ -262,16 +263,6 @@ public class NoiseTest
         }
     }
     
-    public static void saveImage(String filePath, ByteBuffer data, int width, int height, int channels)
-    {
-        if (!filePath.endsWith(".png")) filePath += ".png";
-        
-        if (!stbi_write_png(filePath, width, height, channels, data, width * channels))
-        {
-            System.err.println("Image could not be saved: " + filePath);
-        }
-    }
-    
     public static int noiseToInt(double noise)
     {
         return (int) (noise * 127.5 + 127.5);
@@ -300,7 +291,14 @@ public class NoiseTest
             data.put(i, (byte) value);
         }
         
-        saveImage("out/noise1.png", data, width, height, channels);
+        String filePath = "out/noise1.png";
+    
+        if (!stbi_write_png(filePath, width, height, channels, data, width * channels))
+        {
+            System.err.println("Image could not be saved: " + filePath);
+        }
+        
+        Logger.setLevel(Level.FINER);
         
         new NoiseTest().run();
     }

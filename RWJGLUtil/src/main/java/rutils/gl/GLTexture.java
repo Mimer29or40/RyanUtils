@@ -15,6 +15,7 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL43.glCopyImageSubData;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImageWrite.stbi_write_png;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class GLTexture
 {
@@ -315,7 +316,7 @@ public class GLTexture
      */
     public GLTexture allocate()
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), this.dataType.ref(), 0L);
+        glTexImage2D(GL_TEXTURE_2D, 0, this.format.ref(), this.width, this.height, 0, this.format.ref(), this.dataType.ref(), NULL);
         
         return this;
     }

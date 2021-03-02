@@ -3,6 +3,9 @@ package rutils.glfw;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2d;
 import org.joml.Vector2dc;
+import org.joml.Vector2fc;
+import org.joml.Vector2ic;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.system.Platform;
 import rutils.Logger;
 import rutils.glfw.event.*;
@@ -243,6 +246,95 @@ public class Mouse extends InputDevice
     public double y()
     {
         return this.pos.y;
+    }
+    
+    /**
+     * Sets the position, in screen coordinates, of the cursor relative to the
+     * upper-left corner of the content area of the window. The window must
+     * have input focus. If the window does not have input focus when this
+     * function is called, it fails silently.
+     * <p>
+     * <b>Do not use this function</b> to implement things like camera
+     * controls. GLFW already provides the {@link #capture(Window)} cursor mode
+     * that hides the cursor, transparently re-centers it and provides
+     * unconstrained cursor motion.
+     * <p>
+     * If the cursor {@link #isCaptured(Window)} then the cursor position is
+     * unconstrained and limited only by the minimum and maximum values of
+     * <b>double</b>.
+     *
+     * @param x The x-coordinate of the upper-left corner of the content area.
+     * @param y The y-coordinate of the upper-left corner of the content area.
+     */
+    public void pos(Window window, double x, double y)
+    {
+        GLFW.TASK_DELEGATOR.waitRunTask(() -> glfwSetCursorPos(window.handle, x, y));
+    }
+    
+    /**
+     * Sets the position, in screen coordinates, of the cursor relative to the
+     * upper-left corner of the content area of the window. The window must
+     * have input focus. If the window does not have input focus when this
+     * function is called, it fails silently.
+     * <p>
+     * <b>Do not use this function</b> to implement things like camera
+     * controls. GLFW already provides the {@link #capture(Window)} cursor mode
+     * that hides the cursor, transparently re-centers it and provides
+     * unconstrained cursor motion.
+     * <p>
+     * If the cursor {@link #isCaptured(Window)} then the cursor position is
+     * unconstrained and limited only by the minimum and maximum values of
+     * <b>double</b>.
+     *
+     * @param pos The position of the upper-left corner of the content area.
+     */
+    public void pos(Window window, Vector2ic pos)
+    {
+        pos(window, pos.x(), pos.y());
+    }
+    
+    /**
+     * Sets the position, in screen coordinates, of the cursor relative to the
+     * upper-left corner of the content area of the window. The window must
+     * have input focus. If the window does not have input focus when this
+     * function is called, it fails silently.
+     * <p>
+     * <b>Do not use this function</b> to implement things like camera
+     * controls. GLFW already provides the {@link #capture(Window)} cursor mode
+     * that hides the cursor, transparently re-centers it and provides
+     * unconstrained cursor motion.
+     * <p>
+     * If the cursor {@link #isCaptured(Window)} then the cursor position is
+     * unconstrained and limited only by the minimum and maximum values of
+     * <b>double</b>.
+     *
+     * @param pos The position of the upper-left corner of the content area.
+     */
+    public void pos(Window window, Vector2fc pos)
+    {
+        pos(window, pos.x(), pos.y());
+    }
+    
+    /**
+     * Sets the position, in screen coordinates, of the cursor relative to the
+     * upper-left corner of the content area of the window. The window must
+     * have input focus. If the window does not have input focus when this
+     * function is called, it fails silently.
+     * <p>
+     * <b>Do not use this function</b> to implement things like camera
+     * controls. GLFW already provides the {@link #capture(Window)} cursor mode
+     * that hides the cursor, transparently re-centers it and provides
+     * unconstrained cursor motion.
+     * <p>
+     * If the cursor {@link #isCaptured(Window)} then the cursor position is
+     * unconstrained and limited only by the minimum and maximum values of
+     * <b>double</b>.
+     *
+     * @param pos The position of the upper-left corner of the content area.
+     */
+    public void pos(Window window, Vector2dc pos)
+    {
+        pos(window, pos.x(), pos.y());
     }
     
     /**
@@ -516,6 +608,35 @@ public class Mouse extends InputDevice
             {
                 Mouse.Button.BUTTON_MAP.put(button.ref, button);
             }
+        }
+    }
+    
+    public static class Shape
+    {
+        public static final Shape ARROW_CURSOR     = new Shape(GLFW_ARROW_CURSOR);
+        public static final Shape IBEAM_CURSOR     = new Shape(GLFW_IBEAM_CURSOR);
+        public static final Shape CROSSHAIR_CURSOR = new Shape(GLFW_CROSSHAIR_CURSOR);
+        public static final Shape HAND_CURSOR      = new Shape(GLFW_HAND_CURSOR);
+        public static final Shape HRESIZE_CURSOR   = new Shape(GLFW_HRESIZE_CURSOR);
+        public static final Shape VRESIZE_CURSOR   = new Shape(GLFW_VRESIZE_CURSOR);
+        
+        private final long handle;
+        
+        private Shape(int shape)
+        {
+            //noinspection ConstantConditions
+            this.handle = GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwCreateStandardCursor(shape));
+        }
+        
+        public Shape(GLFWImage image, int xHot, int yHot)
+        {
+            //noinspection ConstantConditions
+            this.handle = GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwCreateCursor(image, xHot, yHot));
+        }
+        
+        public void destroy()
+        {
+            glfwDestroyCursor(this.handle);
         }
     }
 }

@@ -1,5 +1,6 @@
 package rutils.glfw;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -24,6 +25,7 @@ import java.nio.IntBuffer;
 import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 public final class GLFW
 {
@@ -497,7 +499,7 @@ public final class GLFW
     public static String getClipboardString()
     {
         if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetClipboardString(0L));
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwGetClipboardString(NULL));
     }
     
     /**
@@ -505,10 +507,10 @@ public final class GLFW
      *
      * @param string a UTF-8 encoded string
      */
-    public static void setClipboardString(CharSequence string)
+    public static void setClipboardString(@NotNull CharSequence string)
     {
         if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetClipboardString(0L, string));
+        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetClipboardString(NULL, string));
     }
     
     // -------------------- Callbacks -------------------- //

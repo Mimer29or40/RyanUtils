@@ -16,6 +16,7 @@ import java.util.Objects;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glFinish;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window
 {
@@ -95,12 +96,12 @@ public class Window
             this.windowed = builder.windowed;
             
             String title   = builder.title != null ? builder.title : this.name != null ? this.name : "Window";
-            long   monitor = this.windowed ? 0L : this.monitor.handle;
-            long   window  = GLFW.WINDOW != null ? GLFW.WINDOW.handle : 0L;
+            long   monitor = this.windowed ? NULL : this.monitor.handle;
+            long   window  = GLFW.WINDOW != null ? GLFW.WINDOW.handle : NULL;
             
-            glfwMakeContextCurrent(0L);
+            glfwMakeContextCurrent(NULL);
             long handle = glfwCreateWindow(builder.width, builder.height, title, monitor, window);
-            if (handle == 0L) throw new RuntimeException("Failed to create the GLFW window");
+            if (handle == NULL) throw new RuntimeException("Failed to create the GLFW window");
             glfwMakeContextCurrent(window);
             
             this.open = true;
@@ -218,11 +219,21 @@ public class Window
      * settings. The selected images will be rescaled as needed. Good sizes
      * include 16x16, 32x32 and 48x48.
      *
-     * @param icon The new icon.
+     * @param icons The new icons.
      */
-    public void icon(GLFWImage.Buffer icon)
+    public void icon(GLFWImage... icons)
     {
-        GLFW.TASK_DELEGATOR.runTask(() -> glfwSetWindowIcon(this.handle, icon));
+        GLFW.TASK_DELEGATOR.runTask(() -> {
+            try (MemoryStack stack = MemoryStack.stackPush())
+            {
+                int count = icons.length;
+            
+                GLFWImage.Buffer buffer = new GLFWImage.Buffer(stack.malloc(count * GLFWImage.SIZEOF));
+                for (int i = 0; i < count; i++) buffer.put(i, icons[i]);
+            
+                glfwSetWindowIcon(this.handle, buffer);
+            }
+        });
     }
     
     /**
@@ -607,7 +618,7 @@ public class Window
     public void windowed(boolean windowed)
     {
         GLFW.TASK_DELEGATOR.runTask(() -> {
-            long monitor = (this.windowed = windowed) ? 0L : this.monitor.handle;
+            long monitor = (this.windowed = windowed) ? NULL : this.monitor.handle;
             
             int x = ((this.monitor.primaryVideoMode.width - this.size.x) >> 1) + this.monitor.x();
             int y = ((this.monitor.primaryVideoMode.height - this.size.y) >> 1) + this.monitor.y();
@@ -632,7 +643,7 @@ public class Window
     public void refreshRate(int refreshRate)
     {
         GLFW.TASK_DELEGATOR.runTask(() -> {
-            long monitor = this.windowed ? 0L : this.monitor.handle;
+            long monitor = this.windowed ? NULL : this.monitor.handle;
             
             glfwSetWindowMonitor(this.handle, monitor, this.pos.x, this.pos.y, this.size.x, this.size.y, this.refreshRate = refreshRate);
         });
@@ -1027,7 +1038,7 @@ public class Window
     
     public void unmakeCurrent()
     {
-        this.taskDelegator.waitRunTask(() -> glfwMakeContextCurrent(0L));
+        this.taskDelegator.waitRunTask(() -> glfwMakeContextCurrent(NULL));
     }
     
     public void swap()
