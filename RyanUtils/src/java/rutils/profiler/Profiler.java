@@ -8,7 +8,7 @@ import rutils.group.Pair;
 import java.util.*;
 import java.util.function.Function;
 
-import static rutils.NumUtil.round;
+import static rutils.Math.round;
 
 public class Profiler
 {

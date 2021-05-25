@@ -11,7 +11,7 @@ import org.lwjgl.stb.STBTTBakedChar;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
 import rutils.IOUtil;
-import rutils.NumUtil;
+import rutils.Math;
 import rutils.gl.GL;
 import rutils.gl.GLTexture;
 
@@ -104,8 +104,8 @@ public final class TrueType extends FontDemo
     @Override
     protected void loop()
     {
-        int BITMAP_W = NumUtil.round(2048 * getContentScaleX());
-        int BITMAP_H = NumUtil.round(2048 * getContentScaleY());
+        int BITMAP_W = Math.round(2048 * getContentScaleX());
+        int BITMAP_H = Math.round(2048 * getContentScaleY());
         
         STBTTBakedChar.Buffer cdata = init(BITMAP_W, BITMAP_H);
         

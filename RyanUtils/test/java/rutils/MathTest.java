@@ -5,8 +5,194 @@ import rutils.group.IPairI;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NumUtilTest
+class MathTest
 {
+    @Test
+    void math()
+    {
+        float  fTime = 0.8675309F;
+        double dTime = 0.8675309D;
+        
+        float fActual, fExpected;
+        double dActual, dExpected;
+        
+        fActual = Math.sin(fTime);
+        fExpected = (float) java.lang.Math.sin(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.sin(dTime);
+        dExpected = java.lang.Math.sin(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.cos(fTime);
+        fExpected = (float) java.lang.Math.cos(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.cos(dTime);
+        dExpected = java.lang.Math.cos(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.tan(fTime);
+        fExpected = (float) java.lang.Math.tan(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.tan(dTime);
+        dExpected = java.lang.Math.tan(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.asin(fTime);
+        fExpected = (float) java.lang.Math.asin(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.asin(dTime);
+        dExpected = java.lang.Math.asin(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.acos(fTime);
+        fExpected = (float) java.lang.Math.acos(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.acos(dTime);
+        dExpected = java.lang.Math.acos(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.atan(fTime);
+        fExpected = (float) java.lang.Math.atan(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.atan(dTime);
+        dExpected = java.lang.Math.atan(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.sinh(fTime);
+        fExpected = (float) java.lang.Math.sinh(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.sinh(dTime);
+        dExpected = java.lang.Math.sinh(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.cosh(fTime);
+        fExpected = (float) java.lang.Math.cosh(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.cosh(dTime);
+        dExpected = java.lang.Math.cosh(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.tanh(fTime);
+        fExpected = (float) java.lang.Math.tanh(fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.tanh(dTime);
+        dExpected = java.lang.Math.tanh(dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+        
+        fActual = Math.hypot(fTime, fTime);
+        fExpected = (float) java.lang.Math.hypot(fTime, fTime);
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        dActual = Math.hypot(dTime, dTime);
+        dExpected = java.lang.Math.hypot(dTime, dTime);
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        fActual = Math.toRadians(180.0F);
+        fExpected = Math.PIf;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toRadians(360.0F);
+        fExpected = Math.PI2f;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toRadians(90.0F);
+        fExpected = Math.PI_2f;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toRadians(60.0F);
+        fExpected = Math.PI_3f;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toRadians(45.0F);
+        fExpected = Math.PI_4f;
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        fActual = Math.toRadians(30.0F);
+        fExpected = Math.PI_6f;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        dActual = Math.toRadians(180.0);
+        dExpected = Math.PI;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toRadians(360.0);
+        dExpected = Math.PI2;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toRadians(90.0);
+        dExpected = Math.PI_2;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toRadians(60.0);
+        dExpected = Math.PI_3;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toRadians(45.0);
+        dExpected = Math.PI_4;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toRadians(30.0);
+        dExpected = Math.PI_6;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        fActual = Math.toDegrees(Math.PIf);
+        fExpected = 180.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toDegrees(Math.PI2f);
+        fExpected = 360.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toDegrees(Math.PI_2f);
+        fExpected = 90.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toDegrees(Math.PI_3f);
+        fExpected = 60.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        fActual = Math.toDegrees(Math.PI_4f);
+        fExpected = 45.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+        
+        fActual = Math.toDegrees(Math.PI_6f);
+        fExpected = 30.0F;
+        assertEquals(fExpected, fActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI);
+        dExpected = 180.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI2);
+        dExpected = 360.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI_2);
+        dExpected = 90.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI_3);
+        dExpected = 60.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI_4);
+        dExpected = 45.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    
+        dActual = Math.toDegrees(Math.PI_6);
+        dExpected = 30.0;
+        assertEquals(dExpected, dActual, 0.00000001);
+    }
+    
     @Test
     void map()
     {
@@ -18,7 +204,7 @@ class NumUtilTest
         y0 = 0.0;
         y1 = 100.0;
         
-        y = NumUtil.map(x, x0, x1, y0, y1);
+        y = Math.map(x, x0, x1, y0, y1);
         assertEquals(y, 10.0, 0.001);
         
         x  = -1.0;
@@ -27,7 +213,7 @@ class NumUtilTest
         y0 = 0.0;
         y1 = 100.0;
         
-        y = NumUtil.map(x, x0, x1, y0, y1);
+        y = Math.map(x, x0, x1, y0, y1);
         assertEquals(y, -10.0, 0.001);
         
         x  = 1.0;
@@ -36,7 +222,7 @@ class NumUtilTest
         y0 = 0.0;
         y1 = 1.0;
         
-        y = NumUtil.map(x, x0, x1, y0, y1);
+        y = Math.map(x, x0, x1, y0, y1);
         assertEquals(y, 0.1, 0.001);
     }
     
@@ -47,27 +233,27 @@ class NumUtilTest
         IPairI   format;
         
         numbers = new double[] {0.0, 1.0, 0.5};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         assertEquals(format.a(), 1);
         assertEquals(format.b(), 1);
         
         numbers = new double[] {0.0, 1.0, 0.5, 10, 100, 1000};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         assertEquals(format.a(), 4);
         assertEquals(format.b(), 1);
         
         numbers = new double[] {0, 1, 0, 10, 100, 1000};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         assertEquals(format.a(), 4);
         assertEquals(format.b(), 0);
         
         numbers = new double[] {0.0, 1.0, 0.5, 0.1234, 0, 1, 0, 10, 100, 1000};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         assertEquals(format.a(), 4);
         assertEquals(format.b(), 4);
         
         numbers = new double[] {0.0, 1.0, 0.5, 0.1234};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         assertEquals(format.a(), 1);
         assertEquals(format.b(), 4);
     }
@@ -82,21 +268,21 @@ class NumUtilTest
         
         numbers = new double[] {0.0, 1.0, 0.5, 0.1234, 0.1, 1.21, 0.321, 10, 100, 1000};
         results = new String[] {"   0.0   ", "   1.0   ", "   0.5   ", "   0.1234", "   0.1   ", "   1.21  ", "   0.321 ", "  10.0   ", " 100.0   ", "1000.0   "};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         
         for (int i = 0, n = numbers.length; i < n; i++)
         {
-            result = NumUtil.format(numbers[i], format);
+            result = Math.format(numbers[i], format);
             assertEquals(result, results[i]);
         }
         
         numbers = new double[] {0.0, 1.0, 0.5, 0.1234, 0.1, 1.21, 0.321, 10, 100, 1000};
         results = new String[] {"   0.0", "   1.0", "   0.5", "   0.1", "   0.1", "   1.2", "   0.3", "  10.0", " 100.0", "1000.0"};
-        format  = NumUtil.getFormatNumbers(numbers);
+        format  = Math.getFormatNumbers(numbers);
         
         for (int i = 0, n = numbers.length; i < n; i++)
         {
-            result = NumUtil.format(numbers[i], format.a(), 1);
+            result = Math.format(numbers[i], format.a(), 1);
             assertEquals(result, results[i]);
         }
         
@@ -105,7 +291,7 @@ class NumUtilTest
         
         for (int i = 0, n = numbers.length; i < n; i++)
         {
-            result = NumUtil.format(numbers[i], 5, 0);
+            result = Math.format(numbers[i], 5, 0);
             assertEquals(result, results[i]);
         }
     }
@@ -113,20 +299,20 @@ class NumUtilTest
     @Test
     void round()
     {
-        int    iRounded;
+        long   iRounded;
         double dRounded;
         double number = 1.123456789;
         
-        iRounded = NumUtil.round(number);
+        iRounded = Math.round(number);
         assertEquals(iRounded, 1);
         
-        dRounded = NumUtil.round(number, 0);
+        dRounded = Math.round(number, 0);
         assertEquals(dRounded, 1.0);
         
-        dRounded = NumUtil.round(number, 1);
+        dRounded = Math.round(number, 1);
         assertEquals(dRounded, 1.1);
         
-        dRounded = NumUtil.round(number, 2);
+        dRounded = Math.round(number, 2);
         assertEquals(dRounded, 1.12);
     }
     
@@ -141,7 +327,7 @@ class NumUtilTest
         iNum    = 5;
         iMin    = 1;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMin, iMax);
+        iResult = Math.clamp(iNum, iMin, iMax);
         assertEquals(iResult, iNum);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -149,7 +335,7 @@ class NumUtilTest
         iNum    = -1;
         iMin    = 1;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMin, iMax);
+        iResult = Math.clamp(iNum, iMin, iMax);
         assertEquals(iResult, iMin);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -157,7 +343,7 @@ class NumUtilTest
         iNum    = 11;
         iMin    = 1;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMin, iMax);
+        iResult = Math.clamp(iNum, iMin, iMax);
         assertEquals(iResult, iMax);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -165,7 +351,7 @@ class NumUtilTest
         iNum    = 5;
         iMin    = 0;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMax);
+        iResult = Math.clamp(iNum, iMax);
         assertEquals(iResult, iNum);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -173,7 +359,7 @@ class NumUtilTest
         iNum    = -1;
         iMin    = 0;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMax);
+        iResult = Math.clamp(iNum, iMax);
         assertEquals(iResult, iMin);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -181,7 +367,7 @@ class NumUtilTest
         iNum    = 11;
         iMin    = 0;
         iMax    = 10;
-        iResult = NumUtil.clamp(iNum, iMax);
+        iResult = Math.clamp(iNum, iMax);
         assertEquals(iResult, iMax);
         assertTrue(iResult >= iMin);
         assertTrue(iResult <= iMax);
@@ -189,7 +375,7 @@ class NumUtilTest
         lNum    = 5;
         lMin    = 1;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMin, lMax);
+        lResult = Math.clamp(lNum, lMin, lMax);
         assertEquals(lResult, lNum);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -197,7 +383,7 @@ class NumUtilTest
         lNum    = -1;
         lMin    = 1;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMin, lMax);
+        lResult = Math.clamp(lNum, lMin, lMax);
         assertEquals(lResult, lMin);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -205,7 +391,7 @@ class NumUtilTest
         lNum    = 11;
         lMin    = 1;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMin, lMax);
+        lResult = Math.clamp(lNum, lMin, lMax);
         assertEquals(lResult, lMax);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -213,7 +399,7 @@ class NumUtilTest
         lNum    = 5;
         lMin    = 0;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMax);
+        lResult = Math.clamp(lNum, lMax);
         assertEquals(lResult, lNum);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -221,7 +407,7 @@ class NumUtilTest
         lNum    = -1;
         lMin    = 0;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMax);
+        lResult = Math.clamp(lNum, lMax);
         assertEquals(lResult, lMin);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -229,7 +415,7 @@ class NumUtilTest
         lNum    = 11;
         lMin    = 0;
         lMax    = 10;
-        lResult = NumUtil.clamp(lNum, lMax);
+        lResult = Math.clamp(lNum, lMax);
         assertEquals(lResult, lMax);
         assertTrue(lResult >= lMin);
         assertTrue(lResult <= lMax);
@@ -237,7 +423,7 @@ class NumUtilTest
         fNum    = 5;
         fMin    = 1;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMin, fMax);
+        fResult = Math.clamp(fNum, fMin, fMax);
         assertEquals(fResult, fNum);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -245,7 +431,7 @@ class NumUtilTest
         fNum    = -1;
         fMin    = 1;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMin, fMax);
+        fResult = Math.clamp(fNum, fMin, fMax);
         assertEquals(fResult, fMin);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -253,7 +439,7 @@ class NumUtilTest
         fNum    = 11;
         fMin    = 1;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMin, fMax);
+        fResult = Math.clamp(fNum, fMin, fMax);
         assertEquals(fResult, fMax);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -261,7 +447,7 @@ class NumUtilTest
         fNum    = 5;
         fMin    = 0;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMax);
+        fResult = Math.clamp(fNum, fMax);
         assertEquals(fResult, fNum);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -269,7 +455,7 @@ class NumUtilTest
         fNum    = -1;
         fMin    = 0;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMax);
+        fResult = Math.clamp(fNum, fMax);
         assertEquals(fResult, fMin);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -277,7 +463,7 @@ class NumUtilTest
         fNum    = 11;
         fMin    = 0;
         fMax    = 10;
-        fResult = NumUtil.clamp(fNum, fMax);
+        fResult = Math.clamp(fNum, fMax);
         assertEquals(fResult, fMax);
         assertTrue(fResult >= fMin);
         assertTrue(fResult <= fMax);
@@ -285,7 +471,7 @@ class NumUtilTest
         dNum    = 5;
         dMin    = 1;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMin, dMax);
+        dResult = Math.clamp(dNum, dMin, dMax);
         assertEquals(dResult, dNum);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -293,7 +479,7 @@ class NumUtilTest
         dNum    = -1;
         dMin    = 1;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMin, dMax);
+        dResult = Math.clamp(dNum, dMin, dMax);
         assertEquals(dResult, dMin);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -301,7 +487,7 @@ class NumUtilTest
         dNum    = 11;
         dMin    = 1;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMin, dMax);
+        dResult = Math.clamp(dNum, dMin, dMax);
         assertEquals(dResult, dMax);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -309,7 +495,7 @@ class NumUtilTest
         dNum    = 5;
         dMin    = 0;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMax);
+        dResult = Math.clamp(dNum, dMax);
         assertEquals(dResult, dNum);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -317,7 +503,7 @@ class NumUtilTest
         dNum    = -1;
         dMin    = 0;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMax);
+        dResult = Math.clamp(dNum, dMax);
         assertEquals(dResult, dMin);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -325,7 +511,7 @@ class NumUtilTest
         dNum    = 11;
         dMin    = 0;
         dMax    = 10;
-        dResult = NumUtil.clamp(dNum, dMax);
+        dResult = Math.clamp(dNum, dMax);
         assertEquals(dResult, dMax);
         assertTrue(dResult >= dMin);
         assertTrue(dResult <= dMax);
@@ -338,12 +524,12 @@ class NumUtilTest
         
         number  = 0.12345;
         actual  = 0.12345;
-        decimal = NumUtil.getDecimal(number);
+        decimal = Math.getDecimal(number);
         assertEquals(decimal, actual, 0.000001);
         
         number  = 123.456;
         actual  = 0.456;
-        decimal = NumUtil.getDecimal(number);
+        decimal = Math.getDecimal(number);
         assertEquals(decimal, actual, 0.000001);
     }
     
@@ -355,19 +541,19 @@ class NumUtilTest
         double  dNum;
         
         iNum   = 23423;
-        result = NumUtil.isEven(iNum);
+        result = Math.isEven(iNum);
         assertFalse(result);
         
         iNum   = 4098;
-        result = NumUtil.isEven(iNum);
+        result = Math.isEven(iNum);
         assertTrue(result);
         
         dNum   = 23423;
-        result = NumUtil.isEven(dNum);
+        result = Math.isEven(dNum);
         assertFalse(result);
         
         dNum   = 4098;
-        result = NumUtil.isEven(dNum);
+        result = Math.isEven(dNum);
         assertTrue(result);
     }
     
@@ -379,19 +565,19 @@ class NumUtilTest
         double  dNum;
         
         iNum   = 23423;
-        result = NumUtil.isOdd(iNum);
+        result = Math.isOdd(iNum);
         assertTrue(result);
         
         iNum   = 4098;
-        result = NumUtil.isOdd(iNum);
+        result = Math.isOdd(iNum);
         assertFalse(result);
         
         dNum   = 23423;
-        result = NumUtil.isOdd(dNum);
+        result = Math.isOdd(dNum);
         assertTrue(result);
         
         dNum   = 4098;
-        result = NumUtil.isOdd(dNum);
+        result = Math.isOdd(dNum);
         assertFalse(result);
     }
     
@@ -409,22 +595,22 @@ class NumUtilTest
         
         iData = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         iExp  = 0;
-        iMin  = NumUtil.min(iData);
+        iMin  = Math.min(iData);
         assertEquals(iExp, iMin);
         
         lData = new long[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         lExp  = 0;
-        lMin  = NumUtil.min(lData);
+        lMin  = Math.min(lData);
         assertEquals(lExp, lMin);
         
         fData = new float[] {234.4523F, 0.23423F, 0.34123F, 0.135453F, 0.12564323F};
         fExp  = 0.12564323F;
-        fMin  = NumUtil.min(fData);
+        fMin  = Math.min(fData);
         assertEquals(fExp, fMin);
         
         dData = new double[] {234.4523, 0.23423, 0.34123, 0.135453, 0.12564323};
         dExp  = 0.12564323;
-        dMin  = NumUtil.min(dData);
+        dMin  = Math.min(dData);
         assertEquals(dExp, dMin);
     }
     
@@ -433,22 +619,22 @@ class NumUtilTest
     {
         int[] iData = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         int   iExp  = 9;
-        int   iMax  = NumUtil.max(iData);
+        int   iMax  = Math.max(iData);
         assertEquals(iExp, iMax);
         
         long[] lData = new long[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         long   lExp  = 9;
-        long   lMax  = NumUtil.max(lData);
+        long   lMax  = Math.max(lData);
         assertEquals(lExp, lMax);
         
         float[] fData = new float[] {234.4523F, 0.23423F, 0.34123F, 0.135453F, 0.12564323F};
         float   fExp  = 234.4523F;
-        float   fMax  = NumUtil.max(fData);
+        float   fMax  = Math.max(fData);
         assertEquals(fExp, fMax);
         
         double[] dData = new double[] {234.4523, 0.23423, 0.34123, 0.135453, 0.12564323};
         double   dExp  = 234.4523;
-        double   dMax  = NumUtil.max(dData);
+        double   dMax  = Math.max(dData);
         assertEquals(dExp, dMax);
     }
     
@@ -457,22 +643,22 @@ class NumUtilTest
     {
         int[] iData = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9};
         int   iExp  = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
-        int   iSum  = NumUtil.sum(iData);
+        int   iSum  = Math.sum(iData);
         assertEquals(iExp, iSum);
         
         long[] lData = new long[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         long   lExp  = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
-        long   lSum  = NumUtil.sum(lData);
+        long   lSum  = Math.sum(lData);
         assertEquals(lExp, lSum);
         
         float[] fData = new float[] {234.4523F, 0.23423F, 0.34123F, 0.135453F, 0.12564323F};
         float   fExp  = 234.4523F + 0.23423F + 0.34123F + 0.135453F + 0.12564323F;
-        float   fSum  = NumUtil.sum(fData);
+        float   fSum  = Math.sum(fData);
         assertEquals(fExp, fSum);
         
         double[] dData = new double[] {234.4523, 0.23423, 0.34123, 0.135453, 0.12564323};
         double   dExp  = 234.4523 + 0.23423 + 0.34123 + 0.135453 + 0.12564323;
-        double   dSum  = NumUtil.sum(dData);
+        double   dSum  = Math.sum(dData);
         assertEquals(dExp, dSum);
     }
     
@@ -481,22 +667,22 @@ class NumUtilTest
     {
         int[] iData = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         float iExp  = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
-        float iMean = NumUtil.mean(iData);
+        float iMean = Math.mean(iData);
         assertEquals(iExp / iData.length, iMean);
         
         long[] lData = new long[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         double lExp  = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
-        double lMean = NumUtil.mean(lData);
+        double lMean = Math.mean(lData);
         assertEquals(lExp / lData.length, lMean);
         
         float[] fData = new float[] {234.4523F, 0.23423F, 0.34123F, 0.135453F, 0.12564323F};
         float   fExp  = 234.4523F + 0.23423F + 0.34123F + 0.135453F + 0.12564323F;
-        float   fMean = NumUtil.mean(fData);
+        float   fMean = Math.mean(fData);
         assertEquals(fExp / fData.length, fMean);
         
         double[] dData = new double[] {234.4523, 0.23423, 0.34123, 0.135453, 0.12564323};
         double   dExp  = 234.4523 + 0.23423 + 0.34123 + 0.135453 + 0.12564323;
-        double   dMean = NumUtil.mean(dData);
+        double   dMean = Math.mean(dData);
         assertEquals(dExp / dData.length, dMean);
     }
     
@@ -507,22 +693,22 @@ class NumUtilTest
         
         int[] iData   = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         float iExp    = 2.8722813F;
-        float iStdDev = NumUtil.stdDev(iData);
+        float iStdDev = Math.stdDev(iData);
         assertEquals(iExp, iStdDev, delta);
         
         long[] lData   = new long[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         double lExp    = 2.872281323269;
-        double lStdDev = NumUtil.stdDev(lData);
+        double lStdDev = Math.stdDev(lData);
         assertEquals(lExp, lStdDev, delta);
         
         float[] fData   = new float[] {234.4523F, 0.23423F, 0.34123F, 0.135453F, 0.12564323F};
         float   fExp    = 93.6972969F;
-        float   fStdDev = NumUtil.stdDev(fData);
+        float   fStdDev = Math.stdDev(fData);
         assertEquals(fExp, fStdDev, delta);
         
         double[] dData   = new double[] {234.4523, 0.23423, 0.34123, 0.135453, 0.12564323};
         double   dExp    = 93.697296905973;
-        double   dStdDev = NumUtil.stdDev(dData);
+        double   dStdDev = Math.stdDev(dData);
         assertEquals(dExp, dStdDev, delta);
     }
     
@@ -540,84 +726,84 @@ class NumUtilTest
         iA   = 0;
         iB   = 10;
         iExp = iA;
-        iAct = NumUtil.lerp(iA, iB, x);
+        iAct = Math.lerp(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 1.1;
         iA   = 0;
         iB   = 10;
         iExp = iB;
-        iAct = NumUtil.lerp(iA, iB, x);
+        iAct = Math.lerp(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 0.5;
         iA   = 0;
         iB   = 10;
         iExp = 5;
-        iAct = NumUtil.lerp(iA, iB, x);
+        iAct = Math.lerp(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = -0.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lA;
-        lAct = NumUtil.lerp(lA, lB, x);
+        lAct = Math.lerp(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 1.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lB;
-        lAct = NumUtil.lerp(lA, lB, x);
+        lAct = Math.lerp(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 0.5;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = 550_000;
-        lAct = NumUtil.lerp(lA, lB, x);
+        lAct = Math.lerp(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = -0.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fA;
-        fAct = NumUtil.lerp(fA, fB, x);
+        fAct = Math.lerp(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 1.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fB;
-        fAct = NumUtil.lerp(fA, fB, x);
+        fAct = Math.lerp(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 0.5;
         fA   = 32F;
         fB   = 64F;
         fExp = 48F;
-        fAct = NumUtil.lerp(fA, fB, x);
+        fAct = Math.lerp(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = -0.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dA;
-        dAct = NumUtil.lerp(dA, dB, x);
+        dAct = Math.lerp(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 1.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dB;
-        dAct = NumUtil.lerp(dA, dB, x);
+        dAct = Math.lerp(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 0.5;
         dA   = 0.125;
         dB   = 0.875;
         dExp = 0.5;
-        dAct = NumUtil.lerp(dA, dB, x);
+        dAct = Math.lerp(dA, dB, x);
         assertEquals(dExp, dAct);
     }
     
@@ -635,84 +821,84 @@ class NumUtilTest
         iA   = 0;
         iB   = 10;
         iExp = iA;
-        iAct = NumUtil.smoothstep(iA, iB, x);
+        iAct = Math.smoothstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 1.1;
         iA   = 0;
         iB   = 10;
         iExp = iB;
-        iAct = NumUtil.smoothstep(iA, iB, x);
+        iAct = Math.smoothstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 0.75;
         iA   = 0;
         iB   = 10;
         iExp = 8;
-        iAct = NumUtil.smoothstep(iA, iB, x);
+        iAct = Math.smoothstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = -0.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lA;
-        lAct = NumUtil.smoothstep(lA, lB, x);
+        lAct = Math.smoothstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 1.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lB;
-        lAct = NumUtil.smoothstep(lA, lB, x);
+        lAct = Math.smoothstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 0.75;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = 859_375;
-        lAct = NumUtil.smoothstep(lA, lB, x);
+        lAct = Math.smoothstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = -0.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fA;
-        fAct = NumUtil.smoothstep(fA, fB, x);
+        fAct = Math.smoothstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 1.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fB;
-        fAct = NumUtil.smoothstep(fA, fB, x);
+        fAct = Math.smoothstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 0.75;
         fA   = 32F;
         fB   = 64F;
         fExp = 59F;
-        fAct = NumUtil.smoothstep(fA, fB, x);
+        fAct = Math.smoothstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = -0.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dA;
-        dAct = NumUtil.smoothstep(dA, dB, x);
+        dAct = Math.smoothstep(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 1.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dB;
-        dAct = NumUtil.smoothstep(dA, dB, x);
+        dAct = Math.smoothstep(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 0.75;
         dA   = 0.125;
         dB   = 0.875;
         dExp = 0.7578125;
-        dAct = NumUtil.smoothstep(dA, dB, x);
+        dAct = Math.smoothstep(dA, dB, x);
         assertEquals(dExp, dAct);
     }
     
@@ -730,84 +916,84 @@ class NumUtilTest
         iA   = 0;
         iB   = 10;
         iExp = iA;
-        iAct = NumUtil.smootherstep(iA, iB, x);
+        iAct = Math.smootherstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 1.1;
         iA   = 0;
         iB   = 10;
         iExp = iB;
-        iAct = NumUtil.smootherstep(iA, iB, x);
+        iAct = Math.smootherstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = 0.75;
         iA   = 0;
         iB   = 10;
         iExp = 8;
-        iAct = NumUtil.smootherstep(iA, iB, x);
+        iAct = Math.smootherstep(iA, iB, x);
         assertEquals(iExp, iAct);
         
         x    = -0.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lA;
-        lAct = NumUtil.smootherstep(lA, lB, x);
+        lAct = Math.smootherstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 1.1;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = lB;
-        lAct = NumUtil.smootherstep(lA, lB, x);
+        lAct = Math.smootherstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = 0.75;
         lA   = 100_000;
         lB   = 1_000_000;
         lExp = 906_835;
-        lAct = NumUtil.smootherstep(lA, lB, x);
+        lAct = Math.smootherstep(lA, lB, x);
         assertEquals(lExp, lAct);
         
         x    = -0.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fA;
-        fAct = NumUtil.smootherstep(fA, fB, x);
+        fAct = Math.smootherstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 1.1;
         fA   = 32F;
         fB   = 64F;
         fExp = fB;
-        fAct = NumUtil.smootherstep(fA, fB, x);
+        fAct = Math.smootherstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = 0.75;
         fA   = 32F;
         fB   = 64F;
         fExp = 60.6875F;
-        fAct = NumUtil.smootherstep(fA, fB, x);
+        fAct = Math.smootherstep(fA, fB, x);
         assertEquals(fExp, fAct);
         
         x    = -0.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dA;
-        dAct = NumUtil.smootherstep(dA, dB, x);
+        dAct = Math.smootherstep(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 1.1;
         dA   = 0.125;
         dB   = 0.875;
         dExp = dB;
-        dAct = NumUtil.smootherstep(dA, dB, x);
+        dAct = Math.smootherstep(dA, dB, x);
         assertEquals(dExp, dAct);
         
         x    = 0.75;
         dA   = 0.125;
         dB   = 0.875;
         dExp = 0.79736328125;
-        dAct = NumUtil.smootherstep(dA, dB, x);
+        dAct = Math.smootherstep(dA, dB, x);
         assertEquals(dExp, dAct);
     }
     
@@ -819,7 +1005,7 @@ class NumUtilTest
         
         for (int i = 0, n = numbers.length; i < n; i++)
         {
-            assertEquals(floors[i], NumUtil.fastFloor(numbers[i]));
+            assertEquals(floors[i], Math.fastFloor(numbers[i]));
         }
     }
     
@@ -831,7 +1017,7 @@ class NumUtilTest
         
         for (int i = 0, n = numbers.length; i < n; i++)
         {
-            assertEquals(floors[i], NumUtil.fastCeil(numbers[i]));
+            assertEquals(floors[i], Math.fastCeil(numbers[i]));
         }
     }
 }
