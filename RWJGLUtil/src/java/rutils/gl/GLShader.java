@@ -24,9 +24,11 @@ public class GLShader
     
     private final int id;
     
-    private final HashMap<GL, Integer>     shaders  = new HashMap<>();
-    private final HashMap<GL, String>      sources  = new HashMap<>();
-    private final HashMap<String, Integer> uniforms = new HashMap<>();
+    private final HashMap<GL, Integer> shaders = new HashMap<>();
+    private final HashMap<GL, String>  sources = new HashMap<>();
+    
+    private final HashMap<String, Integer> uniforms   = new HashMap<>();
+    private final HashMap<String, Integer> attributes = new HashMap<>();
     
     /**
      * Creates a new shader.
@@ -144,6 +146,9 @@ public class GLShader
         
         this.shaders.clear();
         this.sources.clear();
+        
+        this.uniforms.clear();
+        this.attributes.clear();
     }
     
     /**
@@ -152,7 +157,7 @@ public class GLShader
      * @param name  The uniform name.
      * @param value The value.
      */
-    public void setUniform(@NotNull final String name, boolean value)
+    public void setUniform(@NotNull final String name, final boolean value)
     {
         GLShader.LOGGER.finest("%s: Setting bool Uniform: %s=%s", this, name, value);
         
@@ -165,7 +170,7 @@ public class GLShader
      * @param name  The uniform name.
      * @param value The value.
      */
-    public void setUniform(final String name, long value)
+    public void setUniform(@NotNull final String name, final long value)
     {
         GLShader.LOGGER.finest("%s: Setting int Uniform: %s=%s", this, name, value);
         
@@ -178,7 +183,7 @@ public class GLShader
      * @param name  The uniform name.
      * @param value The value.
      */
-    public void setUniform(final String name, double value)
+    public void setUniform(@NotNull final String name, final double value)
     {
         GLShader.LOGGER.finest("%s: Setting float Uniform: %s=%s", this, name, value);
         
@@ -192,7 +197,7 @@ public class GLShader
      * @param x    The x value.
      * @param y    The y value.
      */
-    public void setUniform(final String name, boolean x, boolean y)
+    public void setUniform(@NotNull final String name, final boolean x, final boolean y)
     {
         GLShader.LOGGER.finest("%s: Setting vec2 Uniform: %s=(%s, %s)", this, name, x, y);
         
@@ -206,7 +211,7 @@ public class GLShader
      * @param x    The x value.
      * @param y    The y value.
      */
-    public void setUniform(final String name, long x, long y)
+    public void setUniform(@NotNull final String name, final long x, final long y)
     {
         GLShader.LOGGER.finest("%s: Setting vec2 Uniform: %s=(%s, %s)", this, name, x, y);
         
@@ -220,7 +225,7 @@ public class GLShader
      * @param x    The x value.
      * @param y    The y value.
      */
-    public void setUniform(final String name, double x, double y)
+    public void setUniform(@NotNull final String name, final double x, final double y)
     {
         GLShader.LOGGER.finest("%s: Setting vec2 Uniform: %s=(%s, %s)", this, name, x, y);
         
@@ -268,7 +273,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(@NotNull final String name, boolean x, boolean y, boolean z)
+    public void setUniform(@NotNull final String name, final boolean x, final boolean y, final boolean z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -283,7 +288,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(@NotNull final String name, long x, long y, long z)
+    public void setUniform(@NotNull final String name, final long x, final long y, final long z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -298,7 +303,7 @@ public class GLShader
      * @param y    The y value.
      * @param z    The z value.
      */
-    public void setUniform(@NotNull final String name, double x, double y, double z)
+    public void setUniform(@NotNull final String name, final double x, final double y, final double z)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s)", this, name, x, y, z);
         
@@ -347,7 +352,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(@NotNull final String name, boolean x, boolean y, boolean z, boolean w)
+    public void setUniform(@NotNull final String name, final boolean x, final boolean y, final boolean z, final boolean w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -363,7 +368,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(@NotNull final String name, long x, long y, long z, long w)
+    public void setUniform(@NotNull final String name, final long x, final long y, final long z, final long w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -379,7 +384,7 @@ public class GLShader
      * @param z    The z value.
      * @param w    The w value.
      */
-    public void setUniform(@NotNull final String name, double x, double y, double z, double w)
+    public void setUniform(@NotNull final String name, final double x, final double y, final double z, final double w)
     {
         GLShader.LOGGER.finest("%s: Setting vec3 Uniform: %s=(%s, %s, %s, %s)", this, name, x, y, z, w);
         
@@ -445,13 +450,11 @@ public class GLShader
     {
         GLShader.LOGGER.finest("%s: Setting mat2 Uniform: %s=%n%s", this, name, mat);
         
-        float[] arr = {
-                (float) mat.m00(),
-                (float) mat.m01(),
-                (float) mat.m10(),
-                (float) mat.m11()
-        };
-        glUniformMatrix2fv(getUniform(name), false, arr);
+        // Workaround because Matrix2dc does not have get(FloatBuffer)
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            glUniformMatrix3fv(getUniform(name), false, stack.floats((float) mat.m00(), (float) mat.m01(), (float) mat.m10(), (float) mat.m11()));
+        }
     }
     
     /**
@@ -522,6 +525,14 @@ public class GLShader
     {
         int value = this.uniforms.computeIfAbsent(uniform, u -> glGetUniformLocation(this.id, u));
         if (value < 0) GLShader.LOGGER.warning("Could not find uniform '%s' in %s", uniform, this);
+        return value;
+    }
+    
+    // TODO - JavaDoc
+    public int getAttributeLocation(@NotNull final String attribute)
+    {
+        int value = this.attributes.computeIfAbsent(attribute, u -> glGetAttribLocation(this.id, u));
+        if (value < 0) GLShader.LOGGER.warning("Could not find attribute '%s' in %s", attribute, this);
         return value;
     }
     

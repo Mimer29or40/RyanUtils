@@ -1,16 +1,26 @@
 package rutils.gl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4dc;
+import org.joml.Matrix4fc;
+import org.lwjgl.opengl.*;
+import org.lwjgl.system.CustomBuffer;
 import org.lwjgl.system.MemoryUtil;
 import rutils.Logger;
 
-import java.util.HashMap;
+import java.nio.*;
+import java.util.function.Supplier;
 
 import static org.lwjgl.opengl.GL46.*;
+import static org.lwjgl.system.MemoryUtil.memAddress;
+import static org.lwjgl.system.MemoryUtil.memAddressSafe;
+import static rutils.MemUtil.elementSize;
 
 /**
  * All GL constants so I can treat them differently than int in methods.
  */
-@SuppressWarnings("SpellCheckingInspection")
+@SuppressWarnings({"SpellCheckingInspection", "unused"})
 public enum GL
 {
     NULL(-1),
@@ -61,6 +71,8 @@ public enum GL
     QUAD_STRIP(GL_QUAD_STRIP),
     POLYGON(GL_POLYGON),
     SRC_COLOR(GL_SRC_COLOR),
+    ZERO(GL_ZERO),
+    ONE(GL_ONE),
     ONE_MINUS_SRC_COLOR(GL_ONE_MINUS_SRC_COLOR),
     SRC_ALPHA(GL_SRC_ALPHA),
     ONE_MINUS_SRC_ALPHA(GL_ONE_MINUS_SRC_ALPHA),
@@ -69,6 +81,8 @@ public enum GL
     DST_COLOR(GL_DST_COLOR),
     ONE_MINUS_DST_COLOR(GL_ONE_MINUS_DST_COLOR),
     SRC_ALPHA_SATURATE(GL_SRC_ALPHA_SATURATE),
+    TRUE(GL_TRUE),
+    FALSE(GL_FALSE),
     CLIP_PLANE0(GL_CLIP_PLANE0),
     CLIP_PLANE1(GL_CLIP_PLANE1),
     CLIP_PLANE2(GL_CLIP_PLANE2),
@@ -99,6 +113,7 @@ public enum GL
     AUX1(GL_AUX1),
     AUX2(GL_AUX2),
     AUX3(GL_AUX3),
+    NO_ERROR(GL_NO_ERROR),
     INVALID_ENUM(GL_INVALID_ENUM),
     INVALID_VALUE(GL_INVALID_VALUE),
     INVALID_OPERATION(GL_INVALID_OPERATION),
@@ -1826,16 +1841,18 @@ public enum GL
     TRANSFORM_FEEDBACK_OVERFLOW(GL_TRANSFORM_FEEDBACK_OVERFLOW),
     TRANSFORM_FEEDBACK_STREAM_OVERFLOW(GL_TRANSFORM_FEEDBACK_STREAM_OVERFLOW),
     
+    // ---------- Custom ---------- //
+    TEXTURE_FILTER_ANISOTROPIC(0x10000),
+    UNKNOWN_SOURCE(0x10001),
+    UNKNOWN_TYPE(0x10002),
+    UNKNOWN_ERROR(0x10003),
+    UNKNOWN_SEVERITY(0x10004),
+    UNKNOWN_FRAMEBUFFER_STATUS(0x10005),
+    UNKNOWN_SHADER_NAME(0x10006),
+    UNKNOWN_PROGRAM_NAME(0x10004),
     ;
     
     private static final Logger LOGGER = new Logger();
-    
-    private static final HashMap<Long, GL> LOOKUP_MAP = new HashMap<>();
-    
-    static
-    {
-        for (GL gl : GL.values()) GL.LOOKUP_MAP.put(gl.ref, gl);
-    }
     
     private final long   ref;
     private final String glName;
@@ -1865,38 +1882,1802 @@ public enum GL
         return this.glName;
     }
     
-    public static GL get(long gl)
+    // ---------- LWJGL ---------- //
+    
+    public static void createCapabilities()
     {
-        return GL.LOOKUP_MAP.getOrDefault(gl, GL.NULL);
+        org.lwjgl.opengl.GL.createCapabilities();
     }
     
-    static
+    public static void removeCapabilities()
     {
-        glEnable(GL_DEBUG_OUTPUT);
-        glDebugMessageCallback((sourceInt, typeInt, idInt, severityInt, length, messagePointer, userParam) -> {
-            GL source   = GL.get(sourceInt);
-            GL type     = GL.get(typeInt);
-            GL id       = GL.get(idInt);
-            GL severity = GL.get(severityInt);
+        org.lwjgl.opengl.GL.setCapabilities(null);
+    }
+    
+    public static void destroy()
+    {
+        org.lwjgl.opengl.GL.destroy();
+    }
+    
+    // Initialize OpenGL (buffers, shaders, textures, states)
+    public static void init(int width, int height)
+    {
+        // Check OpenGL information and capabilities
+        //------------------------------------------------------------------------------
+        // Print current OpenGL and GLSL version
+        GL.LOGGER.info("GL: OpenGL device information:");
+        GL.LOGGER.info("    > Vendor:   %s", (Supplier<?>) () -> GL.getString(GL.VENDOR));
+        GL.LOGGER.info("    > Renderer: %s", (Supplier<?>) () -> GL.getString(GL.RENDERER));
+        GL.LOGGER.info("    > Version:  %s", (Supplier<?>) () -> GL.getString(GL.VERSION));
+        GL.LOGGER.info("    > GLSL:     %s", (Supplier<?>) () -> GL.getString(GL.SHADING_LANGUAGE_VERSION));
+        
+        // NOTE: We can get a bunch of extra information about GPU capabilities (glGet*)
+        //GL.LOGGER.info("GL.MAX_TEXTURE_SIZE = %s", (Supplier<?>) () -> GL.getInteger(GL.MAX_TEXTURE_SIZE));
+        //GL.LOGGER.info("GL.MAX_TEXTURE_IMAGE_UNITS = %s", (Supplier<?>) () -> GL.getInteger(GL.MAX_TEXTURE_IMAGE_UNITS));
+        //GL.LOGGER.info("GL.MAX_VIEWPORT_DIMS = %s", (Supplier<?>) () -> GL.getInteger(GL.MAX_VIEWPORT_DIMS));
+        //GL.LOGGER.info("GL.AUX_BUFFERS = %s", (Supplier<?>) () -> GL.getInteger(GL.AUX_BUFFERS));
+        
+        // Get supported extensions list
+        // We get a list of available extensions and we check for some of them (compressed textures)
+        // NOTE: We don't need to check again supported extensions but we do (GLAD already dealt with that)
+        int numExt = GL.getInteger(GL.NUM_EXTENSIONS);
+        GL.LOGGER.info("Supported extensions count: %s", numExt);
+        
+        // Check required extensions
+        for (int i = 0; i < numExt; i++)
+        {
+            // Get extensions strings
+            String ext = getString(GL.EXTENSIONS, i);
             
-            String header  = "OpenGL Error Message\n\tID: %s\n\tSource: %s\n\tType: %s\n\tSeverity: %s\n\tMessage: %s\n";
-            String message = MemoryUtil.memUTF8(messagePointer);
-            
-            switch (type)
-            {
-                case DEBUG_TYPE_ERROR -> {
-                    switch (severity)
-                    {
-                        case DEBUG_SEVERITY_HIGH -> GL.LOGGER.severe(header, id, source, type, severity, message);
-                        case DEBUG_SEVERITY_MEDIUM -> GL.LOGGER.warning(header, id, source, type, severity, message);
-                        case DEBUG_SEVERITY_LOW -> GL.LOGGER.info(header, id, source, type, severity, message);
-                        case DEBUG_SEVERITY_NOTIFICATION -> GL.LOGGER.finer(header, id, source, type, severity, message);
+            // Show supported extensions
+            // GL.LOGGER.info("Supported extension: %s", ext);
+        }
+        
+        // Init state: Depth test
+        GL.depthFunc(GL.LEQUAL);
+        GL.disable(GL.DEPTH_TEST);
+        
+        // Init state: Blending mode
+        GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
+        GL.blendEquation(GL.FUNC_ADD);
+        GL.enable(GL.BLEND);
+        
+        // Init state: Culling
+        GL.cullFace(GL.BACK);
+        GL.frontFace(GL.CCW);
+        GL.enable(GL.CULL_FACE);
+        
+        // Init state: Cubemap seamless
+        GL.enable(GL.TEXTURE_CUBE_MAP_SEAMLESS);
+        
+        GL.LOGGER.info("Default State Initialized Successfully");
+        
+        // Init state: Color/Depth buffers clear
+        GL.clearColor(0.0, 0.0, 0.0, 1.0);
+        GL.clearDepth(1.0);
+        GL.clear(GL.COLOR_BUFFER_BIT, GL.DEPTH_BUFFER_BIT);
+    }
+    
+    // De-inititialize rlgl (buffers, shaders, textures)
+    public static void close()
+    {
+    
+    }
+    
+    // ---------- GL11 ---------- //
+    
+    /**
+     * Abstraction for {@link GL11#glEnable(int) glEnable}
+     */
+    public static void enable(GL target)
+    {
+        GL11C.glEnable(target.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDisable(int) glDisable}
+     */
+    public static void disable(GL target)
+    {
+        GL11C.glDisable(target.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glBegin(int) glBegin}
+     */
+    public static void begin(GL mode)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glBindTexture(int, int) glBindTexture}
+     */
+    public static void bindTexture(GL target, int texture)
+    {
+        GL11C.glBindTexture(target.ref(), texture);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glBlendFunc(int, int) glBlendFunc}
+     */
+    public static void blendFunc(GL sfactor, GL dfactor)
+    {
+        GL11C.glBlendFunc(sfactor.ref(), dfactor.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glClear(int) glClear}
+     */
+    public static void clear(GL... mask)
+    {
+        int _mask = 0;
+        for (GL gl : mask) _mask |= gl.ref();
+        GL11C.glClear(_mask);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glClearColor(float, float, float, float) glClearColor}
+     */
+    public static void clearColor(double r, double g, double b, double a)
+    {
+        GL11C.glClearColor((float) r, (float) g, (float) b, (float) a);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glClearDepth(double) glClearDepth}
+     */
+    public static void clearDepth(double depth)
+    {
+        GL11C.glClearDepth(depth);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glColor3i(int, int, int) glColor3i}
+     */
+    public static void color3(int r, int g, int b)
+    {
+        color4(r, g, b, 255);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glColor4i(int, int, int, int) glColor4i}
+     */
+    public static void color4(int r, int g, int b, int a)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glColor3f(float, float, float) glColor3f}
+     */
+    public static void color3(double r, double g, double b)
+    {
+        color4((int) (r * 255), (int) (g * 255), (int) (b * 255), 255);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glColor4f(float, float, float, float) glColor4f}
+     */
+    public static void color4(double r, double g, double b, double a)
+    {
+        color4((int) (r * 255), (int) (g * 255), (int) (b * 255), (int) (a * 255));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glCullFace(int) glCullFace}
+     */
+    public static void cullFace(GL mode)
+    {
+        GL11C.glCullFace(mode.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDeleteTextures(int) glDeleteTextures}
+     */
+    public static void deleteTextures(int id)
+    {
+        GL11C.glDeleteTextures(id);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDepthFunc(int) glDepthFunc}
+     */
+    public static void depthFunc(GL func)
+    {
+        GL11C.glDepthFunc(func.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDepthMask(boolean) glDepthMask}
+     */
+    public static void depthMask(boolean flag)
+    {
+        GL11C.glDepthMask(flag);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDrawArrays(int, int, int) glDrawArrays}
+     */
+    public static void drawArrays(GL mode, int offset, int count)
+    {
+        GL11C.glDrawArrays(mode.ref(), offset, count);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glDrawElements(int, int, int, long) glDrawElements}
+     */
+    public static void drawElements(GL mode, int count, GL type, long indices)
+    {
+        GL11C.glDrawElements(mode.ref(), count, type.ref(), indices);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glEnd() glEnd}
+     */
+    public static void end()
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glFinish() glFinish}
+     */
+    public static void finish()
+    {
+        GL11C.glFinish();
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glFlush() glFlush}
+     */
+    public static void flush()
+    {
+        GL11C.glFlush();
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glFrontFace(int) glFrontFace}
+     */
+    public static void frontFace(GL dir)
+    {
+        GL11C.glFrontFace(dir.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glFrustum(double, double, double, double, double, double) glFrustum}
+     */
+    public static void frustum(double left, double right, double bottom, double top, double znear, double zfar)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGenTextures() glGenTextures}
+     */
+    public static int genTextures()
+    {
+        return GL11C.glGenTextures();
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetBoolean(int) glGetBoolean}
+     */
+    public static boolean getBoolean(GL pname)
+    {
+        return GL11C.glGetBoolean(pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetDouble(int) glGetDouble}
+     */
+    public static double getDouble(GL pname)
+    {
+        return GL11C.glGetDouble(pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetError() glGetError}
+     */
+    public static GL getError()
+    {
+        return getGLErrorName(GL11C.glGetError());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetFloat(int) glGetFloat}
+     */
+    public static float getFloat(GL pname)
+    {
+        return GL11C.glGetFloat(pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetInteger(int) glGetInteger}
+     */
+    public static int getInteger(GL pname)
+    {
+        return GL11C.glGetInteger(pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetString(int) glGetString}
+     */
+    public static String getString(GL pname)
+    {
+        return GL11C.glGetString(pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexImage(int, int, int, int, long) glGetTexImage}
+     */
+    public static void getTexImage(GL tex, int level, GL format, GL type, long pixels)
+    {
+        GL11C.nglGetTexImage(tex.ref(), level, format.ref(), type.ref(), pixels);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexImage(int, int, int, int, ByteBuffer) glGetTexImage}
+     */
+    public static void getTexImage(GL tex, int level, GL format, GL type, @NotNull Buffer pixels)
+    {
+        GL11C.nglGetTexImage(tex.ref(), level, format.ref(), type.ref(), memAddress(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexImage(int, int, int, int, ByteBuffer) glGetTexImage}
+     */
+    public static void getTexImage(GL tex, int level, GL format, GL type, @NotNull CustomBuffer<?> pixels)
+    {
+        GL11C.nglGetTexImage(tex.ref(), level, format.ref(), type.ref(), memAddress(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexLevelParameteri(int, int, int) glGetTexLevelParameteri}
+     */
+    public static int getTexLevelParameteri(GL target, int level, GL pname)
+    {
+        return GL11C.glGetTexLevelParameteri(target.ref(), level, pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexLevelParameterf(int, int, int) glGetTexLevelParameterf}
+     */
+    public static float getTexLevelParameterf(GL target, int level, GL pname)
+    {
+        return GL11C.glGetTexLevelParameteri(target.ref(), level, pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexParameteri(int, int) glGetTexParameteri}
+     */
+    public static int getTexParameteri(GL target, GL pname)
+    {
+        return GL11C.glGetTexParameteri(target.ref(), pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glGetTexParameterf(int, int) glGetTexParameterf}
+     */
+    public static float getTexParameterf(GL target, GL pname)
+    {
+        return GL11C.glGetTexParameterf(target.ref(), pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glHint(int, int) glHint}
+     */
+    public static void hint(GL target, GL hint)
+    {
+        GL11C.glHint(target.ref(), hint.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glLoadMatrixf(FloatBuffer) glLoadMatrixf}
+     */
+    public static void loadMatrix(Matrix4fc m)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glLoadMatrixd(DoubleBuffer) glLoadMatrixd}
+     */
+    public static void loadMatrix(Matrix4dc m)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glLoadIdentity() glLoadIdentity}
+     */
+    public static void loadIdentity()
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glMatrixMode(int) glMatrixMode}
+     */
+    public static void matrixMode(GL mode)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glMultMatrixf(FloatBuffer) glMultMatrixf}
+     */
+    public static void multMatrix(Matrix4fc mat)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glMultMatrixd(DoubleBuffer) glMultMatrixd}
+     */
+    public static void multMatrix(Matrix4dc mat)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glNormal3f(float, float, float) glNormal3f}
+     */
+    public static void normal3(double x, double y, double z)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glOrtho(double, double, double, double, double, double) glOrtho}
+     */
+    public static void ortho(double left, double right, double bottom, double top, double zNear, double zFar)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPixelStorei(int, int) glPixelStorei}
+     */
+    public static void pixelStore(GL pname, int param)
+    {
+        GL11C.glPixelStorei(pname.ref(), param);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPixelStoref(int, float) glPixelStoref}
+     */
+    public static void pixelStore(GL pname, float param)
+    {
+        GL11C.glPixelStoref(pname.ref(), param);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPointSize(float) glPointSize}
+     */
+    public static void pointSize(float size)
+    {
+        GL11C.glPointSize(size);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPolygonMode(int, int) glPolygonMode}
+     */
+    public static void polygonMode(GL face, GL mode)
+    {
+        GL11C.glPolygonMode(face.ref(), mode.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPopMatrix() glPopMatrix}
+     */
+    public static void popMatrix()
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glPushMatrix() glPushMatrix}
+     */
+    public static void pushMatrix()
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glReadBuffer(int) glReadBuffer}
+     */
+    public static void readBuffer(GL src)
+    {
+        GL11C.glReadBuffer(src.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glReadPixels(int, int, int, int, int, int, long) glReadPixels}
+     */
+    public static void readPixels(int x, int y, int width, int height, GL format, GL type, long pixels)
+    {
+        GL11C.nglReadPixels(x, y, width, height, format.ref(), type.ref(), pixels);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glReadPixels(int, int, int, int, int, int, ByteBuffer) glReadPixels}
+     */
+    public static void readPixels(int x, int y, int width, int height, GL format, GL type, @NotNull Buffer pixels)
+    {
+        GL11C.nglReadPixels(x, y, width, height, format.ref(), type.ref(), memAddress(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glReadPixels(int, int, int, int, int, int, ByteBuffer) glReadPixels}
+     */
+    public static void readPixels(int x, int y, int width, int height, GL format, GL type, @NotNull CustomBuffer<?> pixels)
+    {
+        GL11C.nglReadPixels(x, y, width, height, format.ref(), type.ref(), memAddress(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glRotatef(float, float, float, float) glRotatef}
+     */
+    public static void rotate(double angleDeg, double x, double y, double z)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glRotatef(float, float, float, float) glRotatef}
+     */
+    public static void scale(double x, double y, double z)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glScissor(int, int, int, int) glScissor}
+     */
+    public static void scissor(int x, int y, int width, int height)
+    {
+        GL11C.glScissor(x, y, width, height);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexCoord2f(float, float) glTexCoord2f}
+     */
+    public static void texCoord2(double x, double y)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexImage2D(int, int, int, int, int, int, int, int, long) glTexImage2D}
+     */
+    public static void texImage2D(GL target, int level, GL internalformat, int width, int height, int border, GL format, GL type, long pixels)
+    {
+        GL11C.nglTexImage2D(target.ref(), level, internalformat.ref(), width, height, border, format.ref(), type.ref(), pixels);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexImage2D(int, int, int, int, int, int, int, int, ByteBuffer) glTexImage2D}
+     */
+    public static void texImage2D(GL target, int level, GL internalformat, int width, int height, int border, GL format, GL type, @Nullable Buffer pixels)
+    {
+        GL11C.nglTexImage2D(target.ref(), level, internalformat.ref(), width, height, border, format.ref(), type.ref(), pixels != null ? memAddress(pixels) : MemoryUtil.NULL);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexImage2D(int, int, int, int, int, int, int, int, ByteBuffer) glTexImage2D}
+     */
+    public static void texImage2D(GL target, int level, GL internalformat, int width, int height, int border, GL format, GL type, @Nullable CustomBuffer<?> pixels)
+    {
+        GL11C.nglTexImage2D(target.ref(), level, internalformat.ref(), width, height, border, format.ref(), type.ref(), memAddressSafe(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glCopyTexImage2D(int, int, int, int, int, int, int, int) glCopyTexImage2D}
+     */
+    public static void copyTexImage2D(GL target, int level, GL internalformat, int width, int height, int border, GL format, GL type)
+    {
+        GL11C.glCopyTexImage2D(target.ref(), level, internalformat.ref(), width, height, border, format.ref(), type.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexParameteri(int, int, int) glTexParameteri}
+     */
+    public static void texParameter(GL target, GL pname, GL value)
+    {
+        GL11C.glTexParameteri(target.ref(), pname.ref(), value.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexParameteri(int, int, int) glTexParameteri}
+     */
+    public static void texParameter(GL target, GL pname, int value)
+    {
+        GL11C.glTexParameteri(target.ref(), pname.ref(), value);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexParameterf(int, int, float) glTexParameterf}
+     */
+    public static void texParameter(GL target, GL pname, float value)
+    {
+        GL11C.glTexParameterf(target.ref(), pname.ref(), value);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexParameteriv(int, int, IntBuffer) glTexParameteriv}
+     */
+    public static void texParameter(GL target, GL pname, IntBuffer value)
+    {
+        GL11C.glTexParameteriv(target.ref(), pname.ref(), value);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexParameterfv(int, int, FloatBuffer) glTexParameterfv}
+     */
+    public static void texParameter(GL target, GL pname, FloatBuffer value)
+    {
+        GL11C.glTexParameterfv(target.ref(), pname.ref(), value);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexSubImage2D(int, int, int, int, int, int, int, int, long) glTexSubImage2D}
+     */
+    public static void texSubImage2D(GL target, int level, int xoffset, int yoffset, int width, int height, GL format, GL type, long pixels)
+    {
+        GL11C.nglTexSubImage2D(target.ref(), level, xoffset, yoffset, width, height, format.ref(), type.ref(), pixels);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexSubImage2D(int, int, int, int, int, int, int, int, ByteBuffer) glTexSubImage2D}
+     */
+    public static void texSubImage2D(GL target, int level, int xoffset, int yoffset, int width, int height, GL format, GL type, @Nullable Buffer pixels)
+    {
+        GL11C.nglTexSubImage2D(target.ref(), level, xoffset, yoffset, width, height, format.ref(), type.ref(), pixels != null ? memAddress(pixels) : MemoryUtil.NULL);
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTexSubImage2D(int, int, int, int, int, int, int, int, ByteBuffer) glTexSubImage2D}
+     */
+    public static void texSubImage2D(GL target, int level, int xoffset, int yoffset, int width, int height, GL format, GL type, @Nullable CustomBuffer<?> pixels)
+    {
+        GL11C.nglTexSubImage2D(target.ref(), level, xoffset, yoffset, width, height, format.ref(), type.ref(), memAddressSafe(pixels));
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glTranslatef(float, float, float) glTranslatef}
+     */
+    public static void translate(double x, double y, double z)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glVertex2f(float, float) glVertex2f}
+     */
+    public static void vertex2(double x, double y)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glVertex3f(float, float, float) glVertex3f}
+     */
+    public static void vertex3(double x, double y, double z)
+    {
+        // TODO
+    }
+    
+    /**
+     * Abstraction for {@link GL11#glViewport(int, int, int, int) glViewport}
+     */
+    public static void viewport(int x, int y, int width, int height)
+    {
+        GL11C.glViewport(x, y, width, height);
+    }
+    
+    // ---------- GL12 ---------- //
+    
+    // ---------- GL13 ---------- //
+    
+    /**
+     * Abstraction for {@link GL13#glActiveTexture(int) glActiveTexture}
+     */
+    public static void activeTexture(int slot)
+    {
+        GL13C.glActiveTexture(GL_TEXTURE0 + slot);
+    }
+    
+    /**
+     * Abstraction for {@link GL13#glActiveTexture(int) glActiveTexture}
+     */
+    public static void activeTexture(GL slot)
+    {
+        GL13C.glActiveTexture(slot.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL13#glLineWidth(float) glLineWidth}
+     */
+    public static void lineWidth(float width)
+    {
+        GL13C.glLineWidth(width);
+    }
+    
+    /**
+     * Abstraction for {@link GL13#glLoadTransposeMatrixf(FloatBuffer) glLoadTransposeMatrixf}
+     */
+    public static void loadTransposeMatrix(Matrix4fc m)
+    {
+        // GL.STATE.currentMatrix.set(m);
+    }
+    
+    /**
+     * Abstraction for {@link GL13#glLoadTransposeMatrixd(DoubleBuffer) glLoadTransposeMatrixd}
+     */
+    public static void loadTransposeMatrix(Matrix4dc m)
+    {
+        // GL.STATE.currentMatrix.set(m);
+    }
+    
+    // ---------- GL14 ---------- //
+    
+    /**
+     * Abstraction for {@link GL14#glBlendEquation(int) glBlendEquation}
+     */
+    public static void blendEquation(GL mode)
+    {
+        GL14C.glBlendEquation(mode.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL14#glBlendFuncSeparate(int, int, int, int) glBlendFuncSeparate}
+     */
+    public static void blendFuncSeparate(GL sfactorRGB, GL dfactorRGB, GL sfactorAlpha, GL dfactorAlpha)
+    {
+        GL14C.glBlendFuncSeparate(sfactorRGB.ref(), dfactorRGB.ref(), sfactorAlpha.ref(), dfactorAlpha.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL14#glPointParameterf(int, float) glPointParameterf}
+     */
+    public static void pointParameter(GL pname, float param)
+    {
+        GL14C.glPointParameterf(pname.ref(), param);
+    }
+    
+    /**
+     * Abstraction for {@link GL14#glPointParameteri(int, int) glPointParameteri}
+     */
+    public static void pointParameter(GL pname, int param)
+    {
+        GL14C.glPointParameteri(pname.ref(), param);
+    }
+    
+    // ---------- GL15 ---------- //
+    
+    /**
+     * Abstraction for {@link GL15#glBindBuffer(int, int) glBindBuffer}
+     */
+    public static void bindBuffer(GL target, int buffer)
+    {
+        GL15C.glBindBuffer(target.ref(), buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glDeleteBuffers(int) glDeleteBuffers}
+     */
+    public static void deleteBuffers(int buffer)
+    {
+        GL15C.glDeleteBuffers(buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glGenBuffers() glGenBuffers}
+     */
+    public static int genBuffers()
+    {
+        return GL15C.glGenBuffers();
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glBufferData(int, long, int) glBufferData}
+     */
+    public static void bufferData(GL target, long size, GL usage)
+    {
+        GL15C.nglBufferData(target.ref(), size, MemoryUtil.NULL, usage.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#nglBufferData(int, long, long, int) nglBufferData}
+     */
+    public static void bufferData(GL target, long size, long address, GL usage)
+    {
+        GL15C.nglBufferData(target.ref(), size, address, usage.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glBufferData(int, ByteBuffer, int) glBufferData}
+     */
+    public static void bufferData(GL target, @NotNull Buffer data, GL usage)
+    {
+        GL15C.nglBufferData(target.ref(), data.remaining() * elementSize(data), memAddress(data), usage.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glBufferData(int, ByteBuffer, int) glBufferData}
+     */
+    public static void bufferData(GL target, @NotNull CustomBuffer<?> data, GL usage)
+    {
+        GL15C.nglBufferData(target.ref(), Integer.toUnsignedLong(data.remaining()) * data.sizeof(), memAddress(data), usage.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#nglBufferSubData(int, long, long, long) nglBufferSubData}
+     */
+    public static void bufferSubData(GL target, long offset, long size, long data)
+    {
+        GL15C.nglBufferSubData(target.ref(), offset, size, data);
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glBufferSubData(int, long, ByteBuffer) glBufferSubData}
+     */
+    public static void bufferSubData(GL target, long offset, @NotNull Buffer data)
+    {
+        GL15C.nglBufferSubData(target.ref(), offset, data.remaining() * elementSize(data), memAddress(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glBufferSubData(int, long, ByteBuffer) glBufferSubData}
+     */
+    public static void bufferSubData(GL target, long offset, @NotNull CustomBuffer<?> data)
+    {
+        GL15C.nglBufferSubData(target.ref(), offset, Integer.toUnsignedLong(data.remaining()) * data.sizeof(), memAddress(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glGetBufferSubData(int, long, ByteBuffer) glGetBufferSubData}
+     */
+    public static void getBufferSubData(GL target, long offset, @NotNull Buffer data)
+    {
+        GL15C.nglGetBufferSubData(target.ref(), offset, data.remaining() * elementSize(data), memAddress(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glGetBufferSubData(int, long, ByteBuffer) glGetBufferSubData}
+     */
+    public static void getBufferSubData(GL target, long offset, @NotNull CustomBuffer<?> data)
+    {
+        GL15C.nglGetBufferSubData(target.ref(), offset, Integer.toUnsignedLong(data.remaining()) * data.sizeof(), memAddress(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glMapBuffer(int, int) glMapBuffer}
+     */
+    public static @Nullable ByteBuffer mapBuffer(GL target, GL access)
+    {
+        return GL15C.glMapBuffer(target.ref(), access.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glMapBuffer(int, int, ByteBuffer) glMapBuffer}
+     */
+    public static @Nullable ByteBuffer mapBuffer(GL target, GL access, @Nullable ByteBuffer oldBuffer)
+    {
+        return GL15C.glMapBuffer(target.ref(), access.ref(), oldBuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glMapBuffer(int, int, long, ByteBuffer) glMapBuffer}
+     */
+    public static @Nullable ByteBuffer mapBuffer(GL target, GL access, long length, @Nullable ByteBuffer oldBuffer)
+    {
+        return GL15C.glMapBuffer(target.ref(), access.ref(), length, oldBuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glUnmapBuffer(int) glUnmapBuffer}
+     */
+    public static boolean unmapBuffer(GL target)
+    {
+        return GL15C.glUnmapBuffer(target.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL15#glGetBufferParameteri(int, int) glGetBufferParameteri}
+     */
+    public static int getBufferParameter(GL target, GL pname)
+    {
+        return GL15C.glGetBufferParameteri(target.ref(), pname.ref());
+    }
+    
+    // ---------- GL20 ---------- //
+    
+    /**
+     * Abstraction for {@link GL20#glCreateProgram() glCreateProgram}
+     */
+    public static int createProgram()
+    {
+        return GL20C.glCreateProgram();
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glDeleteProgram(int) glDeleteProgram}
+     */
+    public static void deleteProgram(int program)
+    {
+        GL20C.glDeleteProgram(program);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glCreateShader(int) glCreateShader}
+     */
+    public static int createShader(GL type)
+    {
+        return GL20C.glCreateShader(type.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glDeleteShader(int) glDeleteShader}
+     */
+    public static void deleteShader(int shader)
+    {
+        GL20C.glDeleteShader(shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glAttachShader(int, int) glAttachShader}
+     */
+    public static void attachShader(int program, int shader)
+    {
+        GL20C.glAttachShader(program, shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glDetachShader(int, int) glDetachShader}
+     */
+    public static void detachShader(int program, int shader)
+    {
+        GL20C.glDetachShader(program, shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glShaderSource(int, CharSequence) glShaderSource}
+     */
+    public static void shaderSource(int shader, CharSequence string)
+    {
+        GL20C.glShaderSource(shader, string);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glCompileShader(int) glCompileShader}
+     */
+    public static void compileShader(int shader)
+    {
+        GL20C.glCompileShader(shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetShaderInfoLog(int) glGetShaderInfoLog}
+     */
+    public static String getShaderInfoLog(int shader)
+    {
+        return GL20C.glGetShaderInfoLog(shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glLinkProgram(int) glLinkProgram}
+     */
+    public static void linkProgram(int program)
+    {
+        GL20C.glLinkProgram(program);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUseProgram(int) glUseProgram}
+     */
+    public static void useProgram(int program)
+    {
+        GL20C.glUseProgram(program);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glValidateProgram(int) glValidateProgram}
+     */
+    public static void validateProgram(int program)
+    {
+        GL20C.glValidateProgram(program);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetProgramInfoLog(int) glGetProgramInfoLog}
+     */
+    public static String getProgramInfoLog(int shader)
+    {
+        return GL20C.glGetProgramInfoLog(shader);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform1f(int, float) glUniform1f}
+     */
+    public static void uniform1(int location, double v0)
+    {
+        GL20C.glUniform1f(location, (float) v0);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform2f(int, float, float) glUniform2f}
+     */
+    public static void uniform2(int location, double v0, double v1)
+    {
+        GL20C.glUniform2f(location, (float) v0, (float) v1);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform3f(int, float, float, float) glUniform3f}
+     */
+    public static void uniform3(int location, double v0, double v1, double v2)
+    {
+        GL20C.glUniform3f(location, (float) v0, (float) v1, (float) v2);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform4f(int, float, float, float, float) glUniform4f}
+     */
+    public static void uniform4(int location, double v0, double v1, double v2, double v3)
+    {
+        GL20C.glUniform4f(location, (float) v0, (float) v1, (float) v2, (float) v3);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform1fv(int, FloatBuffer) glUniform1fv}
+     */
+    public static void uniform1(int location, FloatBuffer buffer)
+    {
+        GL20C.glUniform1fv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform2fv(int, FloatBuffer) glUniform2fv}
+     */
+    public static void uniform2(int location, FloatBuffer buffer)
+    {
+        GL20C.glUniform2fv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform3fv(int, FloatBuffer) glUniform3fv}
+     */
+    public static void uniform3(int location, FloatBuffer buffer)
+    {
+        GL20C.glUniform3fv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform4fv(int, FloatBuffer) glUniform4fv}
+     */
+    public static void uniform4(int location, FloatBuffer buffer)
+    {
+        GL20C.glUniform4fv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform1i(int, int) glUniform1i}
+     */
+    public static void uniform1(int location, int v0)
+    {
+        GL20C.glUniform1i(location, v0);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform2i(int, int, int) glUniform2i}
+     */
+    public static void uniform2(int location, int v0, int v1)
+    {
+        GL20C.glUniform2i(location, v0, v1);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform3i(int, int, int, int) glUniform3i}
+     */
+    public static void uniform3(int location, int v0, int v1, int v2)
+    {
+        GL20C.glUniform3i(location, v0, v1, v2);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform4i(int, int, int, int, int) glUniform4i}
+     */
+    public static void uniform4(int location, int v0, int v1, int v2, int v3)
+    {
+        GL20C.glUniform4i(location, v0, v1, v2, v3);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform1iv(int, IntBuffer) glUniform1iv}
+     */
+    public static void uniform1(int location, IntBuffer buffer)
+    {
+        GL20C.glUniform1iv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform2iv(int, IntBuffer) glUniform2iv}
+     */
+    public static void uniform2(int location, IntBuffer buffer)
+    {
+        GL20C.glUniform2iv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform3iv(int, IntBuffer) glUniform3iv}
+     */
+    public static void uniform3(int location, IntBuffer buffer)
+    {
+        GL20C.glUniform3iv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glUniform4iv(int, IntBuffer) glUniform4iv}
+     */
+    public static void uniform4(int location, IntBuffer buffer)
+    {
+        GL20C.glUniform4iv(location, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetShaderi(int, int) glGetShaderi}
+     */
+    public static int getShader(int shader, GL pname)
+    {
+        return GL20C.glGetShaderi(shader, pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetProgrami(int, int) glGetProgrami}
+     */
+    public static int getProgram(int program, GL pname)
+    {
+        return GL20C.glGetProgrami(program, pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetAttachedShaders(int, IntBuffer, IntBuffer) glGetAttachedShaders}
+     */
+    public static void getAttachedShaders(int program, @Nullable IntBuffer count, @NotNull IntBuffer shaders)
+    {
+        GL20C.glGetAttachedShaders(program, count, shaders);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetUniformLocation(int, CharSequence) glGetUniformLocation}
+     */
+    public static int getUniformLocation(int program, CharSequence name)
+    {
+        return GL20C.glGetUniformLocation(program, name);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetActiveUniform(int, int, IntBuffer, IntBuffer) glGetActiveUniform}
+     */
+    public static String getActiveUniform(int program, int index, IntBuffer size, IntBuffer type)
+    {
+        return GL20C.glGetActiveUniform(program, index, size, type);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetUniformf(int, int) glGetUniformf}
+     */
+    public static float getUniformf(int program, int location)
+    {
+        return GL20C.glGetUniformf(program, location);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetUniformi(int, int) glGetUniformi}
+     */
+    public static int getUniformi(int program, int location)
+    {
+        return GL20C.glGetUniformi(program, location);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib1f(int, float) glVertexAttrib1f}
+     */
+    public static void vertexAttrib1(int index, double v0)
+    {
+        GL20C.glVertexAttrib1f(index, (float) v0);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib2f(int, float, float) glVertexAttrib2f}
+     */
+    public static void vertexAttrib2(int index, double v0, double v1)
+    {
+        GL20C.glVertexAttrib2f(index, (float) v0, (float) v1);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib3f(int, float, float, float) glVertexAttrib3f}
+     */
+    public static void vertexAttrib3(int index, double v0, double v1, double v2)
+    {
+        GL20C.glVertexAttrib3f(index, (float) v0, (float) v1, (float) v2);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib4f(int, float, float, float, float) glVertexAttrib4f}
+     */
+    public static void vertexAttrib4(int index, double v0, double v1, double v2, double v3)
+    {
+        GL20C.glVertexAttrib4f(index, (float) v0, (float) v1, (float) v2, (float) v3);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib1fv(int, FloatBuffer) glVertexAttrib1fv}
+     */
+    public static void vertexAttrib1(int index, FloatBuffer buffer)
+    {
+        GL20C.glVertexAttrib1fv(index, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib2fv(int, FloatBuffer) glVertexAttrib2fv}
+     */
+    public static void vertexAttrib2(int index, FloatBuffer buffer)
+    {
+        GL20C.glVertexAttrib2fv(index, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib3fv(int, FloatBuffer) glVertexAttrib3fv}
+     */
+    public static void vertexAttrib3(int index, FloatBuffer buffer)
+    {
+        GL20C.glVertexAttrib3fv(index, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttrib4fv(int, FloatBuffer) glVertexAttrib4fv}
+     */
+    public static void vertexAttrib4(int index, FloatBuffer buffer)
+    {
+        GL20C.glVertexAttrib4fv(index, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glVertexAttribPointer(int, int, int, boolean, int, long) glVertexAttribPointer}
+     */
+    public static void vertexAttribPointer(int index, int compSize, GL type, boolean normalized, int stride, long pointer)
+    {
+        GL20C.glVertexAttribPointer(index, compSize, type.ref(), normalized, stride, pointer);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glEnableVertexAttribArray(int) glEnableVertexAttribArray}
+     */
+    public static void enableVertexAttribArray(int index)
+    {
+        GL20C.glEnableVertexAttribArray(index);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glDisableVertexAttribArray(int) glDisableVertexAttribArray}
+     */
+    public static void disableVertexAttribArray(int index)
+    {
+        GL20C.glDisableVertexAttribArray(index);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glBindAttribLocation(int, int, CharSequence) glBindAttribLocation}
+     */
+    public static void bindAttribLocation(int program, int index, CharSequence name)
+    {
+        GL20C.glBindAttribLocation(program, index, name);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetAttribLocation(int, CharSequence) glGetAttribLocation}
+     */
+    public static int getAttribLocation(int program, CharSequence name)
+    {
+        return GL20C.glGetAttribLocation(program, name);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glGetVertexAttribi(int, int) glGetVertexAttribi}
+     */
+    public static int getVertexAttrib(int index, GL pname)
+    {
+        return GL20C.glGetVertexAttribi(index, pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glDrawBuffers(int) glDrawBuffers}
+     */
+    public static void drawBuffers(int buf)
+    {
+        GL20C.glDrawBuffers(buf);
+    }
+    
+    /**
+     * Abstraction for {@link GL20#glBlendEquationSeparate(int, int) glBlendEquationSeparate}
+     */
+    public static void blendEquationSeparate(GL modeRGB, GL modeAlpha)
+    {
+        GL20C.glBlendEquationSeparate(modeRGB.ref(), modeAlpha.ref());
+    }
+    
+    // ---------- GL21 ---------- //
+    
+    // ---------- GL30 ---------- //
+    
+    /**
+     * Abstraction for {@link GL30#glBindBufferBase(int, int, int) glBindBufferBase}
+     */
+    public static void bindBufferBase(GL target, int index, int buffer)
+    {
+        GL30C.glBindBufferBase(target.ref(), index, buffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glBindRenderbuffer(int, int) glBindRenderbuffer}
+     */
+    public static void bindRenderbuffer(GL target, int renderbuffer)
+    {
+        GL30C.glBindRenderbuffer(target.ref(), renderbuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glDeleteRenderbuffers(int) glDeleteRenderbuffers}
+     */
+    public static void deleteRenderbuffers(int renderbuffer)
+    {
+        GL30C.glDeleteRenderbuffers(renderbuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGenRenderbuffers() glGenRenderbuffers}
+     */
+    public static int genRenderbuffers()
+    {
+        return GL30C.glGenRenderbuffers();
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glRenderbufferStorage(int, int, int, int) glRenderbufferStorage}
+     */
+    public static void renderbufferStorage(GL target, GL internalformat, int width, int height)
+    {
+        GL30C.glRenderbufferStorage(target.ref(), internalformat.ref(), width, height);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGetRenderbufferParameteri(int, int) glGetRenderbufferParameteri}
+     */
+    public static int getRenderbufferParameter(GL target, GL pname)
+    {
+        return GL30C.glGetRenderbufferParameteri(target.ref(), pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glBindFramebuffer(int, int) glBindFramebuffer}
+     */
+    public static void bindFramebuffer(GL target, int framebuffer)
+    {
+        GL30C.glBindFramebuffer(target.ref(), framebuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glDeleteFramebuffers(int) glDeleteFramebuffers}
+     */
+    public static void deleteFramebuffers(int framebuffer)
+    {
+        GL30C.glDeleteFramebuffers(framebuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGenFramebuffers() glGenFramebuffers}
+     */
+    public static int genFramebuffers()
+    {
+        return GL30C.glGenFramebuffers();
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glCheckFramebufferStatus(int) glCheckFramebufferStatus}
+     */
+    public static GL checkFramebufferStatus(GL target)
+    {
+        return switch (GL30C.glCheckFramebufferStatus(target.ref()))
+                {
+                    case GL_FRAMEBUFFER_COMPLETE -> GL.FRAMEBUFFER_COMPLETE;
+                    case GL_FRAMEBUFFER_UNDEFINED -> GL.FRAMEBUFFER_UNDEFINED;
+                    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> GL.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+                    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> GL.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+                    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> GL.FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER;
+                    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> GL.FRAMEBUFFER_INCOMPLETE_READ_BUFFER;
+                    case GL_FRAMEBUFFER_UNSUPPORTED -> GL.FRAMEBUFFER_UNSUPPORTED;
+                    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> GL.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+                    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS -> GL.FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS;
+                    default -> GL.UNKNOWN_FRAMEBUFFER_STATUS;
+                };
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glFramebufferTexture2D(int, int, int, int, int) glFramebufferTexture2D}
+     */
+    public static void framebufferTexture2D(GL target, GL attachment, GL textarget, int texture, int level)
+    {
+        GL30C.glFramebufferTexture2D(target.ref(), attachment.ref(), textarget.ref(), texture, level);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glFramebufferRenderbuffer(int, int, int, int) glFramebufferRenderbuffer}
+     */
+    public static void framebufferRenderbuffer(GL target, GL attachment, GL renderbuffertarget, int renderbuffer)
+    {
+        GL30C.glFramebufferRenderbuffer(target.ref(), attachment.ref(), renderbuffertarget.ref(), renderbuffer);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGetFramebufferAttachmentParameteri(int, int, int) glGetFramebufferAttachmentParameteri}
+     */
+    public static int getFramebufferAttachmentParameter(GL target, GL attachment, GL pname)
+    {
+        return GL30C.glGetFramebufferAttachmentParameteri(target.ref(), attachment.ref(), pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glBlitFramebuffer(int, int, int, int, int, int, int, int, int, int) glBlitFramebuffer}
+     */
+    public static void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, GL filter)
+    {
+        GL30C.glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGenerateMipmap(int) glGenerateMipmap}
+     */
+    public static void generateMipmap(GL target)
+    {
+        GL30C.glGenerateMipmap(target.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glBindVertexArray(int) glBindVertexArray}
+     */
+    public static void bindVertexArray(int array)
+    {
+        GL30C.glBindVertexArray(array);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glDeleteVertexArrays(int) glDeleteVertexArrays}
+     */
+    public static void deleteVertexArrays(int array)
+    {
+        GL30C.glDeleteVertexArrays(array);
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGenVertexArrays() glGenVertexArrays}
+     */
+    public static int genVertexArrays()
+    {
+        return GL30C.glGenVertexArrays();
+    }
+    
+    /**
+     * Abstraction for {@link GL30#glGetStringi(int, int) glGetStringi}
+     */
+    public static String getString(GL name, int index)
+    {
+        return GL30C.glGetStringi(name.ref(), index);
+    }
+    
+    // ---------- GL31 ---------- //
+    
+    /**
+     * Abstraction for {@link GL31#glDrawArraysInstanced(int, int, int, int) glDrawArraysInstanced}
+     */
+    public static void drawArraysInstanced(GL mode, int first, int count, int primcount)
+    {
+        GL31C.glDrawArraysInstanced(mode.ref(), first, count, primcount);
+    }
+    
+    /**
+     * Abstraction for {@link GL31#glDrawElementsInstanced(int, int, int, long, int) glDrawElementsInstanced}
+     */
+    public static void drawElementsInstanced(GL mode, int count, GL type, long indices, int primcount)
+    {
+        GL31C.nglDrawElementsInstanced(mode.ref(), count, type.ref(), indices, primcount);
+    }
+    
+    /**
+     * Abstraction for {@link GL31#glCopyBufferSubData(int, int, long, long, long) glCopyBufferSubData}
+     */
+    public static void copyBufferSubData(GL readTarget, GL writeTarget, long readOffset, long writeOffset, long size)
+    {
+        GL31C.glCopyBufferSubData(readTarget.ref(), writeTarget.ref(), readOffset, writeOffset, size);
+    }
+    
+    // ---------- GL32 ---------- //
+    
+    // ---------- GL33 ---------- //
+    
+    /**
+     * Abstraction for {@link GL33#glVertexAttribDivisor(int, int) glVertexAttribDivisor}
+     */
+    public static void vertexAttribDivisor(int index, int divisor)
+    {
+        GL33C.glVertexAttribDivisor(index, divisor);
+    }
+    
+    // ---------- GL40 ---------- //
+    
+    /**
+     * Abstraction for {@link GL40#glUniformMatrix2fv(int, boolean, FloatBuffer) glUniformMatrix2fv}
+     */
+    public static void uniformMatrix2(int location, boolean transpose, FloatBuffer value)
+    {
+        GL40C.glUniformMatrix2fv(location, transpose, value);
+    }
+    
+    /**
+     * Abstraction for {@link GL40#glUniformMatrix3fv(int, boolean, FloatBuffer) glUniformMatrix3fv}
+     */
+    public static void uniformMatrix3(int location, boolean transpose, FloatBuffer value)
+    {
+        GL40C.glUniformMatrix3fv(location, transpose, value);
+    }
+    
+    /**
+     * Abstraction for {@link GL40#glUniformMatrix4fv(int, boolean, FloatBuffer) glUniformMatrix4fv}
+     */
+    public static void uniformMatrix4(int location, boolean transpose, FloatBuffer value)
+    {
+        GL40C.glUniformMatrix4fv(location, transpose, value);
+    }
+    
+    // ---------- GL41 ---------- //
+    
+    // ---------- GL42 ---------- //
+    
+    // ---------- GL43 ---------- //
+    
+    /**
+     * Abstraction for {@link GL43#nglClearBufferData(int, int, int, int, long) nglClearBufferData}
+     */
+    public static void clearBufferData(GL target, GL internalformat, GL format, GL type, long data)
+    {
+        GL43C.nglClearBufferData(target.ref(), internalformat.ref(), format.ref(), type.ref(), data);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glClearBufferData(int, int, int, int, ByteBuffer) glClearBufferData}
+     */
+    public static void clearBufferData(GL target, GL internalformat, GL format, GL type, @Nullable Buffer data)
+    {
+        GL43C.nglClearBufferData(target.ref(), internalformat.ref(), format.ref(), type.ref(), data != null ? memAddress(data) : MemoryUtil.NULL);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glClearBufferData(int, int, int, int, ByteBuffer) glClearBufferData}
+     */
+    public static void clearBufferData(GL target, GL internalformat, GL format, GL type, @Nullable CustomBuffer<?> data)
+    {
+        GL43C.nglClearBufferData(target.ref(), internalformat.ref(), format.ref(), type.ref(), memAddressSafe(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL43#nglClearBufferSubData(int, int, long, long, int, int, long) nglClearBufferSubData}
+     */
+    public static void clearBufferSubData(GL target, GL internalformat, long offset, long size, GL format, GL type, long data)
+    {
+        GL43C.nglClearBufferSubData(target.ref(), internalformat.ref(), offset, size, format.ref(), type.ref(), data);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glClearBufferSubData(int, int, long, long, int, int, ByteBuffer) glClearBufferSubData}
+     */
+    public static void clearBufferSubData(GL target, GL internalformat, long offset, long size, GL format, GL type, @Nullable Buffer data)
+    {
+        GL43C.nglClearBufferSubData(target.ref(), internalformat.ref(), offset, size, format.ref(), type.ref(), data != null ? memAddress(data) : MemoryUtil.NULL);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glClearBufferSubData(int, int, long, long, int, int, ByteBuffer) glClearBufferSubData}
+     */
+    public static void clearBufferSubData(GL target, GL internalformat, long offset, long size, GL format, GL type, @Nullable CustomBuffer<?> data)
+    {
+        GL43C.nglClearBufferSubData(target.ref(), internalformat.ref(), offset, size, format.ref(), type.ref(), memAddressSafe(data));
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glDispatchCompute(int, int, int) glDispatchCompute}
+     */
+    public static void dispatchCompute(int num_groups_x, int num_groups_y, int num_groups_z)
+    {
+        GL43C.glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glCopyImageSubData(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) glCopyImageSubData}
+     */
+    public static void copyImageSubData(int srcName, GL srcTarget, int srcLevel, int srcX, int srcY, int srcZ, int dstName, GL dstTarget, int dstLevel, int dstX, int dstY, int dstZ, int srcWidth, int srcHeight, int srcDepth)
+    {
+        GL43C.glCopyImageSubData(srcName, srcTarget.ref(), srcLevel, srcX, srcY, srcZ, dstName, dstTarget.ref(), dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glGetFramebufferParameteri(int, int) glGetFramebufferParameteri}
+     */
+    public static int getFramebufferParameter(GL target, GL pname)
+    {
+        return GL43C.glGetFramebufferParameteri(target.ref(), pname.ref());
+    }
+    
+    /**
+     * Abstraction for {@link GL43#glDebugMessageCallback(GLDebugMessageCallbackI, long) glDebugMessageCallback}
+     */
+    public static void debugMessageCallback(@Nullable GLDebugMessageCallbackI callback, long userParam)
+    {
+        if (callback != null)
+        {
+            GL43C.glDebugMessageCallback(callback, userParam);
+        }
+        else
+        {
+            GL43C.glDebugMessageCallback((sourceInt, typeInt, idInt, severityInt, length, messagePointer, _userParam) -> {
+                GL source   = GL.getGLErrorSourceName(sourceInt);
+                GL type     = GL.getGLErrorTypeName(typeInt);
+                GL id       = GL.getGLErrorName(idInt);
+                GL severity = GL.getGLErrorSeverityName(severityInt);
+                
+                String header  = "OpenGL Error Message\n\tID: %s\n\tSource: %s\n\tType: %s\n\tSeverity: %s\n\tMessage: %s\n";
+                String message = MemoryUtil.memUTF8(messagePointer);
+                
+                switch (type)
+                {
+                    case DEBUG_TYPE_ERROR -> {
+                        switch (severity)
+                        {
+                            case DEBUG_SEVERITY_HIGH -> GL.LOGGER.severe(header, id, source, type, severity, message);
+                            case DEBUG_SEVERITY_MEDIUM -> GL.LOGGER.warning(header, id, source, type, severity, message);
+                            case DEBUG_SEVERITY_LOW -> GL.LOGGER.info(header, id, source, type, severity, message);
+                            case DEBUG_SEVERITY_NOTIFICATION -> GL.LOGGER.fine(header, id, source, type, severity, message);
+                        }
                     }
+                    case DEBUG_TYPE_DEPRECATED_BEHAVIOR,
+                            DEBUG_TYPE_UNDEFINED_BEHAVIOR -> GL.LOGGER.warning(header, id, source, type, severity, message);
+                    case DEBUG_TYPE_PORTABILITY -> GL.LOGGER.info(header, id, source, type, severity, message);
+                    default -> GL.LOGGER.fine(header, id, source, type, severity, message);
                 }
-                case DEBUG_TYPE_DEPRECATED_BEHAVIOR, DEBUG_TYPE_UNDEFINED_BEHAVIOR -> GL.LOGGER.warning(header, id, source, type, severity, message);
-                case DEBUG_TYPE_PORTABILITY -> GL.LOGGER.info(header, id, source, type, severity, message);
-                default -> GL.LOGGER.finer(header, id, source, type, severity, message);
+            }, 0);
+        }
+    }
+    
+    // ---------- GL44 ---------- //
+    
+    // ---------- GL45 ---------- //
+    
+    // ---------- GL46 ---------- //
+    
+    // ---------- Custom ---------- //
+    
+    public static GL getGLErrorSourceName(int source)
+    {
+        return switch (source)
+                {
+                    case GL_DEBUG_SOURCE_API -> GL.DEBUG_SOURCE_API;
+                    case GL_DEBUG_SOURCE_WINDOW_SYSTEM -> GL.DEBUG_SOURCE_WINDOW_SYSTEM;
+                    case GL_DEBUG_SOURCE_SHADER_COMPILER -> GL.DEBUG_SOURCE_SHADER_COMPILER;
+                    case GL_DEBUG_SOURCE_THIRD_PARTY -> GL.DEBUG_SOURCE_THIRD_PARTY;
+                    case GL_DEBUG_SOURCE_APPLICATION -> GL.DEBUG_SOURCE_APPLICATION;
+                    case GL_DEBUG_SOURCE_OTHER -> GL.DEBUG_SOURCE_OTHER;
+                    default -> GL.UNKNOWN_SOURCE;
+                };
+    }
+    
+    public static GL getGLErrorTypeName(int source)
+    {
+        return switch (source)
+                {
+                    case GL_DEBUG_TYPE_ERROR -> GL.DEBUG_TYPE_ERROR;
+                    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> GL.DEBUG_TYPE_DEPRECATED_BEHAVIOR;
+                    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> GL.DEBUG_TYPE_UNDEFINED_BEHAVIOR;
+                    case GL_DEBUG_TYPE_PORTABILITY -> GL.DEBUG_TYPE_PORTABILITY;
+                    case GL_DEBUG_TYPE_PERFORMANCE -> GL.DEBUG_TYPE_PERFORMANCE;
+                    case GL_DEBUG_TYPE_MARKER -> GL.DEBUG_TYPE_MARKER;
+                    case GL_DEBUG_TYPE_PUSH_GROUP -> GL.DEBUG_TYPE_PUSH_GROUP;
+                    case GL_DEBUG_TYPE_POP_GROUP -> GL.DEBUG_TYPE_POP_GROUP;
+                    case GL_DEBUG_TYPE_OTHER -> GL.DEBUG_TYPE_OTHER;
+                    default -> GL.UNKNOWN_TYPE;
+                };
+    }
+    
+    public static GL getGLErrorName(int error)
+    {
+        return switch (error)
+                {
+                    case GL_NO_ERROR -> GL.NO_ERROR;
+                    case GL_INVALID_ENUM -> GL.INVALID_ENUM;
+                    case GL_INVALID_VALUE -> GL.INVALID_VALUE;
+                    case GL_INVALID_OPERATION -> GL.INVALID_OPERATION;
+                    case GL_STACK_OVERFLOW -> GL.STACK_OVERFLOW;
+                    case GL_STACK_UNDERFLOW -> GL.STACK_UNDERFLOW;
+                    case GL_OUT_OF_MEMORY -> GL.OUT_OF_MEMORY;
+                    case GL_INVALID_FRAMEBUFFER_OPERATION -> GL.INVALID_FRAMEBUFFER_OPERATION;
+                    default -> GL.UNKNOWN_ERROR;
+                };
+    }
+    
+    public static GL getGLErrorSeverityName(int error)
+    {
+        return switch (error)
+                {
+                    case GL_DEBUG_SEVERITY_HIGH -> GL.DEBUG_SEVERITY_HIGH;
+                    case GL_DEBUG_SEVERITY_MEDIUM -> GL.DEBUG_SEVERITY_MEDIUM;
+                    case GL_DEBUG_SEVERITY_LOW -> GL.DEBUG_SEVERITY_LOW;
+                    case GL_DEBUG_SEVERITY_NOTIFICATION -> GL.DEBUG_SEVERITY_NOTIFICATION;
+                    default -> GL.UNKNOWN_SEVERITY;
+                };
+    }
+    
+    public static GL getGLShaderStatusName(int value)
+    {
+        return switch (value)
+                {
+                    case GL_VERTEX_SHADER -> GL.VERTEX_SHADER;
+                    case GL_GEOMETRY_SHADER -> GL.GEOMETRY_SHADER;
+                    case GL_FRAGMENT_SHADER -> GL.FRAGMENT_SHADER;
+                    case GL_TRUE -> GL.TRUE;
+                    case GL_FALSE -> GL.FALSE;
+                    default -> GL.UNKNOWN_SHADER_NAME;
+                };
+    }
+    
+    public static GL getGLProgramStatusName(int value)
+    {
+        return switch (value)
+                {
+                    case GL_TRUE -> GL.TRUE;
+                    case GL_FALSE -> GL.FALSE;
+                    case GL_TRANSFORM_FEEDBACK_BUFFER_MODE -> GL.TRANSFORM_FEEDBACK_BUFFER_MODE;
+                    case GL_SEPARATE_ATTRIBS -> GL.SEPARATE_ATTRIBS;
+                    case GL_INTERLEAVED_ATTRIBS -> GL.INTERLEAVED_ATTRIBS;
+                    default -> GL.UNKNOWN_PROGRAM_NAME;
+                };
+    }
+    
+    // Clear used screen buffers (color and depth)
+    public static void clearScreenBuffers()
+    {
+        GL.clear(GL.COLOR_BUFFER_BIT, GL.DEPTH_BUFFER_BIT/*, GL.STENCIL_BUFFER_BIT*/);
+    }
+    
+    // Check and log OpenGL error codes
+    public static void checkErrors()
+    {
+        boolean check = true;
+        while (check)
+        {
+            GL err = getError();
+            switch (err)
+            {
+                case NO_ERROR -> check = false;
+                case INVALID_ENUM -> GL.LOGGER.warning("Error detected: GL_INVALID_ENUM");
+                case INVALID_VALUE -> GL.LOGGER.warning("Error detected: GL_INVALID_VALUE");
+                case INVALID_OPERATION -> GL.LOGGER.warning("Error detected: GL_INVALID_OPERATION");
+                case STACK_OVERFLOW -> GL.LOGGER.warning("Error detected: GL_STACK_OVERFLOW");
+                case STACK_UNDERFLOW -> GL.LOGGER.warning("Error detected: GL_STACK_UNDERFLOW");
+                case OUT_OF_MEMORY -> GL.LOGGER.warning("Error detected: GL_OUT_OF_MEMORY");
+                case INVALID_FRAMEBUFFER_OPERATION -> GL.LOGGER.warning("Error detected: GL_INVALID_FRAMEBUFFER_OPERATION");
+                default -> GL.LOGGER.warning("Error detected: Unknown error code: %x", err);
             }
-        }, 0);
+        }
     }
 }

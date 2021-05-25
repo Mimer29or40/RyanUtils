@@ -89,7 +89,7 @@ public class GLFrameBuffer
     
     public GLFrameBuffer validate()
     {
-        GL status = GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        GL status = checkStatus();
         if (status != GL.FRAMEBUFFER_COMPLETE) throw new RuntimeException(this + " not complete:\n! " + status);
         
         return this;
@@ -100,7 +100,7 @@ public class GLFrameBuffer
      */
     public GL checkStatus()
     {
-        return GL.get(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        return GL.checkFramebufferStatus(GL.FRAMEBUFFER);
     }
     
     /**

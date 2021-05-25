@@ -3,12 +3,15 @@ package rutils.glfw;
 import org.joml.Matrix3d;
 import org.joml.Matrix4d;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 import rutils.gl.GL;
 import rutils.gl.GLShader;
 import rutils.gl.GLTexture;
 import rutils.gl.GLVertexArray;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
@@ -140,121 +143,131 @@ public class RenderToTexture extends GLFWApplicationTest
         this.shader.setUniform("material.specular", 1.0f, 1.0f, 1.0f);
         this.shader.setUniform("material.shininess", 10.0f);
         
-        this.vertexArray = new GLVertexArray().add(new float[] {
-                1.0f, 1.0f, -1.0f,  // Green
-                -1.0f, 1.0f, -1.0f, // Green
-                -1.0f, 1.0f, 1.0f,  // Green
-                1.0f, 1.0f, 1.0f,   // Green
-                1.0f, -1.0f, 1.0f,  // Orange
-                -1.0f, -1.0f, 1.0f, // Orange
-                -1.0f, -1.0f, -1.0f,// Orange
-                1.0f, -1.0f, -1.0f, // Orange
-                1.0f, 1.0f, 1.0f,   // Red
-                -1.0f, 1.0f, 1.0f,  // Red
-                -1.0f, -1.0f, 1.0f, // Red
-                1.0f, -1.0f, 1.0f,  // Red
-                1.0f, -1.0f, -1.0f, // Yellow
-                -1.0f, -1.0f, -1.0f,// Yellow
-                -1.0f, 1.0f, -1.0f, // Yellow
-                1.0f, 1.0f, -1.0f,  // Yellow
-                -1.0f, 1.0f, 1.0f,  // Blue
-                -1.0f, 1.0f, -1.0f, // Blue
-                -1.0f, -1.0f, -1.0f,// Blue
-                -1.0f, -1.0f, 1.0f, // Blue
-                1.0f, 1.0f, -1.0f,  // Magenta
-                1.0f, 1.0f, 1.0f,   // Magenta
-                1.0f, -1.0f, 1.0f,  // Magenta
-                1.0f, -1.0f, -1.0f  // Magenta
-        }, GL.STATIC_DRAW, 3).add(new float[] {
-                0.0f, 1.0f, 0.0f,  // Green
-                0.0f, 1.0f, 0.0f,  // Green
-                0.0f, 1.0f, 0.0f,  // Green
-                0.0f, 1.0f, 0.0f,  // Green
-                0.0f, -1.0f, 0.0f, // Orange
-                0.0f, -1.0f, 0.0f, // Orange
-                0.0f, -1.0f, 0.0f, // Orange
-                0.0f, -1.0f, 0.0f, // Orange
-                0.0f, 0.0f, 1.0f,  // Red
-                0.0f, 0.0f, 1.0f,  // Red
-                0.0f, 0.0f, 1.0f,  // Red
-                0.0f, 0.0f, 1.0f,  // Red
-                0.0f, 0.0f, -1.0f, // Yellow
-                0.0f, 0.0f, -1.0f, // Yellow
-                0.0f, 0.0f, -1.0f, // Yellow
-                0.0f, 0.0f, -1.0f, // Yellow
-                -1.0f, 0.0f, 0.0f, // Blue
-                -1.0f, 0.0f, 0.0f, // Blue
-                -1.0f, 0.0f, 0.0f, // Blue
-                -1.0f, 0.0f, 0.0f, // Blue
-                1.0f, 0.0f, 0.0f,  // Magenta
-                1.0f, 0.0f, 0.0f,  // Magenta
-                1.0f, 0.0f, 0.0f,  // Magenta
-                1.0f, 0.0f, 0.0f,  // Magenta
-        }, GL.STATIC_DRAW, 3).add(new float[] {
-                0.0f, 1.0f, 0.0f, // Green
-                0.0f, 1.0f, 0.0f, // Green
-                0.0f, 1.0f, 0.0f, // Green
-                0.0f, 1.0f, 0.0f, // Green
-                1.0f, 0.5f, 0.0f, // Orange
-                1.0f, 0.5f, 0.0f, // Orange
-                1.0f, 0.5f, 0.0f, // Orange
-                1.0f, 0.5f, 0.0f, // Orange
-                1.0f, 0.0f, 0.0f, // Red
-                1.0f, 0.0f, 0.0f, // Red
-                1.0f, 0.0f, 0.0f, // Red
-                1.0f, 0.0f, 0.0f, // Red
-                1.0f, 1.0f, 0.0f, // Yellow
-                1.0f, 1.0f, 0.0f, // Yellow
-                1.0f, 1.0f, 0.0f, // Yellow
-                1.0f, 1.0f, 0.0f, // Yellow
-                0.0f, 0.0f, 1.0f, // Blue
-                0.0f, 0.0f, 1.0f, // Blue
-                0.0f, 0.0f, 1.0f, // Blue
-                0.0f, 0.0f, 1.0f, // Blue
-                1.0f, 0.0f, 1.0f, // Magenta
-                1.0f, 0.0f, 1.0f, // Magenta
-                1.0f, 0.0f, 1.0f, // Magenta
-                1.0f, 0.0f, 1.0f, // Magenta
-        }, GL.STATIC_DRAW, 3).add(new float[] {
-                0.0f, 0.0f, // Green
-                0.0f, 1.0f, // Green
-                1.0f, 1.0f, // Green
-                1.0f, 0.0f, // Green
-                0.0f, 0.0f, // Orange
-                0.0f, 1.0f, // Orange
-                1.0f, 1.0f, // Orange
-                1.0f, 0.0f, // Orange
-                0.0f, 0.0f, // Red
-                0.0f, 1.0f, // Red
-                1.0f, 1.0f, // Red
-                1.0f, 0.0f, // Red
-                0.0f, 0.0f, // Yellow
-                0.0f, 1.0f, // Yellow
-                1.0f, 1.0f, // Yellow
-                1.0f, 0.0f, // Yellow
-                0.0f, 0.0f, // Blue
-                0.0f, 1.0f, // Blue
-                1.0f, 1.0f, // Blue
-                1.0f, 0.0f, // Blue
-                0.0f, 0.0f, // Magenta
-                0.0f, 1.0f, // Magenta
-                1.0f, 1.0f, // Magenta
-                1.0f, 0.0f, // Magenta
-        }, GL.STATIC_DRAW, 3);
+        FloatBuffer positions = FloatBuffer.wrap(new float[] {
+                +1.0f, +1.0f, -1.0f, // Green
+                -1.0f, +1.0f, -1.0f, // Green
+                -1.0f, +1.0f, +1.0f, // Green
+                +1.0f, +1.0f, +1.0f, // Green
+                +1.0f, -1.0f, +1.0f, // Orange
+                -1.0f, -1.0f, +1.0f, // Orange
+                -1.0f, -1.0f, -1.0f, // Orange
+                +1.0f, -1.0f, -1.0f, // Orange
+                +1.0f, +1.0f, +1.0f, // Red
+                -1.0f, +1.0f, +1.0f, // Red
+                -1.0f, -1.0f, +1.0f, // Red
+                +1.0f, -1.0f, +1.0f, // Red
+                +1.0f, -1.0f, -1.0f, // Yellow
+                -1.0f, -1.0f, -1.0f, // Yellow
+                -1.0f, +1.0f, -1.0f, // Yellow
+                +1.0f, +1.0f, -1.0f, // Yellow
+                -1.0f, +1.0f, +1.0f, // Blue
+                -1.0f, +1.0f, -1.0f, // Blue
+                -1.0f, -1.0f, -1.0f, // Blue
+                -1.0f, -1.0f, +1.0f, // Blue
+                +1.0f, +1.0f, -1.0f, // Magenta
+                +1.0f, +1.0f, +1.0f, // Magenta
+                +1.0f, -1.0f, +1.0f, // Magenta
+                +1.0f, -1.0f, -1.0f  // Magenta
+        });
+        FloatBuffer normals = FloatBuffer.wrap(new float[] {
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, -1.0f, +0.0f, // Orange
+                +0.0f, -1.0f, +0.0f, // Orange
+                +0.0f, -1.0f, +0.0f, // Orange
+                +0.0f, -1.0f, +0.0f, // Orange
+                +0.0f, +0.0f, +1.0f, // Red
+                +0.0f, +0.0f, +1.0f, // Red
+                +0.0f, +0.0f, +1.0f, // Red
+                +0.0f, +0.0f, +1.0f, // Red
+                +0.0f, +0.0f, -1.0f, // Yellow
+                +0.0f, +0.0f, -1.0f, // Yellow
+                +0.0f, +0.0f, -1.0f, // Yellow
+                +0.0f, +0.0f, -1.0f, // Yellow
+                -1.0f, +0.0f, +0.0f, // Blue
+                -1.0f, +0.0f, +0.0f, // Blue
+                -1.0f, +0.0f, +0.0f, // Blue
+                -1.0f, +0.0f, +0.0f, // Blue
+                +1.0f, +0.0f, +0.0f, // Magenta
+                +1.0f, +0.0f, +0.0f, // Magenta
+                +1.0f, +0.0f, +0.0f, // Magenta
+                +1.0f, +0.0f, +0.0f, // Magenta
+        });
+        FloatBuffer colors = FloatBuffer.wrap(new float[] {
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +0.0f, +1.0f, +0.0f, // Green
+                +1.0f, +0.5f, +0.0f, // Orange
+                +1.0f, +0.5f, +0.0f, // Orange
+                +1.0f, +0.5f, +0.0f, // Orange
+                +1.0f, +0.5f, +0.0f, // Orange
+                +1.0f, +0.0f, +0.0f, // Red
+                +1.0f, +0.0f, +0.0f, // Red
+                +1.0f, +0.0f, +0.0f, // Red
+                +1.0f, +0.0f, +0.0f, // Red
+                +1.0f, +1.0f, +0.0f, // Yellow
+                +1.0f, +1.0f, +0.0f, // Yellow
+                +1.0f, +1.0f, +0.0f, // Yellow
+                +1.0f, +1.0f, +0.0f, // Yellow
+                +0.0f, +0.0f, +1.0f, // Blue
+                +0.0f, +0.0f, +1.0f, // Blue
+                +0.0f, +0.0f, +1.0f, // Blue
+                +0.0f, +0.0f, +1.0f, // Blue
+                +1.0f, +0.0f, +1.0f, // Magenta
+                +1.0f, +0.0f, +1.0f, // Magenta
+                +1.0f, +0.0f, +1.0f, // Magenta
+                +1.0f, +0.0f, +1.0f, // Magenta
+        });
+        FloatBuffer texCoords = FloatBuffer.wrap(new float[] {
+                +0.0f, +0.0f, // Green
+                +0.0f, +1.0f, // Green
+                +1.0f, +1.0f, // Green
+                +1.0f, +0.0f, // Green
+                +0.0f, +0.0f, // Orange
+                +0.0f, +1.0f, // Orange
+                +1.0f, +1.0f, // Orange
+                +1.0f, +0.0f, // Orange
+                +0.0f, +0.0f, // Red
+                +0.0f, +1.0f, // Red
+                +1.0f, +1.0f, // Red
+                +1.0f, +0.0f, // Red
+                +0.0f, +0.0f, // Yellow
+                +0.0f, +1.0f, // Yellow
+                +1.0f, +1.0f, // Yellow
+                +1.0f, +0.0f, // Yellow
+                +0.0f, +0.0f, // Blue
+                +0.0f, +1.0f, // Blue
+                +1.0f, +1.0f, // Blue
+                +1.0f, +0.0f, // Blue
+                +0.0f, +0.0f, // Magenta
+                +0.0f, +1.0f, // Magenta
+                +1.0f, +1.0f, // Magenta
+                +1.0f, +0.0f, // Magenta
+        });
         
-        int[] indices = new int[36];
-        for (int i = 0, v = 0, n = 6 * 4; v < n; v += 4)
+        this.vertexArray = new GLVertexArray().bind()
+                                              .buffer(positions, GL.STATIC_DRAW, GL.FLOAT, 3, false)
+                                              .buffer(normals, GL.STATIC_DRAW, GL.FLOAT, 3, false)
+                                              .buffer(colors, GL.STATIC_DRAW, GL.FLOAT, 3, true)
+                                              .buffer(texCoords, GL.STATIC_DRAW, GL.FLOAT, 2, true);
+        
+        IntBuffer indices = MemoryUtil.memAllocInt(36);
+        for (int v = 0, n = 6 * 4; v < n; v += 4)
         {
-            indices[i++] = v;
-            indices[i++] = v + 1;
-            indices[i++] = v + 2;
+            indices.put(v);
+            indices.put(v + 1);
+            indices.put(v + 2);
             
             // second triangle (ccw winding)
-            indices[i++] = v;
-            indices[i++] = v + 2;
-            indices[i++] = v + 3;
+            indices.put(v);
+            indices.put(v + 2);
+            indices.put(v + 3);
         }
-        this.vertexArray.addEBO(indices, GL.STATIC_DRAW);
+        this.vertexArray.indexBuffer(indices, GL.STATIC_DRAW);
+        MemoryUtil.memFree(indices);
         
         this.view.identity();
         

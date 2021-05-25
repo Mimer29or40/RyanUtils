@@ -5,6 +5,8 @@ import rutils.gl.*;
 import rutils.glfw.GLFW;
 import rutils.glfw.Window;
 
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -89,73 +91,76 @@ public class LearnOpenGL405
                                                                "}\n")
                                      .validate();
         
-        cubeVAO = new GLVertexArray().bind().add(new float[] {
-                // positions          // texture Coords
+        FloatBuffer buffer = FloatBuffer.wrap(new float[] {
+                // positions         // texture Coords
                 -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-                0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-                0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-                0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-                -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+                +0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+                +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
                 
-                -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-                0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-                0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-                0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-                -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-                -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+                -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 1.0f,
+                -0.5f, +0.5f, +0.5f, 0.0f, 1.0f,
+                -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
                 
-                -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-                -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+                -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                -0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-                -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-                -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+                -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                -0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
                 
-                0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-                0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-                0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-                0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                +0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+                +0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
                 
                 -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-                0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-                0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-                -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+                +0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+                +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                +0.5f, -0.5f, +0.5f, 1.0f, 0.0f,
+                -0.5f, -0.5f, +0.5f, 0.0f, 0.0f,
                 -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
                 
-                -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-                0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-                0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-                0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-                -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-                -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
-        }, GL.STATIC_DRAW, 3, 2).unbind();
+                -0.5f, +0.5f, -0.5f, 0.0f, 1.0f,
+                +0.5f, +0.5f, -0.5f, 1.0f, 1.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                +0.5f, +0.5f, +0.5f, 1.0f, 0.0f,
+                -0.5f, +0.5f, +0.5f, 0.0f, 0.0f,
+                -0.5f, +0.5f, -0.5f, 0.0f, 1.0f
+        });
+        cubeVAO = new GLVertexArray().bind().buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 3, false, GL.FLOAT, 2, false).unbind();
         
-        planeVAO = new GLVertexArray().bind().add(new float[] {
-                // positions          // texture Coords
-                5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
-                -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
+        buffer   = FloatBuffer.wrap(new float[] {
+                // positions         // texture Coords
+                +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
+                -5.0f, -0.5f, +5.0f, 0.0f, 0.0f,
                 -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
                 
-                5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
+                +5.0f, -0.5f, +5.0f, 2.0f, 0.0f,
                 -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
-                5.0f, -0.5f, -5.0f, 2.0f, 2.0f
-        }, GL.STATIC_DRAW, 3, 2).unbind();
+                +5.0f, -0.5f, -5.0f, 2.0f, 2.0f
+        });
+        planeVAO = new GLVertexArray().bind().buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 3, false, GL.FLOAT, 2, false).unbind();
         
         // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-        quadVAO = new GLVertexArray().bind().add(new float[] {
+        buffer  = FloatBuffer.wrap(new float[] {
                 // positions   // texCoords
-                -1.0f, 1.0f, 0.0f, 1.0f,
+                -1.0f, +1.0f, 0.0f, 1.0f,
                 -1.0f, -1.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 1.0f, 0.0f,
+                +1.0f, -1.0f, 1.0f, 0.0f,
                 
                 -1.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, -1.0f, 1.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f
-        }, GL.STATIC_DRAW, 2, 2).unbind();
+                +1.0f, -1.0f, 1.0f, 0.0f,
+                +1.0f, +1.0f, 1.0f, 1.0f
+        });
+        quadVAO = new GLVertexArray().bind().buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 2, false, GL.FLOAT, 2, false).unbind();
         
         cubeTexture  = GLTexture.loadImage("textures/container.jpg");
         floorTexture = GLTexture.loadImage("textures/metal.png");

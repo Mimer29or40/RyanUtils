@@ -5,6 +5,7 @@ import org.joml.Vector2d;
 import org.joml.Vector2dc;
 import org.joml.Vector4d;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
 import rutils.gl.GL;
 import rutils.gl.GLShader;
 import rutils.gl.GLTexture;
@@ -16,6 +17,7 @@ import rutils.glfw.event.EventMouseScrolled;
 import rutils.noise.Noise;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.logging.Level;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -99,12 +101,16 @@ public class NoiseTest
                                     .validate()
                                     .unbind();
         
-        this.vao = new GLVertexArray().bind().add(new float[] {
-                +0F, +0F, // Bottom Left
-                +0F, +1F, // Top Left
-                +1F, +1F, // Top Right
-                +1F, +0F, // Bottom Right
-        }, GL.STATIC_DRAW, 2).unbind();
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            FloatBuffer buffer = stack.floats(+0F, +0F, // Bottom Left
+                                              +0F, +1F, // Top Left
+                                              +1F, +1F, // Top Right
+                                              +1F, +0F  // Bottom Right
+                                             );
+            
+            this.vao = new GLVertexArray().bind().buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 2, false).unbind();
+        }
         
         this.fastNoise.setNoiseType(FastNoise.NoiseType.Value);
         this.noise.type(Noise.Type.VALUE);
@@ -292,7 +298,7 @@ public class NoiseTest
         }
         
         String filePath = "out/noise1.png";
-    
+        
         if (!stbi_write_png(filePath, width, height, channels, data, width * channels))
         {
             System.err.println("Image could not be saved: " + filePath);

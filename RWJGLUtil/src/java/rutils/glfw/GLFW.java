@@ -448,7 +448,7 @@ public final class GLFW
     public static boolean loadControllerMapping(String filePath)
     {
         if (!GLFW.initialized) throw new RuntimeException("GLFW Library has not been Initialized");
-        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwUpdateGamepadMappings(IOUtil.resourceToByteBuffer(filePath)));
+        return GLFW.TASK_DELEGATOR.waitReturnTask(() -> glfwUpdateGamepadMappings(IOUtil.readFromFile(filePath)));
     }
     
     /**

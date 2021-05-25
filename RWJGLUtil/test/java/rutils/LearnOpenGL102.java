@@ -6,6 +6,8 @@ import rutils.gl.GLVertexArray;
 import rutils.glfw.GLFWApplicationTest;
 import rutils.glfw.Window;
 
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
@@ -52,11 +54,13 @@ public class LearnOpenGL102 extends GLFWApplicationTest
                                .validate()
                                .unbind();
         
-        vao = new GLVertexArray().bind().add(new float[] {
+        FloatBuffer buffer = FloatBuffer.wrap(new float[] {
                 -0.5f, -0.5f, 0.0f, // left
                 0.5f, -0.5f, 0.0f, // right
                 0.0f, 0.5f, 0.0f  // top
-        }, GL.STATIC_DRAW, 3).unbind();
+        });
+        
+        vao = new GLVertexArray().bind().buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 3, false).unbind();
     }
     
     @Override

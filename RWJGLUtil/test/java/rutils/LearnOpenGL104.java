@@ -7,6 +7,9 @@ import rutils.gl.GLVertexArray;
 import rutils.glfw.GLFW;
 import rutils.glfw.Window;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -60,16 +63,21 @@ public class LearnOpenGL104
                                .validate()
                                .unbind();
         
-        vao = new GLVertexArray().bind().add(new float[] {
-                // positions          // colors           // texture coords (note that we changed them to 2.0f!)
-                0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f, // top right
-                0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f, // bottom right
-                -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-                -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f  // top left
-        }, GL.STATIC_DRAW, 3, 3, 2).addEBO(new int[] {
+        FloatBuffer buffer = FloatBuffer.wrap(new float[] {
+                // positions         // colors         // texture coords (note that we changed them to 2.0f!)
+                +0.5f, +0.5f, +0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f, // top right
+                +0.5f, -0.5f, +0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f, // bottom right
+                -0.5f, -0.5f, +0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+                -0.5f, +0.5f, +0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f  // top left
+        });
+        IntBuffer indices = IntBuffer.wrap(new int[] {
                 0, 1, 3, // first triangle
                 1, 2, 3  // second triangle
-        }, GL.STATIC_DRAW).unbind();
+        });
+        
+        vao = new GLVertexArray().bind()
+                                 .buffer(buffer, GL.STATIC_DRAW, GL.FLOAT, 3, false, GL.FLOAT, 3, false, GL.FLOAT, 2, false)
+                                 .indexBuffer(indices, GL.STATIC_DRAW).unbind();
         
         texture1 = GLTexture.loadImage("textures/awesomeface.png");
         texture2 = GLTexture.loadImage("textures/container.jpg");

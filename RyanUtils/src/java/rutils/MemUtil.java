@@ -1,9 +1,50 @@
 package rutils;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.nio.*;
 
 public class MemUtil
 {
+    /**
+     * Gets the size in bytes of an element of a {@link java.nio.Buffer Buffer}
+     * object.
+     *
+     * @param buffer The buffer.
+     * @return The size in bytes of an element of the buffer.
+     */
+    public static int elementSize(@NotNull Buffer buffer)
+    {
+        if (buffer instanceof ByteBuffer) return Byte.BYTES;
+        if (buffer instanceof IntBuffer) return Integer.BYTES;
+        if (buffer instanceof FloatBuffer) return Float.BYTES;
+        if (buffer instanceof CharBuffer) return Character.BYTES;
+        if (buffer instanceof ShortBuffer) return Short.BYTES;
+        if (buffer instanceof LongBuffer) return Long.BYTES;
+        if (buffer instanceof DoubleBuffer) return Double.BYTES;
+        return 0;
+    }
+    
+    /**
+     * Gets the size in bytes of an element of a {@link java.nio.Buffer Buffer}
+     * object.
+     *
+     * @param buffer The buffer.
+     * @return The size in bytes of an element of the buffer.
+     */
+    public static long memAddressSafe(@NotNull Buffer buffer)
+    {
+        if (buffer instanceof ByteBuffer) return Byte.BYTES;
+        if (buffer instanceof IntBuffer) return Integer.BYTES;
+        if (buffer instanceof FloatBuffer) return Float.BYTES;
+        if (buffer instanceof CharBuffer) return Character.BYTES;
+        if (buffer instanceof ShortBuffer) return Short.BYTES;
+        if (buffer instanceof LongBuffer) return Long.BYTES;
+        if (buffer instanceof DoubleBuffer) return Double.BYTES;
+        return 0;
+    }
+    
     /**
      * Copies an array from the specified source array, beginning at the
      * specified position, to the specified position of the destination buffer.
@@ -40,7 +81,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(byte[] src, int srcPos, ByteBuffer dest, int destPos, int length)
+    public static void memCopy(byte[] src, int srcPos, @Nullable ByteBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -89,7 +130,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(byte[] src, ByteBuffer dest, int length)
+    public static void memCopy(byte[] src, @NotNull ByteBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -127,7 +168,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(byte[] src, ByteBuffer dest)
+    public static void memCopy(byte[] src, @NotNull ByteBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -168,7 +209,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, int srcPos, ByteBuffer dest, int destPos, int length)
+    public static void memCopy(int[] src, int srcPos, @NotNull ByteBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -217,7 +258,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, ByteBuffer dest, int length)
+    public static void memCopy(int[] src, @NotNull ByteBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -255,7 +296,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, ByteBuffer dest)
+    public static void memCopy(int[] src, @NotNull ByteBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -296,7 +337,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(short[] src, int srcPos, ShortBuffer dest, int destPos, int length)
+    public static void memCopy(short[] src, int srcPos, @Nullable ShortBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -345,7 +386,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(short[] src, ShortBuffer dest, int length)
+    public static void memCopy(short[] src, @NotNull ShortBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -383,7 +424,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(short[] src, ShortBuffer dest)
+    public static void memCopy(short[] src, @NotNull ShortBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -424,7 +465,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, int srcPos, IntBuffer dest, int destPos, int length)
+    public static void memCopy(int[] src, int srcPos, @NotNull IntBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -473,7 +514,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, IntBuffer dest, int length)
+    public static void memCopy(int[] src, @NotNull IntBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -511,7 +552,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(int[] src, IntBuffer dest)
+    public static void memCopy(int[] src, @NotNull IntBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -552,7 +593,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(long[] src, int srcPos, LongBuffer dest, int destPos, int length)
+    public static void memCopy(long[] src, int srcPos, @Nullable LongBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -601,7 +642,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(long[] src, LongBuffer dest, int length)
+    public static void memCopy(long[] src, @NotNull LongBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -639,7 +680,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(long[] src, LongBuffer dest)
+    public static void memCopy(long[] src, @NotNull LongBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -680,7 +721,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(float[] src, int srcPos, FloatBuffer dest, int destPos, int length)
+    public static void memCopy(float[] src, int srcPos, @NotNull FloatBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -729,7 +770,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(float[] src, FloatBuffer dest, int length)
+    public static void memCopy(float[] src, @NotNull FloatBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -767,7 +808,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(float[] src, FloatBuffer dest)
+    public static void memCopy(float[] src, @NotNull FloatBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -808,7 +849,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(double[] src, int srcPos, DoubleBuffer dest, int destPos, int length)
+    public static void memCopy(double[] src, int srcPos, @NotNull DoubleBuffer dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -857,7 +898,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(double[] src, DoubleBuffer dest, int length)
+    public static void memCopy(double[] src, @NotNull DoubleBuffer dest, int length)
     {
         memCopy(src, 0, dest, dest.position(), length);
     }
@@ -895,7 +936,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(double[] src, DoubleBuffer dest)
+    public static void memCopy(double[] src, @NotNull DoubleBuffer dest)
     {
         memCopy(src, 0, dest, dest.position(), src.length);
     }
@@ -935,7 +976,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, int srcPos, byte[] dest, int destPos, int length)
+    public static void memCopy(@Nullable ByteBuffer src, int srcPos, byte[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -984,7 +1025,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, byte[] dest, int length)
+    public static void memCopy(@NotNull ByteBuffer src, byte[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1022,7 +1063,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, byte[] dest)
+    public static void memCopy(@NotNull ByteBuffer src, byte[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1062,7 +1103,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, int srcPos, int[] dest, int destPos, int length)
+    public static void memCopy(@Nullable ByteBuffer src, int srcPos, int[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1111,7 +1152,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, int[] dest, int length)
+    public static void memCopy(@NotNull ByteBuffer src, int[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1149,7 +1190,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ByteBuffer src, int[] dest)
+    public static void memCopy(@NotNull ByteBuffer src, int[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1189,7 +1230,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ShortBuffer src, int srcPos, short[] dest, int destPos, int length)
+    public static void memCopy(@Nullable ShortBuffer src, int srcPos, short[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1238,7 +1279,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ShortBuffer src, short[] dest, int length)
+    public static void memCopy(@NotNull ShortBuffer src, short[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1276,7 +1317,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(ShortBuffer src, short[] dest)
+    public static void memCopy(@NotNull ShortBuffer src, short[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1316,7 +1357,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(IntBuffer src, int srcPos, int[] dest, int destPos, int length)
+    public static void memCopy(@NotNull IntBuffer src, int srcPos, int[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1365,7 +1406,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(IntBuffer src, int[] dest, int length)
+    public static void memCopy(@NotNull IntBuffer src, int[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1403,7 +1444,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(IntBuffer src, int[] dest)
+    public static void memCopy(@NotNull IntBuffer src, int[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1443,7 +1484,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(LongBuffer src, int srcPos, long[] dest, int destPos, int length)
+    public static void memCopy(@Nullable LongBuffer src, int srcPos, long[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1492,7 +1533,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(LongBuffer src, long[] dest, int length)
+    public static void memCopy(@NotNull LongBuffer src, long[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1530,7 +1571,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(LongBuffer src, long[] dest)
+    public static void memCopy(@NotNull LongBuffer src, long[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1570,7 +1611,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(FloatBuffer src, int srcPos, float[] dest, int destPos, int length)
+    public static void memCopy(@Nullable FloatBuffer src, int srcPos, float[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1619,7 +1660,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(FloatBuffer src, float[] dest, int length)
+    public static void memCopy(@NotNull FloatBuffer src, float[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1657,7 +1698,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(FloatBuffer src, float[] dest)
+    public static void memCopy(@NotNull FloatBuffer src, float[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
@@ -1697,7 +1738,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(DoubleBuffer src, int srcPos, double[] dest, int destPos, int length)
+    public static void memCopy(@Nullable DoubleBuffer src, int srcPos, double[] dest, int destPos, int length)
     {
         if (srcPos < 0) throw new IndexOutOfBoundsException("srcPos cannot be negative");
         if (destPos < 0) throw new IndexOutOfBoundsException("destPos cannot be negative");
@@ -1746,7 +1787,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(DoubleBuffer src, double[] dest, int length)
+    public static void memCopy(@NotNull DoubleBuffer src, double[] dest, int length)
     {
         memCopy(src, src.position(), dest, 0, length);
     }
@@ -1784,7 +1825,7 @@ public class MemUtil
      * @throws NullPointerException      if either {@code src} or
      *                                   {@code dest} is {@code null}.
      */
-    public static void memCopy(DoubleBuffer src, double[] dest)
+    public static void memCopy(@NotNull DoubleBuffer src, double[] dest)
     {
         memCopy(src, src.position(), dest, 0, src.limit());
     }
