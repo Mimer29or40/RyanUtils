@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class StringUtil
@@ -32,35 +33,36 @@ public class StringUtil
     public static @NotNull String toString(@Nullable Object obj)
     {
         if (obj == null) return "null";
-        if (obj instanceof Throwable)
+        if (obj instanceof Throwable value)
         {
             final StringWriter sw = new StringWriter();
-            ((Throwable) obj).printStackTrace(new PrintWriter(sw));
+            value.printStackTrace(new PrintWriter(sw));
             return sw.getBuffer().toString();
         }
         if (obj.getClass().isArray())
         {
-            if (obj instanceof boolean[]) return Arrays.toString((boolean[]) obj);
-            if (obj instanceof byte[]) return Arrays.toString((byte[]) obj);
-            if (obj instanceof short[]) return Arrays.toString((short[]) obj);
-            if (obj instanceof char[]) return Arrays.toString((char[]) obj);
-            if (obj instanceof int[]) return Arrays.toString((int[]) obj);
-            if (obj instanceof long[]) return Arrays.toString((long[]) obj);
-            if (obj instanceof float[]) return Arrays.toString((float[]) obj);
-            if (obj instanceof double[]) return Arrays.toString((double[]) obj);
+            if (obj instanceof boolean[] value) return Arrays.toString(value);
+            if (obj instanceof byte[] value) return Arrays.toString(value);
+            if (obj instanceof short[] value) return Arrays.toString(value);
+            if (obj instanceof char[] value) return Arrays.toString(value);
+            if (obj instanceof int[] value) return Arrays.toString(value);
+            if (obj instanceof long[] value) return Arrays.toString(value);
+            if (obj instanceof float[] value) return Arrays.toString(value);
+            if (obj instanceof double[] value) return Arrays.toString(value);
             return Arrays.deepToString((Object[]) obj);
         }
-        if (obj instanceof Boolean) return Boolean.toString((boolean) obj);
-        if (obj instanceof Character) return Character.toString((char) obj);
+        if (obj instanceof Boolean value) return Boolean.toString(value);
+        if (obj instanceof Character value) return Character.toString(value);
         if (obj instanceof Number)
         {
-            if (obj instanceof Byte) return Byte.toString((byte) obj);
-            if (obj instanceof Short) return Short.toString((short) obj);
-            if (obj instanceof Integer) return Integer.toString((int) obj);
-            if (obj instanceof Long) return Long.toString((long) obj);
-            if (obj instanceof Float) return Float.toString((float) obj);
-            if (obj instanceof Double) return Double.toString((double) obj);
+            if (obj instanceof Byte value) return Byte.toString(value);
+            if (obj instanceof Short value) return Short.toString(value);
+            if (obj instanceof Integer value) return Integer.toString(value);
+            if (obj instanceof Long value) return Long.toString(value);
+            if (obj instanceof Float value) return Float.toString(value);
+            if (obj instanceof Double value) return Double.toString(value);
         }
+        if (obj instanceof Supplier<?> supplier) return toString(supplier.get());
         return String.valueOf(obj);
     }
     
@@ -106,6 +108,7 @@ public class StringUtil
     {
         if (obj instanceof Throwable) return toString(obj);
         if (obj != null && obj.getClass().isArray()) return toString(obj);
+        if (obj instanceof Supplier<?> supplier) return transformObject(supplier.get());
         return obj;
     }
     

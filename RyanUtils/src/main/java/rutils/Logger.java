@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -608,6 +609,7 @@ public class Logger
     {
         if (obj instanceof Throwable) return StringUtil.toString(obj);
         if (obj != null && obj.getClass().isArray()) return StringUtil.toString(obj);
+        if (obj instanceof Supplier<?> supplier) return transformObject(supplier.get());
         return obj;
     }
     
