@@ -1083,7 +1083,8 @@ public class Math
      */
     public static int cycle(int x, int min, int max)
     {
-        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+        if (min == max) return min;
+        return x < min ? cycle(max - (x - min + 1), min, max) : x > max ? cycle(min + (x - max - 1), min, max) : x;
     }
     
     /**
@@ -1112,7 +1113,8 @@ public class Math
      */
     public static long cycle(long x, long min, long max)
     {
-        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+        if (min == max) return min;
+        return x < min ? cycle(max - (x - min + 1), min, max) : x > max ? cycle(min + (x - max - 1), min, max) : x;
     }
     
     /**
@@ -1141,7 +1143,8 @@ public class Math
      */
     public static float cycle(float x, float min, float max)
     {
-        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+        if (Float.compare(min, max) == 0) return min;
+        return x < min ? cycle(max - (x - min + 1), min, max) : x > max ? cycle(min + (x - max - 1), min, max) : x;
     }
     
     /**
@@ -1170,7 +1173,8 @@ public class Math
      */
     public static double cycle(double x, double min, double max)
     {
-        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+        if (Double.compare(min, max) == 0) return min;
+        return x < min ? cycle(max - (x - min + 1), min, max) : x > max ? cycle(min + (x - max - 1), min, max) : x;
     }
     
     /**
@@ -1185,6 +1189,19 @@ public class Math
     public static double cycle(double x, double max)
     {
         return cycle(x, 0, max);
+    }
+    
+    /**
+     * Returns the index of a list, wrapping if needed. Negative numbers are
+     * indexed from the back of the list.
+     *
+     * @param i    The index.
+     * @param size The size of the list.
+     * @return The true index.
+     */
+    public static int index(int i, int size)
+    {
+        return (i + size) % size;
     }
     
     /**
