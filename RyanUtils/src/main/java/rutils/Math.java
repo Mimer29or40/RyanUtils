@@ -1072,6 +1072,122 @@ public class Math
     }
     
     /**
+     * Cycles a value between two bounds. If {@code x} is less than {@code min}
+     * or greater than {@code max} then the value is wrapped around until the
+     * values if between the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param min The lower bound.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static int cycle(int x, int min, int max)
+    {
+        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+    }
+    
+    /**
+     * Cycles a value. If {@code x} is less than {@code min} or greater than
+     * {@code max} then the value is wrapped around until the values if between
+     * the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static int cycle(int x, int max)
+    {
+        return cycle(x, 0, max);
+    }
+    
+    /**
+     * Cycles a value between two bounds. If {@code x} is less than {@code min}
+     * or greater than {@code max} then the value is wrapped around until the
+     * values if between the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param min The lower bound.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static long cycle(long x, long min, long max)
+    {
+        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+    }
+    
+    /**
+     * Cycles a value. If {@code x} is less than {@code min} or greater than
+     * {@code max} then the value is wrapped around until the values if between
+     * the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static long cycle(long x, long max)
+    {
+        return cycle(x, 0, max);
+    }
+    
+    /**
+     * Cycles a value between two bounds. If {@code x} is less than {@code min}
+     * or greater than {@code max} then the value is wrapped around until the
+     * values if between the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param min The lower bound.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static float cycle(float x, float min, float max)
+    {
+        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+    }
+    
+    /**
+     * Cycles a value. If {@code x} is less than {@code min} or greater than
+     * {@code max} then the value is wrapped around until the values if between
+     * the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static float cycle(float x, float max)
+    {
+        return cycle(x, 0, max);
+    }
+    
+    /**
+     * Cycles a value between two bounds. If {@code x} is less than {@code min}
+     * or greater than {@code max} then the value is wrapped around until the
+     * values if between the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param min The lower bound.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static double cycle(double x, double min, double max)
+    {
+        return x < min ? cycle(x + max - min, min, max) : x < max ? cycle(x + min - max, min, max) : x;
+    }
+    
+    /**
+     * Cycles a value. If {@code x} is less than {@code min} or greater than
+     * {@code max} then the value is wrapped around until the values if between
+     * the bounds.
+     *
+     * @param x   The value to cycle.
+     * @param max The upper bound.
+     * @return The cycles value.
+     */
+    public static double cycle(double x, double max)
+    {
+        return cycle(x, 0, max);
+    }
+    
+    /**
      * Returns the fused multiply add of the three arguments; that is, returns
      * the exact product of the first two arguments summed with the third
      * argument and then rounded once to the nearest {@code int}.
@@ -1618,5 +1734,5 @@ public class Math
         return Double.doubleToLongBits(a) == Double.doubleToLongBits(b) || Math.abs(a - b) < delta;
     }
     
-    private Math() { }
+    private Math() {}
 }
