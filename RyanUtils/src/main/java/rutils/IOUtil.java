@@ -5,16 +5,45 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class IOUtil
 {
     private static final Logger LOGGER = new Logger();
+    
+    private static final Function<@NotNull Integer, @NotNull ByteBuffer> DEFAULT_MEM_ALLOC = ByteBuffer::allocateDirect;
+    private static final Consumer<@NotNull Buffer>                       DEFAULT_MEM_FREE  = (buffer) -> {};
+    
+    private static Function<@NotNull Integer, @NotNull ByteBuffer> memAlloc = DEFAULT_MEM_ALLOC;
+    private static Consumer<@NotNull Buffer>                       memFree  = DEFAULT_MEM_FREE;
+    
+    /**
+     * Sets the function in which to allocate a ByteBuffer with a specified
+     * {@code size}.
+     *
+     * @param memAlloc The function
+     */
+    public static void memAlloc(@NotNull Function<@NotNull Integer, @NotNull ByteBuffer> memAlloc)
+    {
+        IOUtil.memAlloc = memAlloc;
+    }
+    
+    /**
+     * Sets the function in which to free a Buffer.
+     *
+     * @param memFree The function
+     */
+    public static void memFree(@NotNull Consumer<@NotNull Buffer> memFree)
+    {
+        IOUtil.memFree = memFree;
+    }
     
     /**
      * Gets the path to the file. First it tries to load a resources, then if it fails then tries to load from disk.
@@ -28,25 +57,26 @@ public class IOUtil
         {
             return Path.of(Objects.requireNonNull(IOUtil.class.getClassLoader().getResource(resource)).toURI());
         }
-        catch (URISyntaxException | NullPointerException ignored) { }
+        catch (URISyntaxException | NullPointerException ignored) {}
         return Path.of(resource);
     }
     
     /**
      * Loads a file as a ByteBuffer.
      *
-     * @param resource  The path to the file.
-     * @param bytesRead The number of bytes read from the file.
+     * @param resource The path to the file.
+     * @param size     The number of bytes read from the file.
+     * @param allocator The function to
      * @return The data as a ByteBuffer.
      */
-    public static @Nullable ByteBuffer readFromFile(@NotNull String resource, int[] bytesRead)
+    public static @Nullable ByteBuffer readFromFile(@NotNull String resource, int[] size, @NotNull Function<@NotNull Integer, @NotNull ByteBuffer> allocator)
     {
         ByteBuffer buffer = null;
         try (SeekableByteChannel fc = Files.newByteChannel(IOUtil.getPath(resource)))
         {
-            buffer = ByteBuffer.allocateDirect((int) fc.size() + 1).order(ByteOrder.nativeOrder());
-            bytesRead[0] = 0;
-            for (int read; (read = fc.read(buffer)) != -1; ) bytesRead[0] += read;
+            buffer  = allocator.apply((int) fc.size() + 1);
+            size[0] = 0;
+            for (int read; (read = fc.read(buffer)) != -1; ) size[0] += read;
         }
         catch (IOException e)
         {
@@ -63,7 +93,7 @@ public class IOUtil
      */
     public static @Nullable ByteBuffer readFromFile(@NotNull String resource)
     {
-        return readFromFile(resource, new int[1]);
+        return readFromFile(resource, new int[1], IOUtil.memAlloc);
     }
     
     /**
@@ -124,5 +154,5 @@ public class IOUtil
         return '.' + fileName.substring(dotInd + 1).toLowerCase();
     }
     
-    private IOUtil() { }
+    private IOUtil() {}
 }
