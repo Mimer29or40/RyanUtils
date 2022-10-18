@@ -172,9 +172,8 @@ public final class GLFW
      * <p>
      * On some platforms, certain events are sent directly to the application without going through the event queue, causing callbacks to be called outside of
      * a call to one of the event processing functions.
-     *
      * <div style="margin-left: 26px; border-left: 1px solid gray; padding-left: 14px;">
-     *     <h5>Note</h5>
+     *     <b>Note</b>
      *     <ul>
      *     <li>This function must only be called from the main thread.</li>
      *     </ul>

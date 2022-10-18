@@ -1,5 +1,0 @@
-plugins {
-    id 'RyanUtils.java-common-conventions'
-
-    id 'java-library'
-}
