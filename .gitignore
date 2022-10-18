@@ -73,6 +73,7 @@ local.properties
 /classes/
 /out/
 /build/
+*/build/
 
 # Linux
 *~

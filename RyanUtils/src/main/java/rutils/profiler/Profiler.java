@@ -412,7 +412,7 @@ public class Profiler
     
     /**
      * Gets a ArrayList of data points that shows the frame that the parent took the minimum amount of time to execute.
-     * </p>
+     * <p>
      * The child sections will be included in the string with the percentage that the child took in the parent
      * as well as the percentage of the frame time taken.
      *
@@ -443,7 +443,7 @@ public class Profiler
     
     /**
      * Gets a ArrayList of data points that shows the frame that the parent took the maximum amount of time to execute.
-     * </p>
+     * <p>
      * The child sections will be included in the string with the percentage that the child took in the parent
      * as well as the percentage of the frame time taken.
      *

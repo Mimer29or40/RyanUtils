@@ -1,0 +1,5 @@
+rootProject.name = "RyanUtils"
+
+include "RyanUtils"
+include "RyanUtils-JOML"
+include "RyanUtils-LWJGL"
