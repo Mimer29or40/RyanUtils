@@ -2,7 +2,7 @@ plugins {
     id "RyanUtils.java-library-conventions"
 }
 
-group = "io.github.Mimer29or40"
+group = "com.github.Mimer29or40"
 version = "1.0.0"
 
 dependencies {
